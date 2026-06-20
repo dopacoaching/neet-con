@@ -28,7 +28,7 @@ services:
       - key: SEAT_CAPACITY
         value: "600"
       - key: REGISTRATION_FEE
-        value: "200"
+        value: "100"
       # --- HDFC SmartGateway (Juspay) ---
       - key: HDFC_MOCK
         value: "true" # flip to "false" only after validating a live payment

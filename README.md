@@ -1,10 +1,10 @@
 # NEET CON 2026 — Registration System
 
 Full-stack **MERN** application for **NEET CON 2026**, hosted by **DOPA Coaching, Calicut, Kerala**.
-Students register and pay ₹200 via the HDFC Payment Gateway; the DOPA team manages everything from an internal admin dashboard.
+Students register and pay ₹100 via the HDFC Payment Gateway; the DOPA team manages everything from an internal admin dashboard.
 
 - **Event:** NEET CON 2026 · **Date:** July 12, 2026 · **Venue:** Yamaniya Hall, Kuttikattor (Calicut, Kerala)
-- **Fee:** ₹200 per student · **Capacity:** 600 seats (hard cap)
+- **Fee:** ₹100 per student · **Capacity:** 600 seats (hard cap)
 - **Payment:** HDFC SmartGateway (powered by Juspay) — hosted payment page / redirect
 
 ---

@@ -39,7 +39,7 @@ const HeroSection = () => {
               📍 Yamaniya Hall, Kuttikattor
             </span>
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
-              🎟️ Just ₹200
+              🎟️ Just ₹100
             </span>
           </div>
 
@@ -55,7 +55,7 @@ const HeroSection = () => {
               </span>
             ) : (
               <Link to="/register" className="btn-white text-base">
-                Register Now — ₹200
+                Register Now — ₹100
               </Link>
             )}
             <a

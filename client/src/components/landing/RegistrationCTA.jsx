@@ -18,7 +18,7 @@ const RegistrationCTA = () => {
             Only 600 seats. {typeof remaining === 'number' && !isFull
               ? `${remaining.toLocaleString('en-IN')} remaining right now.`
               : 'Register before they run out.'}{' '}
-            Just ₹200 for a day that could decide your medical career.
+            Just ₹100 for a day that could decide your medical career.
           </p>
 
           <div className="mt-8">
@@ -31,7 +31,7 @@ const RegistrationCTA = () => {
                 to="/register"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-brand shadow-lg transition hover:bg-brand-50"
               >
-                Register Now — ₹200
+                Register Now — ₹100
               </Link>
             )}
           </div>

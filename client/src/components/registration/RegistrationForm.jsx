@@ -208,7 +208,7 @@ const RegistrationForm = ({ disabled }) => {
         ) : disabled ? (
           'Registrations Closed'
         ) : (
-          'Proceed to Pay ₹200'
+          'Proceed to Pay ₹100'
         )}
       </button>
     </form>

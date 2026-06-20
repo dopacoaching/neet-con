@@ -29,7 +29,7 @@ const sampleRegistration = {
   emailAddress: to,
   registrationNumber: 'NEET CON 001',
   preparingFor: 'NEET 2027',
-  amount: Number(process.env.REGISTRATION_FEE || 200),
+  amount: Number(process.env.REGISTRATION_FEE || 100),
 };
 
 console.log(`[test] sending sample confirmation email to ${to} ...`);

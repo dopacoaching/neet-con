@@ -63,7 +63,7 @@ const registrationSchema = new mongoose.Schema(
       default: PAYMENT_STATUS.PENDING,
       index: true,
     },
-    amount: { type: Number, default: () => Number(process.env.REGISTRATION_FEE || 200) },
+    amount: { type: Number, default: () => Number(process.env.REGISTRATION_FEE || 100) },
     hdfc_txn_id: { type: String, default: '' },
     hdfc_response: { type: mongoose.Schema.Types.Mixed, default: null }, // raw payload (audit)
     paymentAttempts: { type: Number, default: 0 },

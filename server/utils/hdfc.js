@@ -316,7 +316,7 @@ export const buildMockCallback = (orderId, status) => {
     order_id: orderId,
     status,
     transaction_id: `MOCK-${Date.now()}`,
-    amount: Number(process.env.REGISTRATION_FEE || 200).toFixed(2),
+    amount: Number(process.env.REGISTRATION_FEE || 100).toFixed(2),
   };
   payload.hash = buildHdfcHash(payload, RESPONSE_KEY());
   return payload;

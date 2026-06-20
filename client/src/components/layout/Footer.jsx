@@ -18,7 +18,7 @@ const Footer = () => (
         <ul className="space-y-2 text-sm">
           <li>📅 July 12, 2026</li>
           <li>📍 Yamaniya Hall, Kuttikattor</li>
-          <li>🎟️ ₹200 per student</li>
+          <li>🎟️ ₹100 per student</li>
           <li>🪑 Limited to 600 seats</li>
         </ul>
       </div>
