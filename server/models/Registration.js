@@ -38,12 +38,14 @@ const registrationSchema = new mongoose.Schema(
       match: [/^[6-9]\d{9}$/, 'Mobile number must be a valid 10-digit Indian number'],
       index: true,
     },
+    // Optional — confirmation + QR are delivered via WhatsApp (to mobileNumber).
+    // Kept for records; validated only when provided.
     emailAddress: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'A valid email address is required'],
+      default: '',
     },
     schoolOrCollege: { type: String, required: true, trim: true },
     passedYear: { type: String, trim: true }, // 2005–2028 (dropdown)

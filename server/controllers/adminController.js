@@ -4,7 +4,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 import { getSeatStats } from '../utils/seats.js';
 import { buildRegistrationsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
-import { sendConfirmationEmail } from '../utils/mailer.js';
+import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import {
   signAdminToken,
   adminCookieOptions,
@@ -158,9 +158,9 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
     await registration.save();
 
-    // On a manual confirmation, send the confirmation + QR email too.
+    // On a manual confirmation, send the confirmation + QR via WhatsApp too.
     if (becomingConfirmed) {
-      await sendConfirmationEmail(registration);
+      await sendConfirmationWhatsApp(registration);
     }
     return res.json({ success: true, data: registration.toObject() });
   }

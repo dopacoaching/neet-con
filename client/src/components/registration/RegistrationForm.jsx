@@ -118,6 +118,9 @@ const RegistrationForm = ({ disabled }) => {
             },
           })}
         />
+        <p className="mt-1 text-xs text-navy/50">
+          Your registration code &amp; entry QR will be sent here on WhatsApp.
+        </p>
         {errors.mobileNumber && (
           <p className="mt-1 text-sm text-red-600">{errors.mobileNumber.message}</p>
         )}
@@ -125,7 +128,7 @@ const RegistrationForm = ({ disabled }) => {
 
       <div>
         <label className="label" htmlFor="emailAddress">
-          Email Address <span className="text-brand">*</span>
+          Email Address <span className="text-navy/40">(optional)</span>
         </label>
         <input
           id="emailAddress"
@@ -134,13 +137,10 @@ const RegistrationForm = ({ disabled }) => {
           placeholder="you@example.com"
           autoComplete="email"
           {...register('emailAddress', {
-            required: 'Email address is required',
             pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email address' },
           })}
         />
-        <p className="mt-1 text-xs text-navy/50">
-          Your registration code &amp; entry QR will be sent here.
-        </p>
+        <p className="mt-1 text-xs text-navy/50">For our records — confirmation is sent via WhatsApp.</p>
         {errors.emailAddress && (
           <p className="mt-1 text-sm text-red-600">{errors.emailAddress.message}</p>
         )}

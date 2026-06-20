@@ -2,7 +2,7 @@ import Registration, { PAYMENT_STATUS } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { getSeatStats } from '../utils/seats.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
-import { sendConfirmationEmail } from '../utils/mailer.js';
+import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import {
   buildPaymentRequest,
   parseHdfcResponse,
@@ -55,9 +55,9 @@ const applyPaymentResult = async (parsed) => {
     registration.confirmedAt = new Date();
     await registration.save();
 
-    // Send the confirmation + QR email. Best-effort: never blocks/fails the
-    // confirmation if SMTP is down or unconfigured.
-    await sendConfirmationEmail(registration);
+    // Send the confirmation + QR via WhatsApp. Best-effort: never blocks/fails
+    // the confirmation if WhatsApp is down or unconfigured.
+    await sendConfirmationWhatsApp(registration);
 
     return { registration, changed: true, reason: 'confirmed' };
   }
@@ -250,6 +250,7 @@ export const getPaymentStatus = asyncHandler(async (req, res) => {
       registrationNumber: registration.registrationNumber || null,
       fullName: registration.fullName,
       emailAddress: registration.emailAddress,
+      mobileNumber: registration.mobileNumber,
       preparingFor: registration.preparingFor,
       confirmedAt: registration.confirmedAt,
       amount: registration.amount,

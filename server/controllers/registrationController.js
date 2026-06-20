@@ -25,8 +25,9 @@ export const createRegistration = asyncHandler(async (req, res) => {
   if (!fullName || !fullName.trim()) errors.push('Full name is required');
   if (!mobileNumber || !MOBILE_RE.test(String(mobileNumber).trim()))
     errors.push('A valid 10-digit Indian mobile number is required');
-  if (!emailAddress || !EMAIL_RE.test(String(emailAddress).trim()))
-    errors.push('A valid email address is required');
+  // Email is optional now (confirmation goes to WhatsApp); validate only if given.
+  if (emailAddress && !EMAIL_RE.test(String(emailAddress).trim()))
+    errors.push('Enter a valid email address');
   if (!schoolOrCollege || !schoolOrCollege.trim()) errors.push('School/College is required');
   if (!preparingFor || !Object.values(PREPARING_FOR).includes(preparingFor))
     errors.push('Preparing For must be "NEET 2027" or "NEET 2028"');

@@ -163,8 +163,8 @@ const ThankYouPage = () => {
         </Link>
       </div>
       <p className="mt-6 max-w-sm text-sm text-white/50">
-        A copy of your registration code and QR pass has been emailed to{' '}
-        <span className="text-white/80">{data.emailAddress || 'your registered email'}</span>. Please
+        Your registration code and QR pass have been sent on WhatsApp to{' '}
+        <span className="text-white/80">{data.mobileNumber || 'your registered mobile'}</span>. Please
         also take a screenshot for your records.
       </p>
     </Shell>

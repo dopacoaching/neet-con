@@ -154,10 +154,10 @@ Re-run with `node seed/createAdmin.js --reset` to reset passwords to the default
 4. After payment, HDFC redirects to `POST /api/payment/callback`; HDFC **also** calls `POST /api/payment/webhook` server-to-server.
 5. **Both** paths independently verify the response signature, then finalise the registration (idempotent — whichever arrives first wins; the other is a no-op).
 6. On success the status becomes **CONFIRMED**, a sequential registration code is generated atomically (**`NEET CON 001`**, `NEET CON 002`, … zero-padded to 3 digits), and `confirmedAt` is set.
-7. A **confirmation email with a QR code** (the QR encodes the registration code) is sent to the student's email. The QR is also shown on the Thank You page in-app. (Manual confirmations from the admin dashboard send the same email.)
+7. A **WhatsApp confirmation with the entry QR** (the QR encodes the registration code) is sent to the student's mobile number via the Meta WhatsApp Cloud API. The QR is also shown on the Thank You page in-app. (Manual confirmations from the admin dashboard send the same message.)
 8. The Thank You page polls `GET /api/payment/status/:orderId` (auto-retries while PENDING, then falls back to the Payment Failed page).
 
-> **Email is required** at registration — it's where the registration code and entry QR are delivered.
+> **Mobile number is required** at registration — the registration code and entry QR are delivered to it via WhatsApp. Email is optional (kept for records only).
 
 ### Mock mode (no HDFC credentials yet)
 
@@ -245,7 +245,7 @@ Serve `client/dist` from any static host (or behind the same domain as the API) 
 
 ## Roadmap
 
-- **v1.0 (this build):** form fields are final — Full Name, Mobile, **Email (required)**, School/College, Year of 12th, Preparing For.
+- **v1.0 (this build):** form fields are final — Full Name, **Mobile (required, WhatsApp delivery)**, Email (optional), School/College, Year of 12th, Preparing For.
 - **v1.1:** additional form fields. The Mongoose schema is intentionally additive — new optional fields can be added without breaking existing records.
 
 ---

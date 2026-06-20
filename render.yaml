@@ -46,7 +46,22 @@ services:
         sync: false # https://<this-service>.onrender.com/api/payment/callback
       - key: HDFC_WEBHOOK_URL
         sync: false # https://<this-service>.onrender.com/api/payment/webhook
-      # --- Email (SMTP) ---
+      # --- WhatsApp (Meta Cloud API) — primary confirmation channel ---
+      - key: WHATSAPP_MOCK
+        value: "true" # flip to "false" once the template is approved + creds set
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_TEMPLATE_NAME
+        value: neetcon_confirmation
+      - key: WHATSAPP_TEMPLATE_LANG
+        value: en
+      - key: WHATSAPP_COUNTRY_CODE
+        value: "91"
+      - key: WHATSAPP_API_VERSION
+        value: v21.0
+      # --- Email (SMTP) — optional, no longer the delivery channel ---
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
