@@ -1,0 +1,102 @@
+import { Link } from 'react-router-dom';
+import SeatsRemainingBadge from '../ui/SeatsRemainingBadge.jsx';
+import { useSeats } from '../../hooks/useSeats.js';
+
+const HeroSection = () => {
+  const { seats } = useSeats();
+  const isFull = seats?.isFull;
+
+  return (
+    <section className="relative overflow-hidden bg-gradient-to-b from-navy via-navy to-navy-light text-white">
+      {/* Subtle grid texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
+          backgroundSize: '44px 44px',
+        }}
+      />
+      {/* Decorative gradient blobs */}
+      <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-accent/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-brand/30 blur-3xl" />
+
+      <div className="section relative grid items-center gap-10 py-16 md:grid-cols-2 md:py-24">
+        <div className="animate-fade-in">
+          <SeatsRemainingBadge className="mb-5" />
+          <h1 className="font-heading text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
+            NEET CON <span className="text-accent">2026</span>
+          </h1>
+          <p className="mt-4 text-lg font-medium text-white/80">
+            Kerala's biggest NEET counselling &amp; strategy conclave.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-2.5 text-sm">
+            <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
+              📅 July 12, 2026
+            </span>
+            <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
+              📍 Yamaniya Hall, Kuttikattor
+            </span>
+            <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
+              🎟️ Just ₹200
+            </span>
+          </div>
+
+          <p className="mt-6 max-w-md text-white/70">
+            From rank prediction to college allotment strategy — get clarity from medical
+            professionals and NEET toppers. One day that can shape your medical career.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            {isFull ? (
+              <span className="rounded-xl bg-white/10 px-7 py-3.5 font-semibold text-white/70">
+                Registrations Closed
+              </span>
+            ) : (
+              <Link to="/register" className="btn-white text-base">
+                Register Now — ₹200
+              </Link>
+            )}
+            <a
+              href="#about"
+              className="text-sm font-semibold text-white/80 transition hover:text-accent"
+            >
+              Learn more ↓
+            </a>
+          </div>
+        </div>
+
+        {/* Event card / poster placeholder */}
+        <div className="animate-fade-in">
+          <div className="mx-auto max-w-sm rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur">
+            <p className="text-xs uppercase tracking-widest text-accent">DOPA Coaching</p>
+            <p className="mt-4 font-heading text-3xl font-extrabold leading-tight">
+              Your Seat to a<br />Medical Future
+            </p>
+            <div className="mt-6 space-y-3 text-sm text-white/80">
+              <div className="flex justify-between border-b border-white/10 pb-2">
+                <span>Date</span>
+                <strong>12 July 2026</strong>
+              </div>
+              <div className="flex justify-between border-b border-white/10 pb-2">
+                <span>Time</span>
+                <strong>9:30 AM – 5:00 PM</strong>
+              </div>
+              <div className="flex justify-between border-b border-white/10 pb-2">
+                <span>Venue</span>
+                <strong>Yamaniya Hall, Kuttikattor</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>Capacity</span>
+                <strong>600 seats</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HeroSection;

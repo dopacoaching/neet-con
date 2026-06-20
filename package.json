@@ -1,0 +1,21 @@
+{
+  "name": "neetcon-2026",
+  "version": "1.0.0",
+  "description": "NEET CON 2026 Registration System (MERN) — DOPA Coaching, Calicut. Root launcher.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon server/server.js",
+    "start": "node server/server.js",
+    "server": "nodemon server/server.js",
+    "client": "npm --prefix client run dev",
+    "dev:all": "concurrently -n server,client -c blue,magenta \"npm run server\" \"npm run client\"",
+    "seed:admin": "node server/seed/createAdmin.js",
+    "build": "npm --prefix client run build",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.14"
+  }
+}

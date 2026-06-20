@@ -1,0 +1,68 @@
+# Render Blueprint — NEET CON 2026 API (Express + MongoDB)
+# Deploy: Render Dashboard > New > Blueprint > pick this repo.
+# Secrets (sync:false) are NOT stored here — set them in the Render dashboard.
+services:
+  - type: web
+    name: neetcon-2026-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # PORT is provided by Render automatically; server.js reads process.env.PORT.
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLIENT_URL
+        sync: false # e.g. https://neetcon-2026.vercel.app  (no trailing slash)
+      - key: SEAT_CAPACITY
+        value: "600"
+      - key: REGISTRATION_FEE
+        value: "200"
+      # --- HDFC SmartGateway (Juspay) ---
+      - key: HDFC_MOCK
+        value: "true" # flip to "false" only after validating a live payment
+      - key: HDFC_API_KEY
+        sync: false
+      - key: HDFC_MERCHANT_ID
+        sync: false
+      - key: HDFC_RESPONSE_KEY
+        sync: false
+      - key: HDFC_PAYMENT_PAGE_CLIENT_ID
+        sync: false
+      - key: HDFC_BASE_URL
+        value: https://smartgateway.hdfcbank.com
+      - key: HDFC_API_VERSION
+        value: "2023-06-30"
+      - key: HDFC_REDIRECT_URL
+        sync: false # https://<this-service>.onrender.com/api/payment/callback
+      - key: HDFC_WEBHOOK_URL
+        sync: false # https://<this-service>.onrender.com/api/payment/webhook
+      # --- Email (SMTP) ---
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      # --- Event details (shown in the confirmation email) ---
+      - key: EVENT_DATE
+        value: 12 July 2026
+      - key: EVENT_TIME
+        value: 9:30 AM - 5:00 PM
+      - key: EVENT_VENUE
+        value: Yamaniya Hall, Kuttikattor
