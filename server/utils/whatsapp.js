@@ -23,6 +23,9 @@ import { generateQrBuffer } from './qrcode.js';
  *         Venue: {{6}}
  *         Amount Paid: ₹{{7}}
  *         Show the QR above at the entry desk. See you there!"
+ *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
+ *      link for the venue. Static-URL buttons need NO code change (only dynamic
+ *      {{n}} URL buttons would). The QR is always the image header (top).
  *
  *  ENV (server/.env, never commit):
  *    WHATSAPP_PHONE_NUMBER_ID   the Cloud API phone number id
