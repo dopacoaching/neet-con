@@ -23,6 +23,8 @@ export const buildRegistrationsWorkbook = (registrations) => {
     'Registered At': r.createdAt ? new Date(r.createdAt).toLocaleString('en-IN') : '',
     'Confirmed At': r.confirmedAt ? new Date(r.confirmedAt).toLocaleString('en-IN') : '',
     'Manually Confirmed By': r.manuallyConfirmedBy || '',
+    'Checked In At': r.checkedInAt ? new Date(r.checkedInAt).toLocaleString('en-IN') : '',
+    'Checked In By': r.checkedInBy || '',
     'Notes': r.notes || '',
   }));
 
@@ -33,7 +35,7 @@ export const buildRegistrationsWorkbook = (registrations) => {
     { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 }, { wch: 26 },
     { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 15 }, { wch: 12 },
     { wch: 26 }, { wch: 20 }, { wch: 16 }, { wch: 22 }, { wch: 22 },
-    { wch: 20 }, { wch: 30 },
+    { wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 30 },
   ];
 
   const workbook = xlsx.utils.book_new();

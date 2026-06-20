@@ -9,6 +9,7 @@ import {
   signAdminToken,
   adminCookieOptions,
   ADMIN_COOKIE,
+  findEnvAdmin,
 } from '../middleware/authMiddleware.js';
 
 /**
@@ -19,6 +20,14 @@ export const login = asyncHandler(async (req, res) => {
   if (!username || !password) {
     res.status(400);
     throw new Error('Username and password are required');
+  }
+
+  // Env-defined admin (ADMIN_CREDENTIALS) takes precedence — works without DB seed.
+  const envAdmin = findEnvAdmin(username, password);
+  if (envAdmin) {
+    const token = signAdminToken(envAdmin);
+    res.cookie(ADMIN_COOKIE, token, adminCookieOptions());
+    return res.json({ success: true, data: envAdmin.toSafeJSON() });
   }
 
   const admin = await Admin.findOne({ username: String(username).toLowerCase().trim() });
@@ -217,4 +226,72 @@ export const exportRegistrations = asyncHandler(async (req, res) => {
     `attachment; filename="neetcon2026-registrations-${stamp}.xlsx"`
   );
   res.send(buffer);
+});
+
+/**
+ * The subset of a registration shown to the gate scanner after a scan.
+ */
+const checkinView = (r) => ({
+  id: r._id,
+  registrationNumber: r.registrationNumber,
+  fullName: r.fullName,
+  mobileNumber: r.mobileNumber,
+  schoolOrCollege: r.schoolOrCollege,
+  preparingFor: r.preparingFor,
+  paymentStatus: r.paymentStatus,
+  checkedInAt: r.checkedInAt,
+  checkedInBy: r.checkedInBy,
+});
+
+/**
+ * POST /api/admin/checkin
+ * Body: { code }  — the registration code encoded in the student's QR.
+ * Looks the student up, validates the seat, and marks attendance (once).
+ * Available to any authenticated admin (gate staff may be viewers).
+ */
+export const checkIn = asyncHandler(async (req, res) => {
+  const code = String(req.body?.code || '').trim();
+  if (!code) {
+    res.status(400);
+    throw new Error('No QR code / registration number provided');
+  }
+
+  const registration = await Registration.findOne({ registrationNumber: code });
+  if (!registration) {
+    res.status(404);
+    throw new Error(`No registration found for "${code}"`);
+  }
+
+  const isConfirmed =
+    registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
+    registration.paymentStatus === PAYMENT_STATUS.MANUAL;
+
+  if (!isConfirmed) {
+    return res.status(200).json({
+      success: false,
+      result: 'not_confirmed',
+      message: 'This registration is not a confirmed/paid seat — do not admit.',
+      data: checkinView(registration),
+    });
+  }
+
+  if (registration.checkedInAt) {
+    return res.status(200).json({
+      success: false,
+      result: 'already_checked_in',
+      message: 'Already checked in — possible duplicate scan.',
+      data: checkinView(registration),
+    });
+  }
+
+  registration.checkedInAt = new Date();
+  registration.checkedInBy = req.admin.username;
+  await registration.save();
+
+  return res.json({
+    success: true,
+    result: 'checked_in',
+    message: 'Checked in successfully. Admit the student.',
+    data: checkinView(registration),
+  });
 });

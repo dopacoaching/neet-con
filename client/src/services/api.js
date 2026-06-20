@@ -64,4 +64,10 @@ export const adminUpdateStatus = (id, payload) =>
 export const adminExport = () =>
   api.get('/admin/export', { responseType: 'blob' }).then((r) => r.data);
 
+// Gate check-in by scanned QR code / registration number.
+// Returns the full envelope { success, result, message, data } so the caller
+// can distinguish checked_in / already_checked_in / not_confirmed.
+export const adminCheckIn = (code) =>
+  api.post('/admin/checkin', { code }).then((r) => r.data);
+
 export default api;

@@ -12,6 +12,7 @@ import SummaryCards from '../../components/admin/SummaryCards.jsx';
 import SeatCounter from '../../components/admin/SeatCounter.jsx';
 import RegistrationsTable from '../../components/admin/RegistrationsTable.jsx';
 import RegistrationDetailModal from '../../components/admin/RegistrationDetailModal.jsx';
+import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
 import { Spinner } from '../../components/ui/PageLoader.jsx';
 
 const STATUS_OPTIONS = ['All', 'CONFIRMED', 'PENDING', 'FAILED', 'MANUAL'];
@@ -29,6 +30,7 @@ const AdminDashboardPage = () => {
   const [filters, setFilters] = useState({ search: '', status: 'All', preparingFor: 'All', page: 1 });
   const [selected, setSelected] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
   const searchTimer = useRef(null);
 
@@ -144,17 +146,22 @@ const AdminDashboardPage = () => {
             <h1 className="font-heading text-2xl font-extrabold text-navy">Dashboard</h1>
             <p className="text-sm text-navy/60">NEET CON 2026 registrations overview</p>
           </div>
-          {isAdminRole && (
-            <button onClick={handleExport} className="btn-primary !py-2.5" disabled={exporting}>
-              {exporting ? (
-                <>
-                  <Spinner /> Exporting…
-                </>
-              ) : (
-                '⬇ Export to Excel'
-              )}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setScanning(true)} className="btn-ghost !py-2.5">
+              📷 Scan / Check-in
             </button>
-          )}
+            {isAdminRole && (
+              <button onClick={handleExport} className="btn-primary !py-2.5" disabled={exporting}>
+                {exporting ? (
+                  <>
+                    <Spinner /> Exporting…
+                  </>
+                ) : (
+                  '⬇ Export to Excel'
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         <SummaryCards summary={summary} loading={summaryLoading} />
@@ -207,6 +214,10 @@ const AdminDashboardPage = () => {
           onClose={() => setSelected(null)}
           onUpdated={handleUpdated}
         />
+      )}
+
+      {scanning && (
+        <CheckInScanner onClose={() => setScanning(false)} onCheckedIn={loadList} />
       )}
     </div>
   );

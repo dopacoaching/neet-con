@@ -72,6 +72,10 @@ const registrationSchema = new mongoose.Schema(
     confirmedAt: { type: Date, default: null },
     manuallyConfirmedBy: { type: String, default: '' }, // admin username if MANUAL
     notes: { type: String, default: '' }, // admin internal notes
+
+    // --- Event check-in (QR scan at the gate) ---
+    checkedInAt: { type: Date, default: null },
+    checkedInBy: { type: String, default: '' }, // admin username who scanned
   },
   { timestamps: true } // adds createdAt + updatedAt
 );

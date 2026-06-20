@@ -21,6 +21,8 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
+      - key: ADMIN_CREDENTIALS
+        sync: false # "email:password" bootstrap admin login(s)
       - key: CLIENT_URL
         sync: false # e.g. https://neetcon-2026.vercel.app  (no trailing slash)
       - key: SEAT_CAPACITY

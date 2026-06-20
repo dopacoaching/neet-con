@@ -116,6 +116,16 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
                 label="Registered At"
                 value={r.createdAt ? format(new Date(r.createdAt), 'dd MMM yyyy, h:mm a') : '—'}
               />
+              <Field
+                label="Checked In"
+                value={
+                  r.checkedInAt
+                    ? `${format(new Date(r.checkedInAt), 'dd MMM yyyy, h:mm a')}${
+                        r.checkedInBy ? ` · ${r.checkedInBy}` : ''
+                      }`
+                    : 'Not yet'
+                }
+              />
             </div>
           </div>
 
