@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import SeatsRemainingBadge from '../ui/SeatsRemainingBadge.jsx';
 import { useSeats } from '../../hooks/useSeats.js';
+import { VENUE_MAP_URL } from '../../config/event.js';
 
 const HeroSection = () => {
   const { seats } = useSeats();
@@ -35,9 +36,14 @@ const HeroSection = () => {
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
               📅 July 12, 2026
             </span>
-            <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
+            <a
+              href={VENUE_MAP_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold transition hover:border-accent hover:text-accent"
+            >
               📍 Yamaniya Hall, Kuttikattor
-            </span>
+            </a>
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
               🎟️ Just ₹100
             </span>

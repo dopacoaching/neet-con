@@ -1,4 +1,5 @@
 import Logo from '../ui/Logo.jsx';
+import { VENUE_MAP_URL } from '../../config/event.js';
 
 const Footer = () => (
   <footer className="bg-navy text-white/80">
@@ -17,7 +18,18 @@ const Footer = () => (
         </h4>
         <ul className="space-y-2 text-sm">
           <li>📅 July 12, 2026</li>
-          <li>📍 Yamaniya Hall, Kuttikattor</li>
+          <li>
+            📍{' '}
+            <a
+              href={VENUE_MAP_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-2 hover:text-accent hover:underline"
+            >
+              Yamaniya Hall, Kuttikattor
+            </a>{' '}
+            <span className="text-white/40">· Get directions</span>
+          </li>
           <li>🎟️ ₹100 per student</li>
           <li>🪑 Limited to 600 seats</li>
         </ul>

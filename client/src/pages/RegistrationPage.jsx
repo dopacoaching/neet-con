@@ -3,6 +3,7 @@ import RegistrationForm from '../components/registration/RegistrationForm.jsx';
 import Logo from '../components/ui/Logo.jsx';
 import SeatsRemainingBadge from '../components/ui/SeatsRemainingBadge.jsx';
 import { useSeats } from '../hooks/useSeats.js';
+import { VENUE_MAP_URL } from '../config/event.js';
 
 const RegistrationPage = () => {
   const { seats, loading } = useSeats();
@@ -44,7 +45,20 @@ const RegistrationPage = () => {
                 className="flex justify-between border-b border-white/10 pb-2 text-white/80"
               >
                 <span>{k}</span>
-                <strong className="text-white">{v}</strong>
+                <strong className="text-white">
+                  {k.includes('Venue') ? (
+                    <a
+                      href={VENUE_MAP_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline-offset-2 hover:text-accent hover:underline"
+                    >
+                      {v}
+                    </a>
+                  ) : (
+                    v
+                  )}
+                </strong>
               </div>
             ))}
           </div>

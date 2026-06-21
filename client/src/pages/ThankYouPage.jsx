@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { getPaymentStatus } from '../services/api.js';
 import Logo from '../components/ui/Logo.jsx';
 import { Spinner } from '../components/ui/PageLoader.jsx';
+import { VENUE_MAP_URL } from '../config/event.js';
 
 const MAX_RETRIES = 5;
 const RETRY_MS = 5000;
@@ -144,7 +145,19 @@ const ThankYouPage = () => {
           <Row k="Name" v={data.fullName} />
           <Row k="Preparing For" v={data.preparingFor} />
           <Row k="Event Date" v="12 July 2026" />
-          <Row k="Venue" v="Yamaniya Hall, Kuttikattor" />
+          <Row
+            k="Venue"
+            v={
+              <a
+                href={VENUE_MAP_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="underline-offset-2 hover:text-accent hover:underline"
+              >
+                Yamaniya Hall, Kuttikattor
+              </a>
+            }
+          />
           <Row k="Amount Paid" v={`₹${data.amount}`} />
         </div>
       </div>
