@@ -19,6 +19,9 @@ export default {
           800: '#001466',
           900: '#000a33',
         },
+        // DOPA wordmark cyan (sampled from the logo) — used for the "Coaching"
+        // text so the logo + word read as one "DOPA Coaching" lockup.
+        dopa: '#00aff5',
         // Secondary / dark surfaces — Navy Blue (#001e5f).
         navy: {
           DEFAULT: '#001e5f',
