@@ -1,10 +1,9 @@
 /**
- * DOPA logo lockup. Falls back to a styled text mark if the image asset
- * (/dopa-logo.png) is missing — replace public/dopa-logo.png with the real one.
+ * Brand lockup: DOPA logo + "Coaching" wordmark, then the NEET CON 2026 logo.
+ * The DOPA mark falls back to a styled "D" tile if /dopa-logo.png is missing.
  */
 const Logo = ({ className = '', dark = false }) => {
   const textColor = dark ? 'text-white' : 'text-navy';
-  const accentColor = dark ? 'text-accent' : 'text-brand';
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <img
@@ -22,14 +21,13 @@ const Logo = ({ className = '', dark = false }) => {
       >
         D
       </span>
-      <div className="leading-tight">
-        <span className={`block font-heading text-base font-extrabold ${textColor}`}>
-          NEET CON <span className={accentColor}>2026</span>
-        </span>
-        <span className={`block text-[11px] ${dark ? 'text-white/60' : 'text-navy/50'}`}>
-          DOPA Coaching
-        </span>
-      </div>
+      <span className={`font-heading text-base font-extrabold ${textColor}`}>Coaching</span>
+
+      {/* NEET CON 2026 event logo (was a text wordmark). On a small white chip
+          so it stays visible on the dark navy surfaces this lockup sits on. */}
+      <span className="ml-1 inline-flex rounded-lg bg-white px-2 py-1">
+        <img src="/neetcon-logo.png" alt="NEET CON 2026" className="h-7 w-auto object-contain" />
+      </span>
     </div>
   );
 };
