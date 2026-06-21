@@ -7,18 +7,18 @@
  * dark surfaces it sits on a small white chip.
  */
 const Logo = ({ className = '', dark = false }) => (
-  <div className={`flex items-center gap-2 ${className}`}>
-    <img src="/dopa-logo.png" alt="DOPA" className="h-6 w-auto object-contain sm:h-7" />
-    <span className="font-heading text-xl font-bold leading-none tracking-tight text-dopa sm:text-2xl">
+  <div className={`flex items-center gap-1.5 ${className}`}>
+    <img src="/dopa-logo.png" alt="DOPA" className="h-5 w-auto object-contain sm:h-6" />
+    <span className="font-heading text-lg font-bold leading-none tracking-tight text-dopa sm:text-xl">
       Coaching
     </span>
     <span
-      className={`ml-1 inline-flex items-center rounded-lg ${dark ? 'bg-white px-2 py-1.5' : ''}`}
+      className={`ml-2 inline-flex items-center rounded-md ${dark ? 'bg-white px-1.5 py-1' : ''}`}
     >
       <img
         src="/neetcon-logo.png"
         alt="NEET CON 2026"
-        className="h-7 w-auto object-contain sm:h-8"
+        className="h-6 w-auto object-contain sm:h-7"
       />
     </span>
   </div>
