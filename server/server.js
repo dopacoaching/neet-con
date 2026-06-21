@@ -46,9 +46,13 @@ const allowedOrigins =
 app.use(
   cors({
     origin(origin, cb) {
-      // Allow same-origin / server-to-server (no origin) and whitelisted clients.
+      // Allow same-origin / server-to-server (no origin) and whitelisted clients
+      // WITH CORS headers (needed for credentialed cross-origin requests).
       if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`CORS: origin ${origin} not allowed`));
+      // Any other origin: proceed WITHOUT CORS headers instead of throwing a 500.
+      // Same-origin page/asset serving keeps working; the browser still blocks
+      // disallowed cross-origin reads (no Access-Control-Allow-Origin returned).
+      return cb(null, false);
     },
     credentials: true,
   })
