@@ -12,16 +12,17 @@ import { generateQrBuffer } from './qrcode.js';
  *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. neetcon_confirmation)
  *    - Category: UTILITY
  *    - Header:   IMAGE
- *    - Body with 7 variables, in THIS order:
- *        {{1}} name   {{2}} registration code   {{3}} preparing for
- *        {{4}} date   {{5}} time                {{6}} venue   {{7}} amount
+ *    - Body with 7 NAMED variables (Meta's current editor requires named, not
+ *      numbered, parameters — lowercase + underscores):
+ *        {{full_name}} {{registration_code}} {{preparing_for}}
+ *        {{event_date}} {{event_time}} {{venue}} {{amount}}
  *      Example body text:
- *        "Hi {{1}}, your NEET CON 2026 seat is CONFIRMED ✅
- *         Registration Code: {{2}}
- *         Preparing For: {{3}}
- *         Date: {{4}}, Time: {{5}}
- *         Venue: {{6}}
- *         Amount Paid: ₹{{7}}
+ *        "Hi {{full_name}}, your NEET CON 2026 seat is CONFIRMED ✅
+ *         Registration Code: {{registration_code}}
+ *         Preparing For: {{preparing_for}}
+ *         Date: {{event_date}}, Time: {{event_time}}
+ *         Venue: {{venue}}
+ *         Amount Paid: ₹{{amount}}
  *         Show the QR above at the entry desk. See you there!"
  *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
  *      link for the venue. Static-URL buttons need NO code change (only dynamic
@@ -141,13 +142,17 @@ export const sendConfirmationWhatsApp = async (reg) => {
           {
             type: 'body',
             parameters: [
-              { type: 'text', text: String(reg.fullName) },
-              { type: 'text', text: String(reg.registrationNumber) },
-              { type: 'text', text: String(reg.preparingFor) },
-              { type: 'text', text: EVENT.date },
-              { type: 'text', text: EVENT.time },
-              { type: 'text', text: EVENT.venue },
-              { type: 'text', text: String(reg.amount) },
+              { type: 'text', parameter_name: 'full_name', text: String(reg.fullName) },
+              {
+                type: 'text',
+                parameter_name: 'registration_code',
+                text: String(reg.registrationNumber),
+              },
+              { type: 'text', parameter_name: 'preparing_for', text: String(reg.preparingFor) },
+              { type: 'text', parameter_name: 'event_date', text: EVENT.date },
+              { type: 'text', parameter_name: 'event_time', text: EVENT.time },
+              { type: 'text', parameter_name: 'venue', text: EVENT.venue },
+              { type: 'text', parameter_name: 'amount', text: String(reg.amount) },
             ],
           },
         ],
