@@ -173,12 +173,9 @@ const ThankYouPage = () => {
 
 const Shell = ({ children }) => (
   <div className="flex min-h-screen flex-col items-center bg-navy px-6 py-10 text-center text-white">
-    <Link to="/" className="mb-6">
+    <Link to="/" className="mb-10">
       <Logo dark />
     </Link>
-    <div className="mb-8 inline-flex rounded-2xl bg-white p-3 shadow-lg">
-      <img src="/neetcon-logo.png" alt="NEET CON 2026" className="h-12 w-auto object-contain" />
-    </div>
     <div className="flex flex-1 flex-col items-center justify-center">{children}</div>
   </div>
 );

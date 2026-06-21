@@ -23,14 +23,7 @@ const RegistrationPage = () => {
       <main className="section grid items-start gap-8 pb-20 pt-4 lg:grid-cols-[1fr_1.1fr]">
         {/* Left — event summary */}
         <div className="text-white">
-          <div className="mb-6 inline-flex rounded-2xl bg-white p-3 shadow-lg">
-            <img
-              src="/neetcon-logo.png"
-              alt="NEET CON 2026"
-              className="h-14 w-auto object-contain"
-            />
-          </div>
-          <SeatsRemainingBadge className="mb-5 block w-fit" />
+          <SeatsRemainingBadge className="mb-5" />
           <h1 className="font-heading text-3xl font-extrabold sm:text-4xl">
             Register for NEET CON 2026
           </h1>
