@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Allow public tunnel hosts (localtunnel / cloudflared / ngrok) so the dev
+    // server can be shared for previews. Dev-only — does not affect the build.
+    allowedHosts: ['.loca.lt', '.trycloudflare.com', '.ngrok-free.app', '.ngrok.io'],
     proxy: {
       // Proxy API calls to the Express backend during development.
       '/api': {

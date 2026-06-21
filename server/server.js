@@ -1,6 +1,7 @@
 import { config as loadEnv } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 
 // Load server/.env regardless of the current working directory, so the server
 // can be started from the repo root (nodemon) or from server/.
@@ -76,6 +77,23 @@ app.use('/api', apiLimiter);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+
+// --- Serve the built client from the same origin (if present) ---
+// Lets one process/port serve both the API and the frontend — handy for tunnel
+// previews and single-origin deploys. No-op when client/dist isn't alongside
+// the server (e.g. Render API-only / Vercel client-only deploys).
+const clientDist = join(__dirname, '..', 'client', 'dist');
+if (existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  // SPA fallback: send index.html for non-API GET routes.
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      return res.sendFile(join(clientDist, 'index.html'));
+    }
+    next();
+  });
+  console.log('[server] Serving built client from client/dist');
+}
 
 // --- 404 + error handling ---
 app.use(notFound);
