@@ -70,6 +70,13 @@ const HeroSection = () => {
         {/* Event card / poster placeholder */}
         <div className="animate-fade-in">
           <div className="mx-auto max-w-sm rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur">
+            <div className="mb-6 flex justify-center rounded-2xl bg-white p-4">
+              <img
+                src="/neetcon-logo.png"
+                alt="NEET CON 2026"
+                className="h-20 w-auto object-contain"
+              />
+            </div>
             <p className="text-xs uppercase tracking-widest text-accent">DOPA Coaching</p>
             <p className="mt-4 font-heading text-3xl font-extrabold leading-tight">
               Your Seat to a<br />Medical Future
