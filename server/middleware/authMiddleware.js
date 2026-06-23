@@ -53,7 +53,11 @@ const makeEnvAdmin = (username, role = ADMIN_ROLES.ADMIN) => ({
 export const findEnvAdmin = (username, password) => {
   const u = String(username || '').trim().toLowerCase();
   const match = parseEnvAdmins().find((a) => a.username === u);
-  if (!match || !safeEqual(match.password, password)) return null;
+  // Always run a constant-time comparison (against a dummy when the username
+  // is unknown) so response timing doesn't reveal which usernames are valid.
+  const expected = match ? match.password : '\0';
+  const ok = safeEqual(expected, String(password ?? ''));
+  if (!match || !ok) return null;
   return makeEnvAdmin(match.username, match.role);
 };
 

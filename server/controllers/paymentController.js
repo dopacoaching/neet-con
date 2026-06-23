@@ -1,6 +1,6 @@
 import Registration, { PAYMENT_STATUS } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getSeatStats } from '../utils/seats.js';
+import { getSeatCapacity } from '../utils/seats.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import {
@@ -37,27 +37,50 @@ const applyPaymentResult = async (parsed) => {
   registration.hdfc_response = raw;
 
   if (status === 'SUCCESS') {
-    // Enforce seat cap at confirmation time (the real authority).
-    const seats = await getSeatStats();
-    if (seats.isFull) {
+    // Duplicate-payment guard: never give a second seat to a mobile that
+    // already holds a confirmed registration (e.g. the user registered twice
+    // and paid both). The duplicate payment is recorded but not seated.
+    const dupe = await Registration.findOne({
+      _id: { $ne: registration._id },
+      mobileNumber: registration.mobileNumber,
+      paymentStatus: { $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL] },
+    });
+    if (dupe) {
       registration.paymentStatus = PAYMENT_STATUS.FAILED;
-      registration.notes = [registration.notes, 'Auto-failed: seats full at confirmation time.']
+      registration.notes = [
+        registration.notes,
+        `Auto-failed: mobile already confirmed under ${dupe.registrationNumber || dupe.orderId}. Possible duplicate payment — review for refund.`,
+      ]
         .filter(Boolean)
         .join(' | ');
       await registration.save();
-      return { registration, changed: true, reason: 'seats full' };
+      return { registration, changed: true, reason: 'duplicate mobile' };
     }
 
+    // Allocate the seat atomically. The capped counter is the real authority:
+    // exactly SEAT_CAPACITY codes can ever be issued, so racing confirmations
+    // can never oversell. A null result means seats are full.
     if (!registration.registrationNumber) {
-      registration.registrationNumber = await nextRegistrationNumber();
+      const regNo = await nextRegistrationNumber(getSeatCapacity());
+      if (!regNo) {
+        registration.paymentStatus = PAYMENT_STATUS.FAILED;
+        registration.notes = [registration.notes, 'Auto-failed: seats full at confirmation time.']
+          .filter(Boolean)
+          .join(' | ');
+        await registration.save();
+        return { registration, changed: true, reason: 'seats full' };
+      }
+      registration.registrationNumber = regNo;
     }
     registration.paymentStatus = PAYMENT_STATUS.CONFIRMED;
     registration.confirmedAt = new Date();
     await registration.save();
 
-    // Send the confirmation + QR via WhatsApp. Best-effort: never blocks/fails
-    // the confirmation if WhatsApp is down or unconfigured.
-    await sendConfirmationWhatsApp(registration);
+    // Send the confirmation + QR via WhatsApp. Fire-and-forget so the user's
+    // redirect/poll is never delayed by Meta's API; it never throws.
+    sendConfirmationWhatsApp(registration).catch((err) =>
+      console.error(`[whatsapp] unexpected send error: ${err?.message || err}`)
+    );
 
     return { registration, changed: true, reason: 'confirmed' };
   }
@@ -242,6 +265,14 @@ export const getPaymentStatus = asyncHandler(async (req, res) => {
     }
   }
 
+  // This endpoint is public (polled by the Thank-You page with just an orderId),
+  // so return only what that page renders and avoid leaking full PII. The mobile
+  // is masked to its last 4 digits and the email is omitted entirely.
+  const maskMobile = (m) => {
+    const d = String(m || '');
+    return d.length >= 4 ? `••••••${d.slice(-4)}` : d;
+  };
+
   res.json({
     success: true,
     data: {
@@ -249,8 +280,7 @@ export const getPaymentStatus = asyncHandler(async (req, res) => {
       paymentStatus: registration.paymentStatus,
       registrationNumber: registration.registrationNumber || null,
       fullName: registration.fullName,
-      emailAddress: registration.emailAddress,
-      mobileNumber: registration.mobileNumber,
+      mobileNumber: maskMobile(registration.mobileNumber),
       preparingFor: registration.preparingFor,
       confirmedAt: registration.confirmedAt,
       amount: registration.amount,

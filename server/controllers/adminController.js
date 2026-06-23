@@ -1,7 +1,7 @@
 import Admin from '../models/Admin.js';
 import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getSeatStats } from '../utils/seats.js';
+import { getSeatStats, getSeatCapacity } from '../utils/seats.js';
 import { buildRegistrationsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
@@ -141,22 +141,43 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
       throw new Error('Invalid status');
     }
 
+    const wasConfirmed =
+      registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
+      registration.paymentStatus === PAYMENT_STATUS.MANUAL;
     const becomingConfirmed =
-      (status === PAYMENT_STATUS.MANUAL || status === PAYMENT_STATUS.CONFIRMED) &&
-      registration.paymentStatus !== PAYMENT_STATUS.CONFIRMED &&
-      registration.paymentStatus !== PAYMENT_STATUS.MANUAL;
+      (status === PAYMENT_STATUS.MANUAL || status === PAYMENT_STATUS.CONFIRMED) && !wasConfirmed;
 
     if (becomingConfirmed) {
-      // Enforce seat cap before manually confirming.
-      const seats = await getSeatStats();
-      if (seats.isFull) {
+      // Duplicate-payment guard: don't seat a mobile that already holds a seat.
+      const dupe = await Registration.findOne({
+        _id: { $ne: registration._id },
+        mobileNumber: registration.mobileNumber,
+        paymentStatus: { $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL] },
+      });
+      if (dupe) {
         res.status(409);
-        throw new Error('Cannot confirm — all seats are filled.');
+        throw new Error(
+          `This mobile is already confirmed under ${dupe.registrationNumber || dupe.orderId}.`
+        );
       }
+      // Allocate the seat atomically (capped counter is the real authority).
       if (!registration.registrationNumber) {
-        registration.registrationNumber = await nextRegistrationNumber();
+        const regNo = await nextRegistrationNumber(getSeatCapacity());
+        if (!regNo) {
+          res.status(409);
+          throw new Error('Cannot confirm — all seats are filled.');
+        }
+        registration.registrationNumber = regNo;
       }
       registration.confirmedAt = registration.confirmedAt || new Date();
+    }
+
+    // Un-confirming (confirmed -> failed/pending): clear the confirmation stamp
+    // so the record isn't left in a half-confirmed state. The already-issued
+    // registrationNumber is kept (its QR may have been sent) and is not reused.
+    if (wasConfirmed && (status === PAYMENT_STATUS.FAILED || status === PAYMENT_STATUS.PENDING)) {
+      registration.confirmedAt = null;
+      registration.manuallyConfirmedBy = '';
     }
 
     if (status === PAYMENT_STATUS.MANUAL) {
@@ -168,8 +189,11 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
     await registration.save();
 
     // On a manual confirmation, send the confirmation + QR via WhatsApp too.
+    // Fire-and-forget so the admin response isn't delayed by Meta's API.
     if (becomingConfirmed) {
-      await sendConfirmationWhatsApp(registration);
+      sendConfirmationWhatsApp(registration).catch((err) =>
+        console.error(`[whatsapp] unexpected send error: ${err?.message || err}`)
+      );
     }
     return res.json({ success: true, data: registration.toObject() });
   }

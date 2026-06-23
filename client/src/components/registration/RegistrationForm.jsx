@@ -10,8 +10,8 @@ const STORAGE_KEY = 'neetcon_reg_form';
 
 /**
  * Redirect the browser to the payment gateway.
- * - mock (GET): just navigate to the mock pay URL.
- * - live HDFC (POST): build and auto-submit a hidden form with the signed fields.
+ * - GET (mock + live HDFC SmartGateway): navigate to the hosted payment URL.
+ * - POST (other gateways): auto-submit a hidden form carrying payment.fields.
  */
 const redirectToGateway = (payment) => {
   if (payment.mock || payment.method === 'GET') {
@@ -29,13 +29,6 @@ const redirectToGateway = (payment) => {
     input.value = v;
     form.appendChild(input);
   });
-  if (payment.signature) {
-    const sig = document.createElement('input');
-    sig.type = 'hidden';
-    sig.name = 'hash';
-    sig.value = payment.signature;
-    form.appendChild(sig);
-  }
   document.body.appendChild(form);
   form.submit();
 };
