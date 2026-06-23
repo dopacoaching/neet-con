@@ -83,9 +83,9 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
 // --- Serve the built client from the same origin (if present) ---
-// Lets one process/port serve both the API and the frontend — handy for tunnel
-// previews and single-origin deploys. No-op when client/dist isn't alongside
-// the server (e.g. Render API-only / Vercel client-only deploys).
+// Lets one process/port serve both the API and the frontend for single-origin
+// deploys. No-op when client/dist isn't alongside the server (e.g. the split
+// Render API-only / Vercel client-only deploy).
 const clientDist = join(__dirname, '..', 'client', 'dist');
 if (existsSync(clientDist)) {
   app.use(express.static(clientDist));

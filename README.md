@@ -88,44 +88,20 @@ The Vite dev server proxies `/api` → `http://localhost:5000`, so no extra conf
 | `HDFC_MOCK` | `true` = simulate payments locally; `false` = use real SmartGateway |
 | `CLIENT_URL` | Frontend origin (CORS + redirects) |
 | `SEAT_CAPACITY` | Hard seat cap (default 600) |
-| `REGISTRATION_FEE` | Fee in INR (default 200) |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | SMTP server (e.g. `smtp.gmail.com` / `587` / `false`) |
-| `SMTP_USER` / `SMTP_PASS` | SMTP credentials (for Gmail use an **App Password**) |
-| `MAIL_FROM` | From header, e.g. `"NEET CON 2026 <no-reply@dopacoaching.com>"` |
-| `EVENT_DATE` / `EVENT_TIME` / `EVENT_VENUE` | Shown in the confirmation email |
+| `REGISTRATION_FEE` | Fee in INR (default 100) |
+| `EVENT_DATE` / `EVENT_TIME` / `EVENT_VENUE` | Shown in the confirmation message |
+| `WHATSAPP_*` | Meta WhatsApp Cloud API config (see `.env.example`) — primary confirmation channel |
 
 > **Never commit `.env`.** It is git-ignored.
-> **Email behaviour:**
-> - `SMTP_*` set → real delivery via that server.
-> - `SMTP_*` blank in **development** → a nodemailer **Ethereal** test inbox is
->   created automatically and a **preview URL** is logged for each email (open it
->   to see the rendered confirmation + QR). Nothing reaches real inboxes.
-> - `SMTP_*` blank in **production** → email skipped (warning logged); payment
->   still confirms.
 
-### Email setup (Gmail SMTP)
+The confirmation + entry QR are delivered over **WhatsApp** (Meta Cloud API), not
+email. See [`server/utils/whatsapp.js`](server/utils/whatsapp.js) for the required
+approved-template spec, and verify your setup with:
 
-1. Use a Google account with **2-Step Verification** enabled.
-2. Create an **App Password**: <https://myaccount.google.com/apppasswords> (pick "Mail").
-3. In `server/.env` set:
-   ```env
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_SECURE=false
-   SMTP_USER=your.account@gmail.com
-   SMTP_PASS=the16charapppassword       # remove the spaces Google shows
-   MAIL_FROM="NEET CON 2026 <your.account@gmail.com>"   # must be the same Gmail
-   ```
-4. Verify it works (sends a real sample confirmation + QR):
-   ```bash
-   cd server
-   npm run test:email -- you@example.com
-   ```
-   With the App Password set you'll receive a real email; left blank you'll get an
-   Ethereal preview URL in the console instead.
-
-> Gmail allows ~500 emails/day — comfortably above the 600-seat cap. For higher
-> volume or better deliverability, switch `SMTP_*` to a provider like Resend/Brevo.
+```bash
+cd server
+npm run test:whatsapp -- 9876543210
+```
 
 ---
 

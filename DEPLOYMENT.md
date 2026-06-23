@@ -45,15 +45,15 @@ You can use the included **`render.yaml`** blueprint, or configure manually.
 | `JWT_EXPIRES_IN` | `7d` |
 | `CLIENT_URL` | the Vercel URL, e.g. `https://neetcon-2026.vercel.app` (no trailing slash) |
 | `SEAT_CAPACITY` | `600` |
-| `REGISTRATION_FEE` | `200` |
+| `REGISTRATION_FEE` | `100` |
 | `HDFC_MOCK` | `true` until a live payment is validated, then `false` |
 | `HDFC_API_KEY` / `HDFC_MERCHANT_ID` / `HDFC_RESPONSE_KEY` / `HDFC_PAYMENT_PAGE_CLIENT_ID` | from the SmartGateway dashboard |
 | `HDFC_BASE_URL` | `https://smartgateway.hdfcbank.com` |
 | `HDFC_API_VERSION` | `2023-06-30` |
 | `HDFC_REDIRECT_URL` | `https://<your-api>.onrender.com/api/payment/callback` |
 | `HDFC_WEBHOOK_URL` | `https://<your-api>.onrender.com/api/payment/webhook` |
-| `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE`/`SMTP_USER`/`SMTP_PASS`/`MAIL_FROM` | Gmail SMTP (App Password) |
-| `EVENT_DATE`/`EVENT_TIME`/`EVENT_VENUE` | event details for the email |
+| `WHATSAPP_*` | Meta WhatsApp Cloud API config (confirmation channel — see `.env.example`) |
+| `EVENT_DATE`/`EVENT_TIME`/`EVENT_VENUE` | event details for the confirmation message |
 
 After it deploys, note the API URL: `https://<your-api>.onrender.com`.
 
