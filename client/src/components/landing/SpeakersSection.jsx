@@ -9,7 +9,7 @@ const SPEAKERS = [
   },
   {
     name: 'Dr. Niyas Paloth',
-    role: 'Director, DOPA',
+    role: 'CEO of DOPA',
     photo: '/Niyas-head.png',
   },
   {
