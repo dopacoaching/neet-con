@@ -3,14 +3,14 @@
 // is already centered), generated from the full-body originals with sharp.
 const SPEAKERS = [
   {
-    name: 'Dr. Ashiq Sainudheen',
-    role: 'Director, DOPA',
-    photo: '/Ashiq-zainu-head.png',
-  },
-  {
     name: 'Dr. Niyas Paloth',
     role: 'CEO of DOPA',
     photo: '/Niyas-head.png',
+  },
+  {
+    name: 'Dr. Ashiq Sainudheen',
+    role: 'Director, DOPA',
+    photo: '/Ashiq-zainu-head.png',
   },
   {
     name: 'Dr. Asif Mohammed',
