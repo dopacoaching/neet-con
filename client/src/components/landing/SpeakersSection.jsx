@@ -1,19 +1,21 @@
 // Confirmed speakers. Photos live in client/public (served from the site root).
+// The *-head.png files are pre-cropped square head-and-shoulders shots (the face
+// is already centered), generated from the full-body originals with sharp.
 const SPEAKERS = [
   {
     name: 'Dr. Ashiq Sainudheen',
     role: 'Director, DOPA',
-    photo: '/Ashiq-zainu.png',
+    photo: '/Ashiq-zainu-head.png',
   },
   {
     name: 'Dr. Niyas Paloth',
     role: 'Director, DOPA',
-    photo: '/Niyas.png',
+    photo: '/Niyas-head.png',
   },
   {
     name: 'Dr. Asif Mohammed',
     role: 'Director, DOPA',
-    photo: '/Asif.png',
+    photo: '/Asif-head.png',
   },
 ];
 
@@ -34,9 +36,9 @@ const SpeakersSection = () => (
         {SPEAKERS.map((sp, i) => (
           <div
             key={i}
-            className="group rounded-2xl border border-navy/10 bg-white p-6 text-center transition hover:-translate-y-1 hover:shadow-xl"
+            className="group rounded-2xl border border-navy/10 bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
           >
-            <div className="mx-auto h-32 w-32 overflow-hidden rounded-full ring-4 ring-brand-50">
+            <div className="mx-auto h-40 w-40 overflow-hidden rounded-full bg-gradient-to-b from-brand-50 to-white ring-4 ring-brand-50">
               <img
                 src={sp.photo}
                 alt={sp.name}
