@@ -21,6 +21,7 @@ import { apiLimiter } from './middleware/rateLimiter.js';
 import registrationRoutes from './routes/registrationRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import whatsappRoutes from './routes/whatsappRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -81,6 +82,7 @@ app.use('/api', apiLimiter);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // --- Serve the built client from the same origin (if present) ---
 // Lets one process/port serve both the API and the frontend for single-origin
