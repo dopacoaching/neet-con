@@ -1,5 +1,13 @@
 import { asyncHandler } from '../middleware/errorHandler.js';
 
+// In-memory ring buffer of the most recent webhook events, for quick debugging
+// via GET /api/whatsapp/debug (gated by WHATSAPP_VERIFY_TOKEN). Not persisted.
+const RECENT = [];
+const remember = (evt) => {
+  RECENT.unshift({ at: new Date().toISOString(), ...evt });
+  if (RECENT.length > 50) RECENT.length = 50;
+};
+
 /**
  * Meta WhatsApp webhook.
  *
@@ -27,6 +35,17 @@ export const verifyWebhook = (req, res) => {
   return res.sendStatus(403);
 };
 
+/**
+ * GET /api/whatsapp/debug?token=... — recent webhook events for debugging.
+ * Gated by WHATSAPP_VERIFY_TOKEN so it isn't world-readable.
+ */
+export const debugRecent = (req, res) => {
+  if (!process.env.WHATSAPP_VERIFY_TOKEN || req.query.token !== process.env.WHATSAPP_VERIFY_TOKEN) {
+    return res.sendStatus(403);
+  }
+  return res.json({ success: true, count: RECENT.length, events: RECENT });
+};
+
 /** POST /api/whatsapp/webhook — status + inbound message events. */
 export const receiveWebhook = asyncHandler(async (req, res) => {
   // Always 200 fast so Meta doesn't retry; do the logging after.
@@ -39,13 +58,25 @@ export const receiveWebhook = asyncHandler(async (req, res) => {
 
       // Delivery/read/failure status callbacks for messages we sent.
       for (const status of value.statuses || []) {
-        const errs = (status.errors || [])
-          .map((e) => `${e.code} ${e.title}${e.error_data?.details ? ` — ${e.error_data.details}` : ''}`)
+        const errors = (status.errors || []).map((e) => ({
+          code: e.code,
+          title: e.title,
+          details: e.error_data?.details || e.message || '',
+        }));
+        const errs = errors
+          .map((e) => `${e.code} ${e.title}${e.details ? ` — ${e.details}` : ''}`)
           .join('; ');
         console.log(
           `[whatsapp-webhook] status=${status.status} to=${status.recipient_id} ` +
             `id=${status.id}${errs ? ` ERROR: ${errs}` : ''}`
         );
+        remember({
+          kind: 'status',
+          status: status.status,
+          to: status.recipient_id,
+          id: status.id,
+          errors,
+        });
       }
 
       // Inbound messages from users (not needed for confirmations, but useful).
@@ -54,6 +85,7 @@ export const receiveWebhook = asyncHandler(async (req, res) => {
           `[whatsapp-webhook] inbound from=${msg.from} type=${msg.type} ` +
             `text=${msg.text?.body || ''}`
         );
+        remember({ kind: 'inbound', from: msg.from, type: msg.type, text: msg.text?.body || '' });
       }
     }
   }
