@@ -1,5 +1,3 @@
-import { asyncHandler } from '../middleware/errorHandler.js';
-
 // In-memory ring buffer of the most recent webhook events, for quick debugging
 // via GET /api/whatsapp/debug (gated by WHATSAPP_VERIFY_TOKEN). Not persisted.
 const RECENT = [];
@@ -47,46 +45,51 @@ export const debugRecent = (req, res) => {
 };
 
 /** POST /api/whatsapp/webhook — status + inbound message events. */
-export const receiveWebhook = asyncHandler(async (req, res) => {
-  // Always 200 fast so Meta doesn't retry; do the logging after.
+export const receiveWebhook = (req, res) => {
+  // Always 200 fast so Meta doesn't retry. Parsing is best-effort and must never
+  // throw back to Express (headers are already sent), so it's wrapped in try/catch.
   res.sendStatus(200);
 
-  const entries = req.body?.entry || [];
-  for (const entry of entries) {
-    for (const change of entry.changes || []) {
-      const value = change.value || {};
+  try {
+    const entries = req.body?.entry || [];
+    for (const entry of entries) {
+      for (const change of entry.changes || []) {
+        const value = change.value || {};
 
-      // Delivery/read/failure status callbacks for messages we sent.
-      for (const status of value.statuses || []) {
-        const errors = (status.errors || []).map((e) => ({
-          code: e.code,
-          title: e.title,
-          details: e.error_data?.details || e.message || '',
-        }));
-        const errs = errors
-          .map((e) => `${e.code} ${e.title}${e.details ? ` — ${e.details}` : ''}`)
-          .join('; ');
-        console.log(
-          `[whatsapp-webhook] status=${status.status} to=${status.recipient_id} ` +
-            `id=${status.id}${errs ? ` ERROR: ${errs}` : ''}`
-        );
-        remember({
-          kind: 'status',
-          status: status.status,
-          to: status.recipient_id,
-          id: status.id,
-          errors,
-        });
-      }
+        // Delivery/read/failure status callbacks for messages we sent.
+        for (const status of value.statuses || []) {
+          const errors = (status.errors || []).map((e) => ({
+            code: e.code,
+            title: e.title,
+            details: e.error_data?.details || e.message || '',
+          }));
+          const errs = errors
+            .map((e) => `${e.code} ${e.title}${e.details ? ` — ${e.details}` : ''}`)
+            .join('; ');
+          console.log(
+            `[whatsapp-webhook] status=${status.status} to=${status.recipient_id} ` +
+              `id=${status.id}${errs ? ` ERROR: ${errs}` : ''}`
+          );
+          remember({
+            kind: 'status',
+            status: status.status,
+            to: status.recipient_id,
+            id: status.id,
+            errors,
+          });
+        }
 
-      // Inbound messages from users (not needed for confirmations, but useful).
-      for (const msg of value.messages || []) {
-        console.log(
-          `[whatsapp-webhook] inbound from=${msg.from} type=${msg.type} ` +
-            `text=${msg.text?.body || ''}`
-        );
-        remember({ kind: 'inbound', from: msg.from, type: msg.type, text: msg.text?.body || '' });
+        // Inbound messages from users (not needed for confirmations, but useful).
+        for (const msg of value.messages || []) {
+          console.log(
+            `[whatsapp-webhook] inbound from=${msg.from} type=${msg.type} ` +
+              `text=${msg.text?.body || ''}`
+          );
+          remember({ kind: 'inbound', from: msg.from, type: msg.type, text: msg.text?.body || '' });
+        }
       }
     }
+  } catch (err) {
+    console.error(`[whatsapp-webhook] failed to parse event: ${err.message}`);
   }
-});
+};
