@@ -2,6 +2,7 @@ import Registration, { PAYMENT_STATUS } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
+import { sendUserConfirmationEmail, sendOrganizerNotification } from '../utils/email.js';
 import {
   buildPaymentRequest,
   parseHdfcResponse,
@@ -69,6 +70,15 @@ const applyPaymentResult = async (parsed) => {
     // redirect/poll is never delayed by Meta's API; it never throws.
     sendConfirmationWhatsApp(registration).catch((err) =>
       console.error(`[whatsapp] unexpected send error: ${err?.message || err}`)
+    );
+
+    // Backup confirmation email to the registrant (only sends if they gave an
+    // email) + organizer notification of the completed payment. Fire-and-forget.
+    sendUserConfirmationEmail(registration).catch((err) =>
+      console.error(`[email] unexpected user send error: ${err?.message || err}`)
+    );
+    sendOrganizerNotification(registration).catch((err) =>
+      console.error(`[email] unexpected organizer send error: ${err?.message || err}`)
     );
 
     return { registration, changed: true, reason: 'confirmed' };

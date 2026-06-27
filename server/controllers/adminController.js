@@ -4,6 +4,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 import { buildRegistrationsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
+import { sendUserConfirmationEmail } from '../utils/email.js';
 import {
   signAdminToken,
   adminCookieOptions,
@@ -183,11 +184,16 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
     await registration.save();
 
-    // On a manual confirmation, send the confirmation + QR via WhatsApp too.
-    // Fire-and-forget so the admin response isn't delayed by Meta's API.
+    // On a manual confirmation, send the confirmation + QR via WhatsApp and (if
+    // the registrant gave an email) by email. Fire-and-forget so the admin
+    // response isn't delayed. No organizer notice here — that's reserved for
+    // confirmations driven by an actual user payment.
     if (becomingConfirmed) {
       sendConfirmationWhatsApp(registration).catch((err) =>
         console.error(`[whatsapp] unexpected send error: ${err?.message || err}`)
+      );
+      sendUserConfirmationEmail(registration).catch((err) =>
+        console.error(`[email] unexpected user send error: ${err?.message || err}`)
       );
     }
     return res.json({ success: true, data: registration.toObject() });
