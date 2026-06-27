@@ -19,39 +19,48 @@ const QR_OPTS = {
 };
 
 /**
- * Composite the DOPA logo (on a white rounded pad) into the centre of a QR PNG.
- * The DOPA wordmark is wide but thin, so it covers only a small *area* of the
- * code — well within level-H's recovery budget, keeping the QR scannable.
+ * Composite the DOPA logo directly over the centre of a QR PNG — no white card.
+ *
+ * Instead of knocking out a solid white pad (which looks like a sticker), the
+ * wordmark is given a soft, feathered white glow so it lifts cleanly off the
+ * busy QR pattern and stays legible against both the dark modules and the light
+ * gaps. The wordmark is wide but thin, so it covers only a small *area* of the
+ * code — verified to still decode across the full code range at level-H error
+ * correction.
  * @param {Buffer} qrPng
  * @returns {Promise<Buffer>}
  */
 const overlayLogo = async (qrPng) => {
-  const logoWidth = Math.round(SIZE * 0.26); // ~26% of the QR width
+  const logoWidth = Math.round(SIZE * 0.34); // ~34% of the QR width
   const logo = await sharp(LOGO_PATH).resize({ width: logoWidth }).png().toBuffer();
   const { width: lw, height: lh } = await sharp(logo).metadata();
 
-  // Knock out a clean, balanced rounded card behind the wide-thin wordmark so
-  // it has even breathing room on all sides (not a cramped sliver) and stays
-  // clearly separated from the surrounding QR modules. The pad is taller than
-  // the logo (height = 0.5 × width) for vertical margin, and kept to ~6% of the
-  // QR area — verified to still decode across the full code range (001–999) at
-  // level-H error correction.
-  const padX = 20;
-  const padW = lw + padX * 2;
-  const padH = Math.round(padW * 0.5);
-  const radius = 20;
-  const pad = await sharp(
-    Buffer.from(
-      `<svg width="${padW}" height="${padH}"><rect width="${padW}" height="${padH}" rx="${radius}" ry="${radius}" fill="#FFFFFF"/></svg>`
-    )
-  )
+  // Soft white glow: a white silhouette of the wordmark, padded and blurred so
+  // its edges feather out. Composited twice to deepen it, then the crisp logo on
+  // top. This separates the logo from the QR without a hard white background.
+  const GLOW_PAD = 40;
+  const glow = await sharp(logo)
+    .tint({ r: 255, g: 255, b: 255 })
+    .extend({
+      top: GLOW_PAD,
+      bottom: GLOW_PAD,
+      left: GLOW_PAD,
+      right: GLOW_PAD,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .blur(9)
     .png()
     .toBuffer();
+  const { width: gw, height: gh } = await sharp(glow).metadata();
+
+  const glowPos = { left: Math.round((SIZE - gw) / 2), top: Math.round((SIZE - gh) / 2) };
+  const logoPos = { left: Math.round((SIZE - lw) / 2), top: Math.round((SIZE - lh) / 2) };
 
   return sharp(qrPng)
     .composite([
-      { input: pad, left: Math.round((SIZE - padW) / 2), top: Math.round((SIZE - padH) / 2) },
-      { input: logo, left: Math.round((SIZE - lw) / 2), top: Math.round((SIZE - lh) / 2) },
+      { input: glow, ...glowPos },
+      { input: glow, ...glowPos },
+      { input: logo, ...logoPos },
     ])
     .png()
     .toBuffer();

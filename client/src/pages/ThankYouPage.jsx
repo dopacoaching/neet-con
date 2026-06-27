@@ -47,26 +47,24 @@ const ThankYouPage = () => {
           logo.onerror = rej;
         });
 
-        // Match the server-generated pass: a balanced rounded white card with
-        // even breathing room around the wide-thin wordmark (not a tight sliver).
-        const logoW = size * 0.26;
+        // Match the server-generated pass: the wordmark overlaid directly on the
+        // QR (no white card), lifted off the pattern with a soft white glow so it
+        // stays legible and looks clean. The glow is drawn via a layered canvas
+        // shadow; the final pass disables the shadow for a crisp logo on top.
+        const logoW = size * 0.34;
         const logoH = logoW * (logo.height / logo.width);
-        const padW = logoW + 40;
-        const padH = padW * 0.5;
-        const px = (size - padW) / 2;
-        const py = (size - padH) / 2;
-        const r = 13;
+        const lx = (size - logoW) / 2;
+        const ly = (size - logoH) / 2;
 
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.moveTo(px + r, py);
-        ctx.arcTo(px + padW, py, px + padW, py + padH, r);
-        ctx.arcTo(px + padW, py + padH, px, py + padH, r);
-        ctx.arcTo(px, py + padH, px, py, r);
-        ctx.arcTo(px, py, px + padW, py, r);
-        ctx.closePath();
-        ctx.fill();
-        ctx.drawImage(logo, (size - logoW) / 2, (size - logoH) / 2, logoW, logoH);
+        ctx.save();
+        ctx.shadowColor = 'rgba(255,255,255,0.95)';
+        ctx.shadowBlur = 22;
+        // Multiple passes build up a soft, feathered halo around the wordmark.
+        for (let i = 0; i < 4; i += 1) {
+          ctx.drawImage(logo, lx, ly, logoW, logoH);
+        }
+        ctx.restore();
+        ctx.drawImage(logo, lx, ly, logoW, logoH);
 
         if (!cancelled) setQrUrl(canvas.toDataURL('image/png'));
       } catch {
