@@ -156,14 +156,32 @@ export const paymentCallback = asyncHandler(async (req, res) => {
 
   // HMAC-verify (live) / hash-verify (mock) before any DB mutation.
   const parsed = parseHdfcResponse(body);
+
+  let toApply = parsed;
   if (!parsed.verified) {
-    console.warn(`[payment] callback verification failed for order ${parsed.orderId}`);
-    return res.redirect(
-      `${clientUrl}/payment-failed?orderId=${encodeURIComponent(parsed.orderId || '')}&reason=signature`
+    // The return-URL signature didn't verify. Rather than failing a possibly-
+    // paid order outright (e.g. a signature-format edge case), reconcile against
+    // the AUTHORITATIVE Order Status API — a server-to-server call signed with
+    // our secret key. A forged callback still can't fake a paid status here, so
+    // this stays secure while being resilient to redirect-signature quirks.
+    console.warn(
+      `[payment] callback signature unverified for ${parsed.orderId}; reconciling via Order Status API`
     );
+    const gwStatus = parsed.orderId ? await fetchOrderStatus(parsed.orderId) : null;
+    if (!gwStatus || gwStatus === 'UNKNOWN') {
+      return res.redirect(
+        `${clientUrl}/payment-failed?orderId=${encodeURIComponent(parsed.orderId || '')}&reason=signature`
+      );
+    }
+    toApply = {
+      orderId: parsed.orderId,
+      status: gwStatus,
+      txnId: parsed.txnId,
+      raw: { source: 'callback-reconciled', status: gwStatus, original: parsed.raw },
+    };
   }
 
-  const result = await applyPaymentResult(parsed);
+  const result = await applyPaymentResult(toApply);
   const confirmed =
     result.registration &&
     (result.registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
