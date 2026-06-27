@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../ui/Logo.jsx';
-import { useSeats } from '../../hooks/useSeats.js';
 
 const NAV_LINKS = [
   { href: '#about', label: 'About' },
@@ -15,8 +14,6 @@ const NAV_LINKS = [
  */
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const { seats } = useSeats();
-  const isFull = seats?.isFull;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -49,15 +46,9 @@ const Navbar = () => {
           ))}
         </div>
 
-        {isFull ? (
-          <span className="rounded-xl bg-navy/20 px-5 py-2.5 text-sm font-semibold text-navy/60">
-            Seats Full
-          </span>
-        ) : (
-          <Link to="/register" className="btn-primary !px-5 !py-2.5 text-sm">
-            Register Now
-          </Link>
-        )}
+        <Link to="/register" className="btn-primary !px-5 !py-2.5 text-sm">
+          Register Now
+        </Link>
       </nav>
     </header>
   );

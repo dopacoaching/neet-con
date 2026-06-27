@@ -25,8 +25,6 @@ services:
         sync: false # "email:password" bootstrap admin login(s)
       - key: CLIENT_URL
         sync: false # e.g. https://neetcon-2026.vercel.app  (no trailing slash)
-      - key: SEAT_CAPACITY
-        value: "600"
       - key: REGISTRATION_FEE
         value: "100"
       # --- HDFC SmartGateway (Juspay) ---

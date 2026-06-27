@@ -1,7 +1,6 @@
 import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getSeatStats } from '../utils/seats.js';
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
@@ -39,13 +38,6 @@ export const createRegistration = asyncHandler(async (req, res) => {
 
   const mobile = String(mobileNumber).trim();
 
-  // --- Seat cap enforcement (backend authority) ---
-  const seats = await getSeatStats();
-  if (seats.isFull) {
-    res.status(409);
-    throw new Error('Registrations are closed — all seats are filled.');
-  }
-
   // --- Duplicate protection: a CONFIRMED/MANUAL reg for this mobile already exists ---
   const existing = await Registration.findOne({
     mobileNumber: mobile,
@@ -79,13 +71,4 @@ export const createRegistration = asyncHandler(async (req, res) => {
       fullName: registration.fullName,
     },
   });
-});
-
-/**
- * GET /api/registrations/seats
- * Public live seat counter.
- */
-export const getSeats = asyncHandler(async (req, res) => {
-  const stats = await getSeatStats();
-  res.json({ success: true, data: stats });
 });

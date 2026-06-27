@@ -31,7 +31,7 @@ const Footer = () => (
             <span className="text-white/40">· Get directions</span>
           </li>
           <li>🎟️ ₹100 per student</li>
-          <li>🪑 Limited to 600 seats</li>
+          <li>🪑 Limited seats — register early</li>
         </ul>
       </div>
 

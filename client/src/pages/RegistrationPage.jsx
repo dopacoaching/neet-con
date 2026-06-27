@@ -1,14 +1,9 @@
 import { Link } from 'react-router-dom';
 import RegistrationForm from '../components/registration/RegistrationForm.jsx';
 import Logo from '../components/ui/Logo.jsx';
-import SeatsRemainingBadge from '../components/ui/SeatsRemainingBadge.jsx';
-import { useSeats } from '../hooks/useSeats.js';
 import { VENUE_MAP_URL } from '../config/event.js';
 
 const RegistrationPage = () => {
-  const { seats, loading } = useSeats();
-  const isFull = seats?.isFull;
-
   return (
     <div className="min-h-screen bg-navy">
       {/* Header */}
@@ -24,7 +19,6 @@ const RegistrationPage = () => {
       <main className="section grid items-start gap-8 pb-20 pt-4 lg:grid-cols-[1fr_1.1fr]">
         {/* Left — event summary */}
         <div className="text-white">
-          <SeatsRemainingBadge className="mb-5" />
           <h1 className="font-heading text-3xl font-extrabold sm:text-4xl">
             Register for NEET CON 2026
           </h1>
@@ -66,27 +60,9 @@ const RegistrationPage = () => {
 
         {/* Right — form card */}
         <div className="rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
-          {isFull ? (
-            <div className="py-10 text-center">
-              <div className="text-5xl">🪑</div>
-              <h2 className="mt-4 font-heading text-2xl font-bold text-navy">
-                Registrations Closed
-              </h2>
-              <p className="mt-2 text-navy/60">
-                All 600 seats for NEET CON 2026 have been filled. Thank you for your
-                interest!
-              </p>
-              <Link to="/" className="btn-ghost mt-6">
-                Back to home
-              </Link>
-            </div>
-          ) : (
-            <>
-              <h2 className="mb-1 font-heading text-xl font-bold text-navy">Your details</h2>
-              <p className="mb-6 text-sm text-navy/60">All fields marked * are required.</p>
-              <RegistrationForm disabled={loading ? false : isFull} />
-            </>
-          )}
+          <h2 className="mb-1 font-heading text-xl font-bold text-navy">Your details</h2>
+          <p className="mb-6 text-sm text-navy/60">All fields marked * are required.</p>
+          <RegistrationForm />
         </div>
       </main>
     </div>

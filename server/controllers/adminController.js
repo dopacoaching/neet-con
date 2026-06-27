@@ -1,7 +1,6 @@
 import Admin from '../models/Admin.js';
 import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getSeatStats, getSeatCapacity } from '../utils/seats.js';
 import { buildRegistrationsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
@@ -160,14 +159,9 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
           `This mobile is already confirmed under ${dupe.registrationNumber || dupe.orderId}.`
         );
       }
-      // Allocate the seat atomically (capped counter is the real authority).
+      // Allocate the next sequential registration code atomically.
       if (!registration.registrationNumber) {
-        const regNo = await nextRegistrationNumber(getSeatCapacity());
-        if (!regNo) {
-          res.status(409);
-          throw new Error('Cannot confirm — all seats are filled.');
-        }
-        registration.registrationNumber = regNo;
+        registration.registrationNumber = await nextRegistrationNumber();
       }
       registration.confirmedAt = registration.confirmedAt || new Date();
     }
@@ -207,9 +201,8 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
  * Dashboard cards data.
  */
 export const summary = asyncHandler(async (req, res) => {
-  const [counts, seats] = await Promise.all([
-    Registration.aggregate([{ $group: { _id: '$paymentStatus', count: { $sum: 1 } } }]),
-    getSeatStats(),
+  const counts = await Registration.aggregate([
+    { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
   ]);
 
   const byStatus = counts.reduce((acc, c) => {
@@ -227,7 +220,6 @@ export const summary = asyncHandler(async (req, res) => {
       manual: byStatus[PAYMENT_STATUS.MANUAL] || 0,
       pending: byStatus[PAYMENT_STATUS.PENDING] || 0,
       failed: byStatus[PAYMENT_STATUS.FAILED] || 0,
-      seats, // { confirmed, remaining, total, isFull }
     },
   });
 });

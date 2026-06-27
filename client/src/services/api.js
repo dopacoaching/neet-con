@@ -27,8 +27,6 @@ api.interceptors.response.use(
 /* Public                                                              */
 /* ------------------------------------------------------------------ */
 
-export const getSeats = () => api.get('/registrations/seats').then((r) => r.data.data);
-
 export const createRegistration = (payload) =>
   api.post('/registrations', payload).then((r) => r.data.data);
 

@@ -1,6 +1,5 @@
 import Registration, { PAYMENT_STATUS } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getSeatCapacity } from '../utils/seats.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import {
@@ -57,20 +56,10 @@ const applyPaymentResult = async (parsed) => {
       return { registration, changed: true, reason: 'duplicate mobile' };
     }
 
-    // Allocate the seat atomically. The capped counter is the real authority:
-    // exactly SEAT_CAPACITY codes can ever be issued, so racing confirmations
-    // can never oversell. A null result means seats are full.
+    // Allocate the next sequential registration code atomically (the counter is
+    // race-safe, so concurrent confirmations each get a distinct number).
     if (!registration.registrationNumber) {
-      const regNo = await nextRegistrationNumber(getSeatCapacity());
-      if (!regNo) {
-        registration.paymentStatus = PAYMENT_STATUS.FAILED;
-        registration.notes = [registration.notes, 'Auto-failed: seats full at confirmation time.']
-          .filter(Boolean)
-          .join(' | ');
-        await registration.save();
-        return { registration, changed: true, reason: 'seats full' };
-      }
-      registration.registrationNumber = regNo;
+      registration.registrationNumber = await nextRegistrationNumber();
     }
     registration.paymentStatus = PAYMENT_STATUS.CONFIRMED;
     registration.confirmedAt = new Date();

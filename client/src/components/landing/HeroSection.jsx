@@ -1,12 +1,7 @@
 import { Link } from 'react-router-dom';
-import SeatsRemainingBadge from '../ui/SeatsRemainingBadge.jsx';
-import { useSeats } from '../../hooks/useSeats.js';
 import { VENUE_MAP_URL } from '../../config/event.js';
 
 const HeroSection = () => {
-  const { seats } = useSeats();
-  const isFull = seats?.isFull;
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-navy via-navy to-navy-light text-white">
       {/* Subtle grid texture */}
@@ -24,7 +19,10 @@ const HeroSection = () => {
 
       <div className="section relative grid items-center gap-10 py-16 md:grid-cols-2 md:py-24">
         <div className="animate-fade-in">
-          <SeatsRemainingBadge className="mb-5" />
+          <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-navy shadow-lg">
+            <span className="h-2 w-2 animate-pulse-soft rounded-full bg-current opacity-80" />
+            Registrations open · Limited seats
+          </span>
           <h1 className="font-heading text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
             NEET CON <span className="text-accent">2026</span>
           </h1>
@@ -55,15 +53,9 @@ const HeroSection = () => {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            {isFull ? (
-              <span className="rounded-xl bg-white/10 px-7 py-3.5 font-semibold text-white/70">
-                Registrations Closed
-              </span>
-            ) : (
-              <Link to="/register" className="btn-white text-base">
-                Register Now — ₹100
-              </Link>
-            )}
+            <Link to="/register" className="btn-white text-base">
+              Register Now — ₹100
+            </Link>
             <a
               href="#about"
               className="text-sm font-semibold text-white/80 transition hover:text-accent"
@@ -96,13 +88,9 @@ const HeroSection = () => {
                 <span>Time</span>
                 <strong>9:30 AM – 5:00 PM</strong>
               </div>
-              <div className="flex justify-between border-b border-white/10 pb-2">
+              <div className="flex justify-between">
                 <span>Venue</span>
                 <strong>Yamaniya Hall, Kuttikattor</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Capacity</span>
-                <strong>600 seats</strong>
               </div>
             </div>
           </div>

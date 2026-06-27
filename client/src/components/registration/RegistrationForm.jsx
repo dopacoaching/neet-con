@@ -33,7 +33,7 @@ const redirectToGateway = (payment) => {
   form.submit();
 };
 
-const RegistrationForm = ({ disabled }) => {
+const RegistrationForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const {
     register,
@@ -53,7 +53,6 @@ const RegistrationForm = ({ disabled }) => {
   }, [reset]);
 
   const onSubmit = async (values) => {
-    if (disabled) return;
     setSubmitting(true);
 
     // Persist so the Payment Failed page can pre-fill on retry.
@@ -193,13 +192,11 @@ const RegistrationForm = ({ disabled }) => {
         </div>
       </div>
 
-      <button type="submit" className="btn-primary w-full text-base" disabled={submitting || disabled}>
+      <button type="submit" className="btn-primary w-full text-base" disabled={submitting}>
         {submitting ? (
           <>
             <Spinner /> Processing…
           </>
-        ) : disabled ? (
-          'Registrations Closed'
         ) : (
           'Proceed to Pay ₹100'
         )}

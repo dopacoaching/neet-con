@@ -9,7 +9,6 @@ import {
 } from '../../services/api.js';
 import Logo from '../../components/ui/Logo.jsx';
 import SummaryCards from '../../components/admin/SummaryCards.jsx';
-import SeatCounter from '../../components/admin/SeatCounter.jsx';
 import RegistrationsTable from '../../components/admin/RegistrationsTable.jsx';
 import RegistrationDetailModal from '../../components/admin/RegistrationDetailModal.jsx';
 import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
@@ -165,7 +164,6 @@ const AdminDashboardPage = () => {
         </div>
 
         <SummaryCards summary={summary} loading={summaryLoading} />
-        <SeatCounter seats={summary?.seats} />
 
         {/* Filters */}
         <div className="grid gap-3 rounded-2xl border border-navy/10 bg-white p-4 sm:grid-cols-3">
