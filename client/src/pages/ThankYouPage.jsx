@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import QRCode from 'qrcode';
-import { getPaymentStatus } from '../services/api.js';
+import { getPaymentStatus, getPassUrl } from '../services/api.js';
 import Logo from '../components/ui/Logo.jsx';
 import { Spinner } from '../components/ui/PageLoader.jsx';
 import { VENUE_MAP_URL } from '../config/event.js';
@@ -16,34 +15,10 @@ const ThankYouPage = () => {
 
   const [status, setStatus] = useState('loading'); // loading | confirmed | pending | error
   const [data, setData] = useState(null);
-  const [qrUrl, setQrUrl] = useState('');
   const retries = useRef(0);
 
-  // Generate the entry QR (encodes the registration code) once confirmed.
-  useEffect(() => {
-    if (status !== 'confirmed' || !data?.registrationNumber) return undefined;
-    let cancelled = false;
-    const code = data.registrationNumber;
-    const opts = {
-      width: 320,
-      margin: 2,
-      errorCorrectionLevel: 'H',
-      color: { dark: '#001e5f', light: '#FFFFFF' },
-    };
-
-    (async () => {
-      try {
-        const url = await QRCode.toDataURL(code, opts);
-        if (!cancelled) setQrUrl(url);
-      } catch {
-        if (!cancelled) setQrUrl('');
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [status, data]);
+  // The branded entry pass (QR + details) is rendered server-side.
+  const passUrl = orderId ? getPassUrl(orderId) : '';
 
   useEffect(() => {
     if (!orderId) {
@@ -130,52 +105,40 @@ const ThankYouPage = () => {
       <h1 className="mt-5 font-heading text-3xl font-extrabold">Your seat is confirmed!</h1>
       <p className="mt-2 text-white/70">Thank you, {data.fullName}. We can't wait to see you.</p>
 
-      <div className="mt-8 w-full max-w-sm rounded-2xl bg-white/5 p-6 text-left">
-        <p className="text-xs uppercase tracking-widest text-accent">Registration Code</p>
-        <p className="font-heading text-2xl font-extrabold tracking-wide">
-          {data.registrationNumber}
-        </p>
-
-        {/* Entry QR code */}
-        <div className="mt-5 flex flex-col items-center rounded-xl bg-white p-4">
-          {qrUrl ? (
-            <img
-              src={qrUrl}
-              alt={`Entry QR code for ${data.registrationNumber}`}
-              className="h-44 w-44"
-            />
-          ) : (
-            <div className="flex h-44 w-44 items-center justify-center">
-              <Spinner className="h-6 w-6 border-navy/30 border-t-navy" />
-            </div>
-          )}
-          <p className="mt-2 text-center text-xs font-medium text-navy/60">
-            Show this QR code at the entry desk
-          </p>
-        </div>
-
-        <div className="mt-5 space-y-2 text-sm text-white/80">
-          <Row k="Name" v={data.fullName} />
-          <Row k="Preparing For" v={data.preparingFor} />
-          <Row k="Event Date" v="12 July 2026" />
-          <Row
-            k="Venue"
-            v={
-              <a
-                href={VENUE_MAP_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="underline-offset-2 hover:text-accent hover:underline"
-              >
-                Yamaniya Hall, Kuttikattor
-              </a>
-            }
+      {/* Branded entry pass (QR + details), rendered server-side */}
+      <div className="mt-8 w-full max-w-2xl">
+        <div className="overflow-hidden rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
+          <img
+            src={passUrl}
+            alt={`Entry pass for ${data.registrationNumber}`}
+            className="w-full rounded-xl"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
           />
-          <Row k="Amount Paid" v={`₹${data.amount}`} />
         </div>
+
+        <p className="mt-4 text-sm text-white/60">
+          Amount Paid: <strong className="text-white/90">₹{data.amount}</strong> ·{' '}
+          <a
+            href={VENUE_MAP_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="underline-offset-2 hover:text-accent hover:underline"
+          >
+            Get directions to the venue
+          </a>
+        </p>
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href={passUrl}
+          download={`neetcon-2026-${String(data.registrationNumber).replace(/\s+/g, '-')}.png`}
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-navy transition hover:bg-white/90"
+        >
+          ⬇ Download Pass
+        </a>
         <a
           href={`https://wa.me/?text=${waMessage}`}
           target="_blank"
@@ -189,9 +152,9 @@ const ThankYouPage = () => {
         </Link>
       </div>
       <p className="mt-6 max-w-sm text-sm text-white/50">
-        Your registration code and QR pass have been sent on WhatsApp to{' '}
+        Your entry pass has also been sent on WhatsApp to{' '}
         <span className="text-white/80">{data.mobileNumber || 'your registered mobile'}</span>. Please
-        also take a screenshot for your records.
+        download or screenshot it for the entry desk.
       </p>
     </Shell>
   );
@@ -203,13 +166,6 @@ const Shell = ({ children }) => (
       <Logo dark />
     </Link>
     <div className="flex flex-1 flex-col items-center justify-center">{children}</div>
-  </div>
-);
-
-const Row = ({ k, v }) => (
-  <div className="flex justify-between border-b border-white/10 pb-2 last:border-0">
-    <span className="text-white/60">{k}</span>
-    <strong>{v}</strong>
   </div>
 );
 

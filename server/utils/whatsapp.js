@@ -1,4 +1,5 @@
 import { generateQrBuffer } from './qrcode.js';
+import { generateEventPass } from './eventPass.js';
 
 /**
  * WhatsApp confirmation sender — Meta WhatsApp Cloud API.
@@ -124,10 +125,19 @@ export const sendConfirmationWhatsApp = async (reg) => {
   }
 
   try {
-    const qrBuffer = await generateQrBuffer(reg.registrationNumber);
+    // The header image is the branded entry pass (QR + details). If pass
+    // rendering ever fails, fall back to the bare QR so confirmations are never
+    // blocked by a rendering issue.
+    let imageBuffer;
+    try {
+      imageBuffer = await generateEventPass(reg);
+    } catch (err) {
+      console.warn(`[whatsapp] pass render failed, falling back to plain QR: ${err.message}`);
+      imageBuffer = await generateQrBuffer(reg.registrationNumber);
+    }
     const mediaId = await uploadQrMedia(
-      qrBuffer,
-      `${String(reg.registrationNumber).replace(/\s+/g, '-')}-qr.png`
+      imageBuffer,
+      `${String(reg.registrationNumber).replace(/\s+/g, '-')}-pass.png`
     );
 
     const payload = {

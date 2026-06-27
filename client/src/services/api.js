@@ -36,6 +36,10 @@ export const initiatePayment = (orderId) =>
 export const getPaymentStatus = (orderId) =>
   api.get(`/payment/status/${orderId}`).then((r) => r.data.data);
 
+// Direct URL to the branded entry-pass PNG (served by the API).
+export const getPassUrl = (orderId) =>
+  `${api.defaults.baseURL}/registrations/pass/${encodeURIComponent(orderId)}`;
+
 /* ------------------------------------------------------------------ */
 /* Admin                                                               */
 /* ------------------------------------------------------------------ */

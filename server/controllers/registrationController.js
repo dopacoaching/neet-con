@@ -1,6 +1,7 @@
 import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { generateEventPass } from '../utils/eventPass.js';
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
@@ -71,4 +72,32 @@ export const createRegistration = asyncHandler(async (req, res) => {
       fullName: registration.fullName,
     },
   });
+});
+
+/**
+ * GET /api/registrations/pass/:orderId
+ * Public — returns the branded entry-pass PNG for a CONFIRMED registration.
+ * Gated by the orderId (which the registrant already holds); only available
+ * once the seat is confirmed and a registration code exists.
+ */
+export const getPass = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const registration = await Registration.findOne({ orderId });
+  const confirmed =
+    registration &&
+    registration.registrationNumber &&
+    (registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
+      registration.paymentStatus === PAYMENT_STATUS.MANUAL);
+
+  if (!confirmed) {
+    res.status(404);
+    throw new Error('Pass not available');
+  }
+
+  const png = await generateEventPass(registration);
+  const filename = `neetcon-2026-${String(registration.registrationNumber).replace(/\s+/g, '-')}.png`;
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(png);
 });
