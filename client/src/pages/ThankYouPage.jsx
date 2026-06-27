@@ -47,13 +47,15 @@ const ThankYouPage = () => {
           logo.onerror = rej;
         });
 
-        const logoW = size * 0.3;
+        // Match the server-generated pass: a balanced rounded white card with
+        // even breathing room around the wide-thin wordmark (not a tight sliver).
+        const logoW = size * 0.26;
         const logoH = logoW * (logo.height / logo.width);
-        const padW = logoW + 16;
-        const padH = logoH + 12;
+        const padW = logoW + 40;
+        const padH = padW * 0.5;
         const px = (size - padW) / 2;
         const py = (size - padH) / 2;
-        const r = 10;
+        const r = 13;
 
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();

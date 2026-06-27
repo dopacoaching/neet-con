@@ -26,15 +26,20 @@ const QR_OPTS = {
  * @returns {Promise<Buffer>}
  */
 const overlayLogo = async (qrPng) => {
-  const logoWidth = Math.round(SIZE * 0.3); // ~30% of the QR width
+  const logoWidth = Math.round(SIZE * 0.26); // ~26% of the QR width
   const logo = await sharp(LOGO_PATH).resize({ width: logoWidth }).png().toBuffer();
   const { width: lw, height: lh } = await sharp(logo).metadata();
 
-  const padX = 18;
-  const padY = 14;
+  // Knock out a clean, balanced rounded card behind the wide-thin wordmark so
+  // it has even breathing room on all sides (not a cramped sliver) and stays
+  // clearly separated from the surrounding QR modules. The pad is taller than
+  // the logo (height = 0.5 × width) for vertical margin, and kept to ~6% of the
+  // QR area — verified to still decode across the full code range (001–999) at
+  // level-H error correction.
+  const padX = 20;
   const padW = lw + padX * 2;
-  const padH = lh + padY * 2;
-  const radius = 18;
+  const padH = Math.round(padW * 0.5);
+  const radius = 20;
   const pad = await sharp(
     Buffer.from(
       `<svg width="${padW}" height="${padH}"><rect width="${padW}" height="${padH}" rx="${radius}" ry="${radius}" fill="#FFFFFF"/></svg>`
