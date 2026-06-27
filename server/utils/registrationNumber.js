@@ -1,19 +1,16 @@
 import Counter from '../models/Counter.js';
 
-// Registration codes start at this number, so the first confirmed seat is
-// "NEET CON 1000", the next "NEET CON 1001", and so on.
-const REG_NUMBER_START = 1000;
-
 /**
  * Format a sequence number (1-based) into the public registration code.
- *   1 -> "NEET CON 1000"
- *   2 -> "NEET CON 1001"
- *  51 -> "NEET CON 1050"
+ *   1   -> "NEET CON 001"
+ *   10  -> "NEET CON 010"
+ *   100 -> "NEET CON 100"
+ * Numbers above 999 keep their natural width (e.g. "NEET CON 1000").
  *
  * @param {number} seq  1-based counter value
  * @returns {string}
  */
-export const formatRegistrationNumber = (seq) => `NEET CON ${REG_NUMBER_START + seq - 1}`;
+export const formatRegistrationNumber = (seq) => `NEET CON ${String(seq).padStart(3, '0')}`;
 
 /**
  * Atomically allocate the next sequential registration code. There is no fixed
