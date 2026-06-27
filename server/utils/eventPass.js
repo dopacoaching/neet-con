@@ -64,7 +64,17 @@ export const generateEventPass = async (reg) => {
   const prep = esc(reg.preparingFor || '');
   const date = esc(EVENT.date);
   const time = esc(EVENT.time);
-  const venue = esc(truncate(EVENT.venue, 34));
+  const venue = esc(truncate(EVENT.venue, 32));
+
+  // Layout grid: card inset 28; inner padding 44 -> content box x[72..1208] y[72..648].
+  // Left column = QR (x 72, w 296); right column = info (x 440, right edge 1208).
+  const RX = 440; // right column left edge
+  const RR = 1208; // right column right edge
+
+  const categoryBlock = prep
+    ? `<text x="${RR}" y="544" text-anchor="end" font-family="Poppins" font-weight="600" font-size="20" letter-spacing="1.5" fill="#6f9bff">CATEGORY</text>
+  <text x="${RR}" y="580" text-anchor="end" font-family="Poppins" font-weight="600" font-size="27" fill="#ffffff">${prep}</text>`
+    : '';
 
   const svg = `<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
@@ -84,41 +94,43 @@ export const generateEventPass = async (reg) => {
 
   <!-- decorative accent swooshes, clipped to the card -->
   <g clip-path="url(#cardClip)" opacity="0.9">
-    <circle cx="1230" cy="70" r="220" fill="#00aff5" opacity="0.18"/>
-    <circle cx="1180" cy="40" r="120" fill="#5b93ff" opacity="0.25"/>
-    <rect x="1040" y="-40" width="320" height="60" rx="30" fill="#00aff5" transform="rotate(35 1200 80)" opacity="0.55"/>
+    <circle cx="1230" cy="70" r="220" fill="#00aff5" opacity="0.16"/>
+    <circle cx="1180" cy="40" r="120" fill="#5b93ff" opacity="0.22"/>
+    <rect x="1040" y="-40" width="320" height="58" rx="29" fill="#00aff5" transform="rotate(35 1200 80)" opacity="0.5"/>
   </g>
 
-  <!-- ENTRY PASS badge -->
-  <rect x="80" y="120" width="232" height="66" rx="16" fill="#0a1020"/>
-  <text x="196" y="163" font-family="Poppins" font-weight="600" font-size="26" letter-spacing="3" fill="#ffffff" text-anchor="middle">ENTRY PASS</text>
+  <!-- ===== LEFT COLUMN: QR ===== -->
+  <rect x="72" y="72" width="216" height="62" rx="16" fill="#0a1020"/>
+  <text x="180" y="111" font-family="Poppins" font-weight="600" font-size="25" letter-spacing="3" fill="#ffffff" text-anchor="middle">ENTRY PASS</text>
 
-  <!-- QR card -->
-  <rect x="80" y="220" width="300" height="300" rx="26" fill="#ffffff"/>
-  <image x="106" y="246" width="248" height="248" xlink:href="${qrDataUri}"/>
-  <text x="230" y="560" font-family="Poppins" font-weight="500" font-size="22" fill="#cdd9ff" text-anchor="middle">Show this at the entry desk</text>
+  <rect x="72" y="176" width="296" height="296" rx="26" fill="#ffffff"/>
+  <image x="98" y="202" width="244" height="244" xlink:href="${qrDataUri}"/>
+  <text x="220" y="512" font-family="Poppins" font-weight="500" font-size="21" fill="#cdd9ff" text-anchor="middle">Show this at the entry desk</text>
 
-  <!-- DOPA logo -->
-  ${LOGO_DATA_URI ? `<image x="1006" y="86" width="176" height="52" xlink:href="${LOGO_DATA_URI}"/>` : ''}
+  <!-- ===== RIGHT COLUMN: INFO ===== -->
+  ${LOGO_DATA_URI ? `<image x="1032" y="78" width="176" height="50" xlink:href="${LOGO_DATA_URI}"/>` : ''}
 
-  <!-- Title -->
-  <text x="440" y="168" font-family="Poppins" font-weight="700" font-size="66" fill="#ffffff">NEET CON 2026</text>
-  <text x="442" y="208" font-family="Poppins" font-weight="500" font-size="23" fill="#b9c7ff">Kerala's NEET counselling &amp; strategy conclave</text>
+  <text x="${RX}" y="130" font-family="Poppins" font-weight="700" font-size="58" fill="#ffffff">NEET CON 2026</text>
+  <text x="${RX}" y="168" font-family="Poppins" font-weight="500" font-size="22" fill="#b9c7ff">Kerala's NEET counselling &amp; strategy conclave</text>
+  <line x1="${RX}" y1="202" x2="${RR}" y2="202" stroke="#ffffff" stroke-opacity="0.13" stroke-width="1.5"/>
 
-  <!-- Delegate name -->
-  <text x="442" y="312" font-family="Poppins" font-weight="600" font-size="22" letter-spacing="2" fill="#6f9bff">DELEGATE NAME</text>
-  <text x="442" y="372" font-family="Poppins" font-weight="700" font-size="52" fill="#ffffff">${name}</text>
+  <text x="${RX}" y="258" font-family="Poppins" font-weight="600" font-size="21" letter-spacing="2" fill="#6f9bff">DELEGATE NAME</text>
+  <text x="${RX}" y="316" font-family="Poppins" font-weight="700" font-size="50" fill="#ffffff">${name}</text>
 
-  <!-- Registration code -->
-  <text x="442" y="452" font-family="Poppins" font-weight="600" font-size="22" letter-spacing="2" fill="#6f9bff">REGISTRATION CODE</text>
-  <text x="442" y="512" font-family="Poppins" font-weight="700" font-size="48" fill="#00d0ff">${esc(code)}</text>
+  <text x="${RX}" y="396" font-family="Poppins" font-weight="600" font-size="21" letter-spacing="2" fill="#6f9bff">REGISTRATION CODE</text>
+  <text x="${RX}" y="452" font-family="Poppins" font-weight="700" font-size="46" fill="#00d0ff">${esc(code)}</text>
 
-  <!-- Bottom details -->
-  <text x="442" y="600" font-family="Poppins" font-weight="600" font-size="20" letter-spacing="1.5" fill="#6f9bff">DATE</text>
-  <text x="442" y="636" font-family="Poppins" font-weight="600" font-size="28" fill="#ffffff">${date}</text>
-  <text x="800" y="600" font-family="Poppins" font-weight="600" font-size="20" letter-spacing="1.5" fill="#6f9bff">TIME</text>
-  <text x="800" y="636" font-family="Poppins" font-weight="600" font-size="28" fill="#ffffff">${time}</text>
-  <text x="442" y="672" font-family="Poppins" font-weight="500" font-size="22" fill="#cdd9ff">${venue}${prep ? `  ·  ${prep}` : ''}</text>
+  <line x1="${RX}" y1="504" x2="${RR}" y2="504" stroke="#ffffff" stroke-opacity="0.13" stroke-width="1.5"/>
+
+  <!-- footer details -->
+  <text x="${RX}" y="544" font-family="Poppins" font-weight="600" font-size="20" letter-spacing="1.5" fill="#6f9bff">DATE</text>
+  <text x="${RX}" y="580" font-family="Poppins" font-weight="600" font-size="27" fill="#ffffff">${date}</text>
+  <text x="720" y="544" font-family="Poppins" font-weight="600" font-size="20" letter-spacing="1.5" fill="#6f9bff">TIME</text>
+  <text x="720" y="580" font-family="Poppins" font-weight="600" font-size="27" fill="#ffffff">${time}</text>
+  ${categoryBlock}
+
+  <text x="${RX}" y="624" font-family="Poppins" font-weight="600" font-size="20" letter-spacing="1.5" fill="#6f9bff">VENUE</text>
+  <text x="${RX}" y="658" font-family="Poppins" font-weight="500" font-size="24" fill="#ffffff">${venue}</text>
 </svg>`;
 
   const resvg = new Resvg(svg, {
