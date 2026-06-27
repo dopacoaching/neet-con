@@ -7,8 +7,8 @@ import { Spinner } from '../ui/PageLoader.jsx';
 
 const Field = ({ label, value }) => (
   <div>
-    <p className="text-xs uppercase tracking-wide text-navy/50">{label}</p>
-    <p className="mt-0.5 font-medium text-navy">{value || '—'}</p>
+    <p className="text-xs uppercase tracking-wide text-white/40">{label}</p>
+    <p className="mt-0.5 font-medium text-white">{value || '—'}</p>
   </div>
 );
 
@@ -59,27 +59,27 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#0a1430] text-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-navy/10 p-5">
+        <div className="flex items-start justify-between border-b border-white/10 p-5">
           <div>
-            <h2 className="font-heading text-xl font-bold text-navy">{r.fullName}</h2>
+            <h2 className="font-heading text-xl font-bold text-white">{r.fullName}</h2>
             <div className="mt-1 flex items-center gap-2">
               <StatusBadge status={r.paymentStatus} />
               {r.registrationNumber && (
-                <span className="text-sm text-navy/60">{r.registrationNumber}</span>
+                <span className="text-sm text-accent">{r.registrationNumber}</span>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-navy/50 hover:bg-navy/5 hover:text-navy"
+            className="rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white"
             aria-label="Close"
           >
             ✕
@@ -97,8 +97,8 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             <Field label="Amount" value={`₹${r.amount}`} />
           </div>
 
-          <div className="rounded-xl bg-navy/5 p-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/60">
+          <div className="rounded-xl bg-white/5 p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
               Payment details
             </p>
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -131,29 +131,29 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
 
           {/* Notes */}
           <div>
-            <label className="label" htmlFor="notes">
+            <label className="mb-1.5 block text-sm font-semibold text-white/80" htmlFor="notes">
               Internal notes
             </label>
             <textarea
               id="notes"
               rows={3}
-              className="input-field resize-none"
+              className="input-dark resize-none"
               placeholder="Add a private note (visible to admins only)…"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               disabled={!isAdminRole}
             />
             {!isAdminRole && (
-              <p className="mt-1 text-xs text-navy/50">Viewer role — read only.</p>
+              <p className="mt-1 text-xs text-white/40">Viewer role — read only.</p>
             )}
           </div>
         </div>
 
         {/* Footer actions */}
         {isAdminRole && (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-navy/10 p-5">
-            <button onClick={() => save()} className="btn-ghost !py-2.5" disabled={saving}>
-              {saving ? <Spinner className="h-4 w-4 border-navy/40 border-t-navy" /> : 'Save notes'}
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-white/10 p-5">
+            <button onClick={() => save()} className="btn-ghost-dark !py-2.5" disabled={saving}>
+              {saving ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : 'Save notes'}
             </button>
             {!isConfirmed && (
               <button
@@ -167,7 +167,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             {r.paymentStatus !== 'FAILED' && !isConfirmed && (
               <button
                 onClick={() => save('FAILED')}
-                className="rounded-xl border border-red-300 px-5 py-2.5 font-semibold text-red-600 hover:bg-red-50"
+                className="rounded-xl border border-red-400/40 px-5 py-2.5 font-semibold text-red-300 transition hover:bg-red-500/10"
                 disabled={saving}
               >
                 Mark Failed

@@ -1,8 +1,8 @@
 const CARD_DEFS = [
-  { key: 'total', label: 'Total Registrations', tone: 'bg-navy text-white' },
-  { key: 'confirmedTotal', label: 'Confirmed (Paid)', tone: 'bg-green-50 text-green-700 border border-green-200' },
-  { key: 'pending', label: 'Pending', tone: 'bg-amber-50 text-amber-700 border border-amber-200' },
-  { key: 'failed', label: 'Failed', tone: 'bg-red-50 text-red-700 border border-red-200' },
+  { key: 'total', label: 'Total Registrations', tone: 'bg-brand/20 text-white ring-1 ring-brand/30' },
+  { key: 'confirmedTotal', label: 'Confirmed (Paid)', tone: 'bg-green-500/10 text-green-300 ring-1 ring-green-400/20' },
+  { key: 'pending', label: 'Pending', tone: 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20' },
+  { key: 'failed', label: 'Failed', tone: 'bg-red-500/10 text-red-300 ring-1 ring-red-400/20' },
 ];
 
 const SummaryCards = ({ summary, loading }) => {

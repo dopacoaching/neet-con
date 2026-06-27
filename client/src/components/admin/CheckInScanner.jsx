@@ -107,15 +107,15 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
       onClick={onClose}
     >
       <div
-        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[#0a1430] text-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-navy/10 p-4">
-          <h2 className="font-heading text-lg font-bold text-navy">Scan entry QR — check-in</h2>
+        <div className="flex items-center justify-between border-b border-white/10 p-4">
+          <h2 className="font-heading text-lg font-bold text-white">Scan entry QR — check-in</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg p-1.5 text-navy/50 hover:bg-navy/5 hover:text-navy"
+            className="rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white"
           >
             ✕
           </button>
@@ -123,7 +123,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
 
         <div className="p-4">
           {cameraError ? (
-            <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+            <div className="rounded-xl bg-amber-500/10 p-4 text-sm text-amber-200 ring-1 ring-amber-400/20">
               Camera unavailable: {cameraError} Use manual entry below.
             </div>
           ) : (
@@ -131,24 +131,24 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
           )}
 
           {result && (
-            <div className={`mt-4 rounded-xl border-2 ${style.ring} bg-white p-4`}>
+            <div className={`mt-4 rounded-xl border-2 ${style.ring} bg-white/5 p-4`}>
               <div className="flex items-center justify-between">
                 <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${style.badge}`}>
                   {style.label}
                 </span>
-                <span className="text-sm font-semibold text-navy">
+                <span className="text-sm font-semibold text-accent">
                   {result.data?.registrationNumber || '—'}
                 </span>
               </div>
-              <p className="mt-2 text-lg font-bold text-navy">{result.data?.fullName || '—'}</p>
+              <p className="mt-2 text-lg font-bold text-white">{result.data?.fullName || '—'}</p>
               {(result.data?.preparingFor || result.data?.schoolOrCollege) && (
-                <p className="text-sm text-navy/60">
+                <p className="text-sm text-white/60">
                   {[result.data?.preparingFor, result.data?.schoolOrCollege].filter(Boolean).join(' · ')}
                 </p>
               )}
-              <p className="mt-2 text-sm font-medium text-navy/80">{result.message}</p>
+              <p className="mt-2 text-sm font-medium text-white/80">{result.message}</p>
               {result.data?.checkedInAt && (
-                <p className="mt-1 text-xs text-navy/50">
+                <p className="mt-1 text-xs text-white/50">
                   In at {new Date(result.data.checkedInAt).toLocaleString('en-IN')}
                   {result.data.checkedInBy ? ` · by ${result.data.checkedInBy}` : ''}
                 </p>
@@ -157,14 +157,14 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
           )}
 
           {busy && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-navy/60">
-              <Spinner className="h-4 w-4 border-navy/40 border-t-navy" /> Checking…
+            <div className="mt-3 flex items-center gap-2 text-sm text-white/60">
+              <Spinner className="h-4 w-4 border-white/40 border-t-white" /> Checking…
             </div>
           )}
 
           <form onSubmit={submitManual} className="mt-4 flex gap-2">
             <input
-              className="input-field"
+              className="input-dark"
               placeholder="Or type code, e.g. NEET CON 001"
               value={manual}
               onChange={(e) => setManual(e.target.value)}
@@ -173,7 +173,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
               Check in
             </button>
           </form>
-          <p className="mt-2 text-xs text-navy/50">
+          <p className="mt-2 text-xs text-white/50">
             Point the camera at the student's QR. Camera access needs HTTPS (or localhost).
           </p>
         </div>

@@ -120,19 +120,19 @@ const AdminDashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-navy/5">
+    <div className="min-h-screen bg-[#050c20] text-white">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-navy/10 bg-white">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#081231]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Logo />
+          <Logo dark />
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-navy/60 sm:inline">
+            <span className="hidden text-sm text-white/60 sm:inline">
               {admin?.username}{' '}
-              <span className="rounded-full bg-navy/10 px-2 py-0.5 text-xs font-semibold uppercase">
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold uppercase text-white/80">
                 {admin?.role}
               </span>
             </span>
-            <button onClick={handleLogout} className="btn-ghost !py-2 !px-4 text-sm">
+            <button onClick={handleLogout} className="btn-ghost-dark !py-2 !px-4 text-sm">
               Logout
             </button>
           </div>
@@ -142,11 +142,11 @@ const AdminDashboardPage = () => {
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-heading text-2xl font-extrabold text-navy">Dashboard</h1>
-            <p className="text-sm text-navy/60">NEET CON 2026 registrations overview</p>
+            <h1 className="font-heading text-2xl font-extrabold text-white">Dashboard</h1>
+            <p className="text-sm text-white/60">NEET CON 2026 registrations overview</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setScanning(true)} className="btn-ghost !py-2.5">
+            <button onClick={() => setScanning(true)} className="btn-ghost-dark !py-2.5">
               📷 Scan / Check-in
             </button>
             {isAdminRole && (
@@ -166,30 +166,30 @@ const AdminDashboardPage = () => {
         <SummaryCards summary={summary} loading={summaryLoading} />
 
         {/* Filters */}
-        <div className="grid gap-3 rounded-2xl border border-navy/10 bg-white p-4 sm:grid-cols-3">
+        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-3">
           <input
-            className="input-field"
+            className="input-dark"
             placeholder="Search name, mobile, reg no…"
             onChange={(e) => onSearch(e.target.value)}
           />
           <select
-            className="input-field"
+            className="input-dark"
             value={filters.status}
             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value, page: 1 }))}
           >
             {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
+              <option key={s} value={s} className="bg-[#081231] text-white">
                 {s === 'All' ? 'All statuses' : s}
               </option>
             ))}
           </select>
           <select
-            className="input-field"
+            className="input-dark"
             value={filters.preparingFor}
             onChange={(e) => setFilters((f) => ({ ...f, preparingFor: e.target.value, page: 1 }))}
           >
             {PREP_OPTIONS.map((p) => (
-              <option key={p} value={p}>
+              <option key={p} value={p} className="bg-[#081231] text-white">
                 {p === 'All' ? 'All (NEET 2027/2028)' : p}
               </option>
             ))}

@@ -68,6 +68,18 @@
     @apply mb-1.5 block text-sm font-semibold text-navy;
   }
 
+  /* --- Admin (dark theme) helpers --- */
+  .input-dark {
+    @apply w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white transition
+      placeholder:text-white/40 hover:border-white/25
+      focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
+  }
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-5 py-3
+      font-semibold text-white/90 transition-all duration-200 hover:border-accent hover:text-accent
+      hover:bg-white/5 active:scale-[.98] focus-visible:ring-2 focus-visible:ring-accent;
+  }
+
   /* --- Section eyebrow labels --- */
   .eyebrow {
     @apply text-sm font-semibold uppercase tracking-widest text-brand;
@@ -84,9 +96,9 @@
   width: 8px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 9999px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(255, 255, 255, 0.3);
 }
