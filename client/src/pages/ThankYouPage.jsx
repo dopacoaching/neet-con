@@ -19,17 +19,68 @@ const ThankYouPage = () => {
   const [qrUrl, setQrUrl] = useState('');
   const retries = useRef(0);
 
-  // Generate the entry QR (encodes the registration code) once confirmed.
+  // Generate the entry QR (encodes the registration code) once confirmed, with
+  // the DOPA logo centred. Error-correction level H keeps it scannable despite
+  // the overlay. Falls back to a plain QR if the logo can't be drawn.
   useEffect(() => {
-    if (status === 'confirmed' && data?.registrationNumber) {
-      QRCode.toDataURL(data.registrationNumber, {
-        width: 320,
-        margin: 2,
-        color: { dark: '#001e5f', light: '#FFFFFF' },
-      })
-        .then(setQrUrl)
-        .catch(() => setQrUrl(''));
-    }
+    if (status !== 'confirmed' || !data?.registrationNumber) return undefined;
+    let cancelled = false;
+    const code = data.registrationNumber;
+    const opts = {
+      width: 320,
+      margin: 2,
+      errorCorrectionLevel: 'H',
+      color: { dark: '#001e5f', light: '#FFFFFF' },
+    };
+
+    (async () => {
+      try {
+        const size = opts.width;
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, code, opts);
+        const ctx = canvas.getContext('2d');
+
+        const logo = new Image();
+        logo.src = '/dopa-logo.png';
+        await new Promise((res, rej) => {
+          logo.onload = res;
+          logo.onerror = rej;
+        });
+
+        const logoW = size * 0.3;
+        const logoH = logoW * (logo.height / logo.width);
+        const padW = logoW + 16;
+        const padH = logoH + 12;
+        const px = (size - padW) / 2;
+        const py = (size - padH) / 2;
+        const r = 10;
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(px + r, py);
+        ctx.arcTo(px + padW, py, px + padW, py + padH, r);
+        ctx.arcTo(px + padW, py + padH, px, py + padH, r);
+        ctx.arcTo(px, py + padH, px, py, r);
+        ctx.arcTo(px, py, px + padW, py, r);
+        ctx.closePath();
+        ctx.fill();
+        ctx.drawImage(logo, (size - logoW) / 2, (size - logoH) / 2, logoW, logoH);
+
+        if (!cancelled) setQrUrl(canvas.toDataURL('image/png'));
+      } catch {
+        // Fallback: plain QR (still level H) if canvas/logo failed.
+        try {
+          const url = await QRCode.toDataURL(code, opts);
+          if (!cancelled) setQrUrl(url);
+        } catch {
+          if (!cancelled) setQrUrl('');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [status, data]);
 
   useEffect(() => {
