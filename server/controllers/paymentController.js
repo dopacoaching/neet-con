@@ -305,6 +305,18 @@ export const mockPayPage = asyncHandler(async (req, res) => {
     return;
   }
 
+  // Escape values interpolated into the HTML below. The registrant's name/mobile
+  // and the order id are user-influenced, so they must never be rendered raw
+  // (XSS) — even on this mock-only page, which is reachable in the live mock-mode
+  // deploy.
+  const esc = (v) =>
+    String(v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
   // Build each callback payload ONCE so the rendered hidden fields are exactly
   // the fields the hash was computed over (otherwise signature verification on
   // the callback would mismatch — e.g. a freshly regenerated tracking_id).
@@ -312,7 +324,7 @@ export const mockPayPage = asyncHandler(async (req, res) => {
   const failure = buildMockCallback(orderId, 'FAILURE');
   const hiddenInputs = (payload) =>
     Object.entries(payload)
-      .map(([k, v]) => `<input type="hidden" name="${k}" value="${String(v)}"/>`)
+      .map(([k, v]) => `<input type="hidden" name="${esc(k)}" value="${esc(v)}"/>`)
       .join('');
 
   res.set('Content-Type', 'text/html').send(`<!doctype html>
@@ -336,9 +348,9 @@ export const mockPayPage = asyncHandler(async (req, res) => {
   <span class="tag">MOCK GATEWAY</span>
   <h1>NEET CON 2026 — Payment</h1>
   <p class="muted">HDFC credentials not configured. Simulating checkout.</p>
-  <div class="row"><span>Name</span><strong>${registration.fullName}</strong></div>
-  <div class="row"><span>Mobile</span><strong>${registration.mobileNumber}</strong></div>
-  <div class="row"><span>Order</span><strong>${orderId}</strong></div>
+  <div class="row"><span>Name</span><strong>${esc(registration.fullName)}</strong></div>
+  <div class="row"><span>Mobile</span><strong>${esc(registration.mobileNumber)}</strong></div>
+  <div class="row"><span>Order</span><strong>${esc(orderId)}</strong></div>
   <div class="amount">₹${Number(registration.amount).toFixed(2)}</div>
   <form method="GET" action="/api/payment/callback">
     ${hiddenInputs(success)}
