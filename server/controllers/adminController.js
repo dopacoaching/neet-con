@@ -77,6 +77,7 @@ export const listRegistrations = asyncHandler(async (req, res) => {
     filter.$or = [
       { fullName: { $regex: safe, $options: 'i' } },
       { mobileNumber: { $regex: safe, $options: 'i' } },
+      { emailAddress: { $regex: safe, $options: 'i' } },
       { registrationNumber: { $regex: safe, $options: 'i' } },
       { schoolOrCollege: { $regex: safe, $options: 'i' } },
     ];

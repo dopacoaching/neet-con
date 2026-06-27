@@ -7,12 +7,13 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04]">
       <div className="scrollbar-thin overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-sm">
+        <table className="w-full min-w-[880px] text-left text-sm">
           <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wide text-white/50">
             <tr>
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Mobile</th>
+              <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">School / College</th>
               <th className="px-4 py-3">Preparing</th>
               <th className="px-4 py-3">Status</th>
@@ -23,7 +24,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 7 }).map((__, j) => (
+                  {Array.from({ length: 8 }).map((__, j) => (
                     <td key={j} className="px-4 py-3">
                       <span className="block h-4 w-full animate-pulse rounded bg-white/10" />
                     </td>
@@ -32,7 +33,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
               ))
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-white/40">
+                <td colSpan={8} className="px-4 py-12 text-center text-white/40">
                   No registrations found.
                 </td>
               </tr>
@@ -53,6 +54,9 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                     )}
                   </td>
                   <td className="px-4 py-3 text-white/70">{r.mobileNumber}</td>
+                  <td className="max-w-[200px] truncate px-4 py-3 text-white/70" title={r.emailAddress || ''}>
+                    {r.emailAddress || '—'}
+                  </td>
                   <td className="px-4 py-3 text-white/70">{r.schoolOrCollege}</td>
                   <td className="px-4 py-3 text-white/70">{r.preparingFor}</td>
                   <td className="px-4 py-3">

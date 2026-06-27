@@ -169,7 +169,7 @@ const AdminDashboardPage = () => {
         <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-3">
           <input
             className="input-dark"
-            placeholder="Search name, mobile, reg no…"
+            placeholder="Search name, mobile, email, reg no…"
             onChange={(e) => onSearch(e.target.value)}
           />
           <select
