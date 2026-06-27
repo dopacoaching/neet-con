@@ -48,7 +48,7 @@ services:
         sync: false # https://<this-service>.onrender.com/api/payment/webhook
       # --- WhatsApp (Meta Cloud API) — primary confirmation channel ---
       - key: WHATSAPP_MOCK
-        value: "true" # flip to "false" once the template is approved + creds set
+        value: "false" # LIVE — real confirmation messages are sent
       - key: WHATSAPP_PHONE_NUMBER_ID
         sync: false
       - key: WHATSAPP_ACCESS_TOKEN
