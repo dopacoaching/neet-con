@@ -19,9 +19,7 @@ const ThankYouPage = () => {
   const [qrUrl, setQrUrl] = useState('');
   const retries = useRef(0);
 
-  // Generate the entry QR (encodes the registration code) once confirmed, with
-  // the DOPA logo centred. Error-correction level H keeps it scannable despite
-  // the overlay. Falls back to a plain QR if the logo can't be drawn.
+  // Generate the entry QR (encodes the registration code) once confirmed.
   useEffect(() => {
     if (status !== 'confirmed' || !data?.registrationNumber) return undefined;
     let cancelled = false;
@@ -35,46 +33,10 @@ const ThankYouPage = () => {
 
     (async () => {
       try {
-        const size = opts.width;
-        const canvas = document.createElement('canvas');
-        await QRCode.toCanvas(canvas, code, opts);
-        const ctx = canvas.getContext('2d');
-
-        const logo = new Image();
-        logo.src = '/dopa-logo.png';
-        await new Promise((res, rej) => {
-          logo.onload = res;
-          logo.onerror = rej;
-        });
-
-        // Match the server-generated pass: the wordmark overlaid directly on the
-        // QR (no white card), lifted off the pattern with a soft white glow so it
-        // stays legible and looks clean. The glow is drawn via a layered canvas
-        // shadow; the final pass disables the shadow for a crisp logo on top.
-        const logoW = size * 0.34;
-        const logoH = logoW * (logo.height / logo.width);
-        const lx = (size - logoW) / 2;
-        const ly = (size - logoH) / 2;
-
-        ctx.save();
-        ctx.shadowColor = 'rgba(255,255,255,0.95)';
-        ctx.shadowBlur = 22;
-        // Multiple passes build up a soft, feathered halo around the wordmark.
-        for (let i = 0; i < 4; i += 1) {
-          ctx.drawImage(logo, lx, ly, logoW, logoH);
-        }
-        ctx.restore();
-        ctx.drawImage(logo, lx, ly, logoW, logoH);
-
-        if (!cancelled) setQrUrl(canvas.toDataURL('image/png'));
+        const url = await QRCode.toDataURL(code, opts);
+        if (!cancelled) setQrUrl(url);
       } catch {
-        // Fallback: plain QR (still level H) if canvas/logo failed.
-        try {
-          const url = await QRCode.toDataURL(code, opts);
-          if (!cancelled) setQrUrl(url);
-        } catch {
-          if (!cancelled) setQrUrl('');
-        }
+        if (!cancelled) setQrUrl('');
       }
     })();
 

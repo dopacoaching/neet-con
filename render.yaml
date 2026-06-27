@@ -29,7 +29,7 @@ services:
         value: "100"
       # --- HDFC SmartGateway (Juspay) ---
       - key: HDFC_MOCK
-        value: "true" # flip to "false" only after validating a live payment
+        value: "false" # LIVE payments — real money is charged
       - key: HDFC_API_KEY
         sync: false
       - key: HDFC_MERCHANT_ID
