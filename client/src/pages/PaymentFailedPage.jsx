@@ -16,9 +16,13 @@ const PaymentFailedPage = () => {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 text-3xl">
           ✕
         </div>
-        <h1 className="mt-5 font-heading text-3xl font-extrabold">Payment not completed</h1>
+        <h1 className="mt-5 font-heading text-3xl font-extrabold">
+          {reason === 'duplicate' ? 'You already have a seat' : 'Payment not completed'}
+        </h1>
         <p className="mt-2 max-w-md text-white/70">
-          {reason === 'signature'
+          {reason === 'duplicate'
+            ? 'This mobile number already has a confirmed seat, so we did not book a second one. If you were charged again, it will be refunded after review — please contact DOPA support with your reference number.'
+            : reason === 'signature'
             ? 'We could not verify the payment securely. If money was debited, it will be refunded automatically.'
             : 'Your payment was not successful or was cancelled. No seat has been booked yet.'}
         </p>
@@ -39,8 +43,9 @@ const PaymentFailedPage = () => {
         <div className="mt-10 max-w-md rounded-2xl bg-white/5 p-5 text-sm text-white/70">
           <p className="font-semibold text-white">If money was deducted</p>
           <p className="mt-1">
-            Bank debits that don't confirm a seat are auto-reversed within 5–7 working days. For
-            help, contact DOPA support with your reference number.
+            {reason === 'duplicate'
+              ? 'Since your seat was already booked, any second charge will be refunded after our team reviews it. Please contact DOPA support with your reference number.'
+              : "Bank debits that don't confirm a seat are auto-reversed within 5–7 working days. For help, contact DOPA support with your reference number."}
           </p>
         </div>
       </div>

@@ -198,7 +198,15 @@ export const paymentCallback = asyncHandler(async (req, res) => {
       result.registration.paymentStatus === PAYMENT_STATUS.MANUAL);
 
   const target = confirmed ? 'thank-you' : 'payment-failed';
-  return res.redirect(`${clientUrl}/${target}?orderId=${encodeURIComponent(parsed.orderId || '')}`);
+  let redirectUrl = `${clientUrl}/${target}?orderId=${encodeURIComponent(parsed.orderId || '')}`;
+  // A payment that succeeded at the gateway but was auto-failed because the
+  // mobile already holds a seat is a real charge needing a manual refund — flag
+  // it so the failed page shows the correct "refund on review" message rather
+  // than the generic "auto-reversed" copy.
+  if (!confirmed && result.reason === 'duplicate mobile') {
+    redirectUrl += '&reason=duplicate';
+  }
+  return res.redirect(redirectUrl);
 });
 
 /**
