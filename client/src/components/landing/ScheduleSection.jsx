@@ -1,13 +1,13 @@
-// Placeholder schedule — replace session titles/speakers once finalised.
+// Sessions and the faculty leading each. Times are indicative (the day runs
+// 9:30 AM – 5:00 PM); per-session slots can be added here once finalised.
 const SCHEDULE = [
-  { time: '9:30 AM', title: 'Registration & Welcome Kit', desc: 'Check-in, ID verification and seating.' },
-  { time: '10:00 AM', title: 'Inauguration & Keynote', desc: 'Setting the stage: the NEET 2026 landscape.' },
-  { time: '11:00 AM', title: 'Decoding NEET Counselling', desc: 'AIQ vs State Quota, rounds, mop-up & stray vacancy.' },
-  { time: '12:30 PM', title: 'College & Course Selection Strategy', desc: 'How to fill your choice list the smart way.' },
-  { time: '1:30 PM', title: 'Lunch Break', desc: 'Networking with mentors and fellow aspirants.' },
-  { time: '2:30 PM', title: 'Topper Talk', desc: 'Real strategies from students who cracked NEET.' },
-  { time: '3:30 PM', title: 'Parents & Finance Session', desc: 'Fees, bonds, loans and management quota clarity.' },
-  { time: '4:30 PM', title: 'Live Q&A + Closing', desc: 'Your questions answered by the panel.' },
+  { title: 'D-NAT', speaker: 'Ashiq' },
+  { title: 'Training Habit', speaker: 'Niyas' },
+  { title: 'Basic Course – Biology', speaker: 'Ashiq' },
+  { title: 'Physics', speaker: 'Anoob' },
+  { title: 'Chemistry', speaker: 'Ashraf' },
+  { title: 'Basic Math', speaker: 'Thabsheer' },
+  { title: 'NEET 27', speaker: 'Afsal' },
 ];
 
 const ScheduleSection = () => (
@@ -21,16 +21,18 @@ const ScheduleSection = () => (
       </div>
 
       <ol className="relative mx-auto mt-12 max-w-3xl border-l border-white/15 pl-6">
-        {SCHEDULE.map((s) => (
-          <li key={s.time} className="mb-8 last:mb-0">
+        {SCHEDULE.map((s, i) => (
+          <li key={s.title} className="mb-8 last:mb-0">
             <span className="absolute -left-[7px] mt-1.5 h-3.5 w-3.5 rounded-full border-2 border-navy bg-accent" />
             <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-4">
               <span className="w-24 flex-shrink-0 font-heading text-sm font-bold text-accent">
-                {s.time}
+                Session {i + 1}
               </span>
               <div>
                 <h3 className="font-semibold">{s.title}</h3>
-                <p className="text-sm text-white/60">{s.desc}</p>
+                <p className="text-sm font-medium text-white/60">
+                  Faculty · <span className="text-accent">{s.speaker}</span>
+                </p>
               </div>
             </div>
           </li>
