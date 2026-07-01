@@ -27,8 +27,7 @@ const Footer = () => (
               className="underline-offset-2 hover:text-accent hover:underline"
             >
               Yamaniya Hall, Kuttikattor
-            </a>{' '}
-            <span className="text-white/40">· Get directions</span>
+            </a>
           </li>
           <li>🎟️ ₹100 per student</li>
           <li>🪑 Limited seats — register early</li>
@@ -42,24 +41,39 @@ const Footer = () => (
         <ul className="space-y-2 text-sm">
           <li>
             📞{' '}
-            <a href="tel:+910000000000" className="hover:text-accent">
-              +91 00000 00000
+            <a href="tel:+919207912200" className="hover:text-accent">
+              +91 92079 12200
             </a>
           </li>
           <li>
             ✉️{' '}
-            <a href="mailto:info@dopacoaching.com" className="hover:text-accent">
-              info@dopacoaching.com
+            <a href="mailto:dopacalicut@gmail.com" className="hover:text-accent">
+              dopacalicut@gmail.com
             </a>
           </li>
           <li className="flex gap-3 pt-1">
-            <a href="#" className="hover:text-accent">
+            <a
+              href="https://instagram.com/dopacoaching"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-accent"
+            >
               Instagram
             </a>
-            <a href="#" className="hover:text-accent">
+            <a
+              href="https://www.youtube.com/@DOPACoaching"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-accent"
+            >
               YouTube
             </a>
-            <a href="#" className="hover:text-accent">
+            <a
+              href="https://wa.me/919207912200"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-accent"
+            >
               WhatsApp
             </a>
           </li>

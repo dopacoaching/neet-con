@@ -67,7 +67,7 @@ services:
       - key: EVENT_DATE
         value: 12 July 2026
       - key: EVENT_TIME
-        value: 10:00 AM – 4:00 PM
+        value: 9:30 AM – 4:00 PM
       - key: EVENT_VENUE
         value: Yamaniya Hall, Kuttikattor
       - key: EVENT_MAP_URL

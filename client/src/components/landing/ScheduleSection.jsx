@@ -1,5 +1,5 @@
 // Programme for the day. Faculty is optional (e.g. Registration has none).
-// Times are indicative — the day runs 10:00 AM – 4:00 PM; per-item slots can be
+// Times are indicative — the day runs 9:30 AM – 4:00 PM; per-item slots can be
 // added here once finalised.
 const SCHEDULE = [
   { title: 'Registration', time: '9:30 AM' },
@@ -23,7 +23,7 @@ const ScheduleSection = () => (
       <div className="mx-auto max-w-2xl text-center">
         <p className="eyebrow-dark">Day schedule</p>
         <h2 className="mt-2 font-heading text-3xl font-extrabold sm:text-4xl">
-          10:00 AM – 4:00 PM · One power-packed day
+          9:30 AM – 4:00 PM · One power-packed day
         </h2>
       </div>
 
@@ -43,7 +43,6 @@ const ScheduleSection = () => (
           </li>
         ))}
       </ol>
-      <p className="mt-6 text-center text-xs text-white/40">* Schedule is indicative and subject to change.</p>
     </div>
   </section>
 );

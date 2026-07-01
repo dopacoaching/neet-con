@@ -55,7 +55,7 @@ const isConfigured = () => !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && TEMPLATE_NA
 
 const EVENT = {
   date: process.env.EVENT_DATE || '12 July 2026',
-  time: process.env.EVENT_TIME || '10:00 AM – 4:00 PM',
+  time: process.env.EVENT_TIME || '9:30 AM – 4:00 PM',
   venue: process.env.EVENT_VENUE || 'Yamaniya Hall, Kuttikattor',
 };
 
