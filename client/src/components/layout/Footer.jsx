@@ -30,7 +30,7 @@ const Footer = () => (
             </a>
           </li>
           <li>🎟️ ₹100 per student</li>
-          <li>🪑 Limited seats — register early</li>
+          <li>🎓 For NEET 2027 &amp; 2028 aspirants</li>
         </ul>
       </div>
 
