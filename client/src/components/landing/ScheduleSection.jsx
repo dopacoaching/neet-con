@@ -2,7 +2,7 @@
 // Times are indicative — the day runs 10:00 AM – 4:00 PM; per-item slots can be
 // added here once finalised.
 const SCHEDULE = [
-  { title: 'Registration' },
+  { title: 'Registration', time: '9:30 AM' },
   { title: 'Opening Remarks', speaker: 'Dr. Asif Mohammed' },
   { title: 'DOPA NEET Assessment Tool — D-NAT', speaker: 'Dr. Ashiq Sainudheen' },
   {
@@ -31,10 +31,13 @@ const ScheduleSection = () => (
         {SCHEDULE.map((s) => (
           <li key={s.title} className="mb-8 last:mb-0">
             <span className="absolute -left-[7px] mt-1.5 h-3.5 w-3.5 rounded-full border-2 border-navy bg-accent" />
-            <h3 className="font-semibold leading-snug">{s.title}</h3>
+            <div className="flex flex-wrap items-baseline gap-x-2">
+              <h3 className="font-semibold leading-snug">{s.title}</h3>
+              {s.time && <span className="text-sm font-bold text-accent">{s.time}</span>}
+            </div>
             {s.speaker && (
               <p className="mt-0.5 text-sm font-medium text-white/60">
-                Faculty · <span className="text-accent">{s.speaker}</span>
+                Speaker · <span className="text-accent">{s.speaker}</span>
               </p>
             )}
           </li>
