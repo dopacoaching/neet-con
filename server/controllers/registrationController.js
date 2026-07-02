@@ -59,7 +59,7 @@ export const createRegistration = asyncHandler(async (req, res) => {
   // --- Duplicate protection: a CONFIRMED/MANUAL reg for this mobile already exists ---
   const existing = await Registration.findOne({
     mobileNumber: mobile,
-    paymentStatus: { $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL] },
+    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
   });
   if (existing) {
     res.status(409);

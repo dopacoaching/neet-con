@@ -142,18 +142,16 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
       throw new Error('Invalid status');
     }
 
-    const wasConfirmed =
-      registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
-      registration.paymentStatus === PAYMENT_STATUS.MANUAL;
+    const wasConfirmed = Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus);
     const becomingConfirmed =
-      (status === PAYMENT_STATUS.MANUAL || status === PAYMENT_STATUS.CONFIRMED) && !wasConfirmed;
+      Registration.SEAT_HOLDING_STATUSES.includes(status) && !wasConfirmed;
 
     if (becomingConfirmed) {
       // Duplicate-payment guard: don't seat a mobile that already holds a seat.
       const dupe = await Registration.findOne({
         _id: { $ne: registration._id },
         mobileNumber: registration.mobileNumber,
-        paymentStatus: { $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL] },
+        paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
       });
       if (dupe) {
         res.status(409);
@@ -301,9 +299,7 @@ export const checkIn = asyncHandler(async (req, res) => {
     throw new Error(`No registration found for "${code}"`);
   }
 
-  const isConfirmed =
-    registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
-    registration.paymentStatus === PAYMENT_STATUS.MANUAL;
+  const isConfirmed = Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus);
 
   if (!isConfirmed) {
     return res.status(200).json({

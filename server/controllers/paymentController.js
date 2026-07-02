@@ -26,10 +26,7 @@ const applyPaymentResult = async (parsed) => {
   if (!registration) return { registration: null, changed: false, reason: 'order not found' };
 
   // Already finalised — do not overwrite a CONFIRMED/MANUAL record.
-  if (
-    registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
-    registration.paymentStatus === PAYMENT_STATUS.MANUAL
-  ) {
+  if (Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus)) {
     return { registration, changed: false, reason: 'already confirmed' };
   }
 
@@ -43,7 +40,7 @@ const applyPaymentResult = async (parsed) => {
     const dupe = await Registration.findOne({
       _id: { $ne: registration._id },
       mobileNumber: registration.mobileNumber,
-      paymentStatus: { $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL] },
+      paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
     });
     if (dupe) {
       registration.paymentStatus = PAYMENT_STATUS.FAILED;
@@ -107,10 +104,7 @@ export const initiatePayment = asyncHandler(async (req, res) => {
     throw new Error('Registration not found for this order');
   }
 
-  if (
-    registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
-    registration.paymentStatus === PAYMENT_STATUS.MANUAL
-  ) {
+  if (Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus)) {
     res.status(409);
     throw new Error('This registration is already confirmed.');
   }
@@ -118,7 +112,7 @@ export const initiatePayment = asyncHandler(async (req, res) => {
   // Duplicate-payment guard: another confirmed reg for this mobile.
   const dupe = await Registration.findOne({
     mobileNumber: registration.mobileNumber,
-    paymentStatus: { $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL] },
+    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
   });
   if (dupe) {
     res.status(409);
