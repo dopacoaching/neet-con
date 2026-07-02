@@ -18,7 +18,7 @@ export const buildRegistrationsWorkbook = (registrations) => {
     'Source': r.source === 'google_form' ? 'Google Form (DOPA)' : 'Online',
     'District / Place': r.district || '',
     'Current Status': r.currentStatus || '',
-    'Expected Score': r.expectedScore || '',
+    'Expected NEET Score': r.expectedScore || '',
     'Remarks': r.remarks || '',
     'Payment Status': r.paymentStatus || '',
     'Amount (INR)': r.amount ?? '',

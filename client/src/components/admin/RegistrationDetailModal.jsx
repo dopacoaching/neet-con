@@ -106,7 +106,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <Field label="District / Place" value={r.district} />
                 <Field label="Current Status" value={r.currentStatus} />
-                <Field label="Expected Score" value={r.expectedScore} />
+                <Field label="Expected NEET Score" value={r.expectedScore} />
                 {r.remarks && <Field label="Remarks" value={r.remarks} />}
               </div>
             </div>
