@@ -14,7 +14,7 @@ import RegistrationDetailModal from '../../components/admin/RegistrationDetailMo
 import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
 import { Spinner } from '../../components/ui/PageLoader.jsx';
 
-const STATUS_OPTIONS = ['All', 'CONFIRMED', 'PENDING', 'FAILED', 'MANUAL'];
+const STATUS_OPTIONS = ['All', 'CONFIRMED', 'FREE', 'PENDING', 'FAILED', 'MANUAL'];
 const PREP_OPTIONS = ['All', 'NEET 2027', 'NEET 2028'];
 
 const AdminDashboardPage = () => {

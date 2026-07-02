@@ -61,7 +61,7 @@ export const generateEventPass = async (reg) => {
   });
 
   const name = esc(truncate(reg.fullName, 20));
-  const prep = esc(reg.preparingFor || '');
+  const prep = esc(reg.preparingFor || reg.currentStatus || '');
   const date = esc(EVENT.date);
   const time = esc(EVENT.time);
   const venue = esc(truncate(EVENT.venue, 32));

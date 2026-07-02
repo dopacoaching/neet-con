@@ -57,8 +57,8 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                   <td className="max-w-[200px] truncate px-4 py-3 text-white/70" title={r.emailAddress || ''}>
                     {r.emailAddress || '—'}
                   </td>
-                  <td className="px-4 py-3 text-white/70">{r.schoolOrCollege}</td>
-                  <td className="px-4 py-3 text-white/70">{r.preparingFor}</td>
+                  <td className="px-4 py-3 text-white/70">{r.schoolOrCollege || r.district || '—'}</td>
+                  <td className="px-4 py-3 text-white/70">{r.preparingFor || r.currentStatus || '—'}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={r.paymentStatus} />
                   </td>

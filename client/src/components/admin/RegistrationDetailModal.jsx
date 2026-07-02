@@ -97,6 +97,22 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             <Field label="Amount" value={`₹${r.amount}`} />
           </div>
 
+          {/* Free (Google Form / DOPA student) details */}
+          {r.source === 'google_form' && (
+            <div className="rounded-xl bg-violet-500/10 p-4 ring-1 ring-violet-400/20">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">
+                DOPA student (Google Form)
+              </p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <Field label="District / Place" value={r.district} />
+                <Field label="Current Status" value={r.currentStatus} />
+                <Field label="NEET Score" value={r.neetScore} />
+                <Field label="DOPA Student" value={r.dopaStudent} />
+                {r.remarks && <Field label="Remarks" value={r.remarks} />}
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl bg-white/5 p-4">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
               Payment details

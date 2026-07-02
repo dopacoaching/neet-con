@@ -226,6 +226,7 @@ export const summary = asyncHandler(async (req, res) => {
       total,
       confirmed: byStatus[PAYMENT_STATUS.CONFIRMED] || 0,
       manual: byStatus[PAYMENT_STATUS.MANUAL] || 0,
+      free: byStatus[PAYMENT_STATUS.FREE] || 0,
       pending: byStatus[PAYMENT_STATUS.PENDING] || 0,
       failed: byStatus[PAYMENT_STATUS.FAILED] || 0,
       checkedIn,

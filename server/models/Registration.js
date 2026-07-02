@@ -5,6 +5,7 @@ export const PAYMENT_STATUS = Object.freeze({
   CONFIRMED: 'CONFIRMED',
   FAILED: 'FAILED',
   MANUAL: 'MANUAL',
+  FREE: 'FREE', // DOPA students — no payment required (via Google Form)
 });
 
 export const PREPARING_FOR = Object.freeze({
@@ -47,13 +48,23 @@ const registrationSchema = new mongoose.Schema(
       lowercase: true,
       default: '',
     },
-    schoolOrCollege: { type: String, required: true, trim: true },
+    // Required for the paid online flow (enforced in its controller); optional
+    // for free/Google-Form entries, which don't collect it.
+    schoolOrCollege: { type: String, trim: true },
     passedYear: { type: String, trim: true }, // 2005–2028 (dropdown)
     preparingFor: {
       type: String,
       enum: Object.values(PREPARING_FOR),
-      required: true,
+      required: false,
     },
+
+    // --- Free / Google-Form (DOPA student) fields ---
+    source: { type: String, default: 'online', index: true }, // 'online' | 'google_form'
+    district: { type: String, trim: true, default: '' },
+    currentStatus: { type: String, trim: true, default: '' }, // Plus Two / Repeater / Re-Repeater / Others
+    neetScore: { type: String, trim: true, default: '' },
+    dopaStudent: { type: String, trim: true, default: '' },
+    remarks: { type: String, trim: true, default: '' },
 
     // --- Payment fields ---
     orderId: { type: String, required: true, unique: true, index: true },
@@ -84,6 +95,7 @@ const registrationSchema = new mongoose.Schema(
 registrationSchema.statics.SEAT_HOLDING_STATUSES = [
   PAYMENT_STATUS.CONFIRMED,
   PAYMENT_STATUS.MANUAL,
+  PAYMENT_STATUS.FREE,
 ];
 
 const Registration = mongoose.model('Registration', registrationSchema);

@@ -158,7 +158,11 @@ export const sendConfirmationWhatsApp = async (reg) => {
                 parameter_name: 'registration_code',
                 text: String(reg.registrationNumber),
               },
-              { type: 'text', parameter_name: 'preparing_for', text: String(reg.preparingFor) },
+              {
+                type: 'text',
+                parameter_name: 'preparing_for',
+                text: String(reg.preparingFor || reg.currentStatus || 'NEET Aspirant'),
+              },
               { type: 'text', parameter_name: 'event_date', text: EVENT.date },
               { type: 'text', parameter_name: 'event_time', text: EVENT.time },
               { type: 'text', parameter_name: 'venue', text: EVENT.venue },

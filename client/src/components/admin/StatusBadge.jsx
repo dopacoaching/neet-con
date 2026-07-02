@@ -3,6 +3,7 @@ const TONES = {
   PENDING: 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/20',
   FAILED: 'bg-red-500/15 text-red-300 ring-1 ring-red-400/20',
   MANUAL: 'bg-blue-500/15 text-blue-300 ring-1 ring-blue-400/20',
+  FREE: 'bg-violet-500/15 text-violet-300 ring-1 ring-violet-400/20',
 };
 
 const StatusBadge = ({ status }) => (

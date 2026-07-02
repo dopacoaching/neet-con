@@ -15,6 +15,12 @@ export const buildRegistrationsWorkbook = (registrations) => {
     'School / College': r.schoolOrCollege || '',
     'Passed Year (12th)': r.passedYear || '',
     'Preparing For': r.preparingFor || '',
+    'Source': r.source === 'google_form' ? 'Google Form (DOPA)' : 'Online',
+    'District / Place': r.district || '',
+    'Current Status': r.currentStatus || '',
+    'NEET Score': r.neetScore || '',
+    'DOPA Student': r.dopaStudent || '',
+    'Remarks': r.remarks || '',
     'Payment Status': r.paymentStatus || '',
     'Amount (INR)': r.amount ?? '',
     'Order ID': r.orderId || '',
@@ -32,10 +38,11 @@ export const buildRegistrationsWorkbook = (registrations) => {
 
   // Reasonable column widths.
   worksheet['!cols'] = [
-    { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 }, { wch: 26 },
-    { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 15 }, { wch: 12 },
-    { wch: 26 }, { wch: 20 }, { wch: 16 }, { wch: 22 }, { wch: 22 },
-    { wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 30 },
+    { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 }, { wch: 26 }, // # .. Email
+    { wch: 28 }, { wch: 16 }, { wch: 14 }, // School, Passed Year, Preparing For
+    { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 30 }, // Source .. Remarks
+    { wch: 15 }, { wch: 12 }, { wch: 26 }, { wch: 20 }, { wch: 16 }, // Payment Status .. Attempts
+    { wch: 22 }, { wch: 22 }, { wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 30 }, // Registered .. Notes
   ];
 
   const workbook = xlsx.utils.book_new();

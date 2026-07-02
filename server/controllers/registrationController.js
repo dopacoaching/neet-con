@@ -1,10 +1,27 @@
+import crypto from 'crypto';
 import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { generateEventPass } from '../utils/eventPass.js';
+import { nextRegistrationNumber } from '../utils/registrationNumber.js';
+import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
+
+/** Constant-time compare that never throws on length mismatch. */
+const secretEqual = (a, b) => {
+  const ab = Buffer.from(String(a || ''));
+  const bb = Buffer.from(String(b || ''));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+};
+
+/** Reduce any Indian contact number to its 10-digit core (drops +91 / 0 / spaces). */
+const normalizeMobile = (v) => {
+  const d = String(v || '').replace(/\D/g, '');
+  return d.length > 10 ? d.slice(-10) : d;
+};
 
 /**
  * POST /api/registrations
@@ -71,6 +88,76 @@ export const createRegistration = asyncHandler(async (req, res) => {
       amount: registration.amount,
       fullName: registration.fullName,
     },
+  });
+});
+
+/**
+ * POST /api/registrations/external
+ * Ingest a free (DOPA student) registration from the Google Form via its Apps
+ * Script. Authenticated by a shared secret (X-Form-Secret / body.secret), NOT a
+ * user session. Creates a CONFIRMED-equivalent FREE seat (no payment), issues a
+ * registration number, and sends the WhatsApp entry pass.
+ */
+export const createExternalRegistration = asyncHandler(async (req, res) => {
+  const secret = process.env.FORM_INGEST_SECRET;
+  const provided = req.get('x-form-secret') || req.body?.secret || '';
+  if (!secret || !secretEqual(provided, secret)) {
+    res.status(401);
+    throw new Error('Unauthorized');
+  }
+
+  const body = req.body || {};
+  const finalName = String(body.name || body.fullName || '').trim();
+  const mobile = normalizeMobile(body.contactNumber || body.mobileNumber);
+
+  const errors = [];
+  if (!finalName) errors.push('Name is required');
+  if (!MOBILE_RE.test(mobile)) errors.push('A valid 10-digit contact number is required');
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join('; '));
+  }
+
+  // Idempotent: if this mobile already holds a seat (online-paid, manual or a
+  // previous form submit), return it instead of creating a duplicate.
+  const existing = await Registration.findOne({
+    mobileNumber: mobile,
+    paymentStatus: {
+      $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL, PAYMENT_STATUS.FREE],
+    },
+  });
+  if (existing) {
+    return res.status(200).json({
+      success: true,
+      duplicate: true,
+      data: { orderId: existing.orderId, registrationNumber: existing.registrationNumber },
+    });
+  }
+
+  const registration = await Registration.create({
+    fullName: finalName,
+    mobileNumber: mobile,
+    source: 'google_form',
+    district: String(body.district || '').trim(),
+    currentStatus: String(body.currentStatus || '').trim(),
+    neetScore: String(body.neetScore || '').trim(),
+    dopaStudent: String(body.dopaStudent || '').trim(),
+    remarks: String(body.remarks || '').trim(),
+    orderId: generateOrderId(),
+    paymentStatus: PAYMENT_STATUS.FREE,
+    amount: 0,
+    registrationNumber: await nextRegistrationNumber(),
+    confirmedAt: new Date(),
+  });
+
+  // Send the WhatsApp entry pass so free attendees can be scanned at the gate.
+  sendConfirmationWhatsApp(registration).catch((err) =>
+    console.error(`[whatsapp] external reg send error: ${err?.message || err}`)
+  );
+
+  res.status(201).json({
+    success: true,
+    data: { orderId: registration.orderId, registrationNumber: registration.registrationNumber },
   });
 });
 
