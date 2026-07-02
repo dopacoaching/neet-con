@@ -208,8 +208,9 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
  * Dashboard cards data.
  */
 export const summary = asyncHandler(async (req, res) => {
-  const counts = await Registration.aggregate([
-    { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
+  const [counts, checkedIn] = await Promise.all([
+    Registration.aggregate([{ $group: { _id: '$paymentStatus', count: { $sum: 1 } } }]),
+    Registration.countDocuments({ checkedInAt: { $ne: null } }),
   ]);
 
   const byStatus = counts.reduce((acc, c) => {
@@ -227,6 +228,7 @@ export const summary = asyncHandler(async (req, res) => {
       manual: byStatus[PAYMENT_STATUS.MANUAL] || 0,
       pending: byStatus[PAYMENT_STATUS.PENDING] || 0,
       failed: byStatus[PAYMENT_STATUS.FAILED] || 0,
+      checkedIn,
     },
   });
 });
