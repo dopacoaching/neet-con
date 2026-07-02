@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyWebhook, receiveWebhook, debugRecent } from '../controllers/whatsappController.js';
+import { verifyWebhook, receiveWebhook, debugRecent, diag } from '../controllers/whatsappController.js';
 
 const router = express.Router();
 
@@ -9,5 +9,7 @@ router.post('/webhook', receiveWebhook);
 
 // Debug: recent events (gated by WHATSAPP_VERIFY_TOKEN).
 router.get('/debug', debugRecent);
+// Diag: live WhatsApp env config, no full secrets (gated by WHATSAPP_VERIFY_TOKEN).
+router.get('/diag', diag);
 
 export default router;

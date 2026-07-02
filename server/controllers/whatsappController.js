@@ -59,6 +59,31 @@ export const verifyWebhook = (req, res) => {
 };
 
 /**
+ * GET /api/whatsapp/diag?token=... — reports the LIVE WhatsApp env config
+ * (no full secrets) so token truncation / mock-mode / id mismatches on the
+ * host can be diagnosed. Gated by WHATSAPP_VERIFY_TOKEN.
+ */
+export const diag = (req, res) => {
+  if (!process.env.WHATSAPP_VERIFY_TOKEN || !safeEqual(req.query.token, process.env.WHATSAPP_VERIFY_TOKEN)) {
+    return res.sendStatus(403);
+  }
+  const tok = process.env.WHATSAPP_ACCESS_TOKEN || '';
+  res.set('Cache-Control', 'no-store');
+  return res.json({
+    success: true,
+    mock: String(process.env.WHATSAPP_MOCK).toLowerCase() === 'true',
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || null,
+    template: process.env.WHATSAPP_TEMPLATE_NAME || null,
+    templateLang: process.env.WHATSAPP_TEMPLATE_LANG || null,
+    apiVersion: process.env.WHATSAPP_API_VERSION || null,
+    hasToken: !!tok,
+    tokenLen: tok.length,
+    tokenPrefix: tok.slice(0, 10),
+    tokenSuffix: tok.slice(-6),
+  });
+};
+
+/**
  * GET /api/whatsapp/debug?token=... — recent webhook events for debugging.
  * Gated by WHATSAPP_VERIFY_TOKEN so it isn't world-readable.
  */
