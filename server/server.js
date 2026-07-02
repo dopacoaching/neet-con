@@ -18,6 +18,7 @@ import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import mongoSanitize from './middleware/sanitize.js';
+import { getAllowedOrigins } from './config/origins.js';
 
 import registrationRoutes from './routes/registrationRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
@@ -51,13 +52,12 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false,
+    // Force HTTPS for a year (with preload) — API is HTTPS-only on Render.
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   })
 );
 
-const allowedOrigins =
-  process.env.NODE_ENV === 'production'
-    ? [CLIENT_URL]
-    : [CLIENT_URL, 'http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = getAllowedOrigins();
 
 app.use(
   cors({
@@ -74,7 +74,15 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '1mb' }));
+// Keep the raw body so the WhatsApp webhook can verify Meta's HMAC signature.
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

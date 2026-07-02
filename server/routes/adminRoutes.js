@@ -12,6 +12,7 @@ import {
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
 import { loginLimiter } from '../middleware/rateLimiter.js';
+import originGuard from '../middleware/originGuard.js';
 
 const router = express.Router();
 
@@ -20,6 +21,9 @@ router.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();
 });
+
+// CSRF defence: reject cross-origin state-changing requests.
+router.use(originGuard);
 
 // --- Public (auth) ---
 router.post('/login', loginLimiter, login);

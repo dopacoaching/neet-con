@@ -1,3 +1,28 @@
+import crypto from 'crypto';
+
+/** Constant-time string comparison that never throws on length mismatch. */
+const safeEqual = (a, b) => {
+  const ab = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+};
+
+/**
+ * Verify Meta's X-Hub-Signature-256 over the raw body using the app secret.
+ * If WHATSAPP_APP_SECRET isn't configured, we can't verify — return true so
+ * behaviour is unchanged (webhook only logs; it never mutates data).
+ */
+const verifyMetaSignature = (req) => {
+  const secret = process.env.WHATSAPP_APP_SECRET;
+  if (!secret) return true;
+  const received = req.get('x-hub-signature-256') || '';
+  const expected =
+    'sha256=' +
+    crypto.createHmac('sha256', secret).update(req.rawBody || Buffer.from('')).digest('hex');
+  return safeEqual(received, expected);
+};
+
 // In-memory ring buffer of the most recent webhook events, for quick debugging
 // via GET /api/whatsapp/debug (gated by WHATSAPP_VERIFY_TOKEN). Not persisted.
 const RECENT = [];
@@ -38,7 +63,7 @@ export const verifyWebhook = (req, res) => {
  * Gated by WHATSAPP_VERIFY_TOKEN so it isn't world-readable.
  */
 export const debugRecent = (req, res) => {
-  if (!process.env.WHATSAPP_VERIFY_TOKEN || req.query.token !== process.env.WHATSAPP_VERIFY_TOKEN) {
+  if (!process.env.WHATSAPP_VERIFY_TOKEN || !safeEqual(req.query.token, process.env.WHATSAPP_VERIFY_TOKEN)) {
     return res.sendStatus(403);
   }
   // Events contain recipient phone numbers — never cache.
@@ -53,6 +78,11 @@ export const receiveWebhook = (req, res) => {
   res.sendStatus(200);
 
   try {
+    // Reject forged events when an app secret is configured (log-poisoning guard).
+    if (!verifyMetaSignature(req)) {
+      console.warn('[whatsapp-webhook] signature verification failed — ignoring payload');
+      return;
+    }
     const entries = req.body?.entry || [];
     for (const entry of entries) {
       for (const change of entry.changes || []) {
