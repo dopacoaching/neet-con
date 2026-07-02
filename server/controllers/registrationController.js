@@ -91,53 +91,34 @@ export const createRegistration = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * POST /api/registrations/external
- * Ingest a free (DOPA student) registration from the Google Form via its Apps
- * Script. Authenticated by a shared secret (X-Form-Secret / body.secret), NOT a
- * user session. Creates a CONFIRMED-equivalent FREE seat (no payment), issues a
- * registration number, and sends the WhatsApp entry pass.
- */
-export const createExternalRegistration = asyncHandler(async (req, res) => {
-  const secret = process.env.FORM_INGEST_SECRET;
-  const provided = req.get('x-form-secret') || req.body?.secret || '';
-  if (!secret || !secretEqual(provided, secret)) {
-    res.status(401);
-    throw new Error('Unauthorized');
-  }
-
-  const body = req.body || {};
-  const finalName = String(body.name || body.fullName || '').trim();
+/** Validate the shared free-registration input; returns { name, mobile, errors }. */
+const validateFreeInput = (body = {}) => {
+  const name = String(body.name || body.fullName || '').trim();
   const mobile = normalizeMobile(body.contactNumber || body.mobileNumber);
-
   const errors = [];
-  if (!finalName) errors.push('Name is required');
+  if (!name) errors.push('Name is required');
   if (!MOBILE_RE.test(mobile)) errors.push('A valid 10-digit contact number is required');
-  if (errors.length) {
-    res.status(400);
-    throw new Error(errors.join('; '));
-  }
+  return { name, mobile, errors };
+};
 
-  // Idempotent: if this mobile already holds a seat (online-paid, manual or a
-  // previous form submit), return it instead of creating a duplicate.
+/**
+ * Create a FREE (no-payment) seat and send the WhatsApp entry pass.
+ * Idempotent: returns the existing seat for a mobile that already holds one.
+ * @returns {Promise<{ duplicate:boolean, registration:object }>}
+ */
+const provisionFreeSeat = async ({ name, mobile, source, body }) => {
   const existing = await Registration.findOne({
     mobileNumber: mobile,
     paymentStatus: {
       $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL, PAYMENT_STATUS.FREE],
     },
   });
-  if (existing) {
-    return res.status(200).json({
-      success: true,
-      duplicate: true,
-      data: { orderId: existing.orderId, registrationNumber: existing.registrationNumber },
-    });
-  }
+  if (existing) return { duplicate: true, registration: existing };
 
   const registration = await Registration.create({
-    fullName: finalName,
+    fullName: name,
     mobileNumber: mobile,
-    source: 'google_form',
+    source,
     district: String(body.district || '').trim(),
     currentStatus: String(body.currentStatus || '').trim(),
     expectedScore: String(body.expectedScore || '').trim(),
@@ -151,11 +132,40 @@ export const createExternalRegistration = asyncHandler(async (req, res) => {
 
   // Send the WhatsApp entry pass so free attendees can be scanned at the gate.
   sendConfirmationWhatsApp(registration).catch((err) =>
-    console.error(`[whatsapp] external reg send error: ${err?.message || err}`)
+    console.error(`[whatsapp] free reg send error: ${err?.message || err}`)
   );
 
-  res.status(201).json({
+  return { duplicate: false, registration };
+};
+
+/**
+ * POST /api/registrations/external
+ * Ingest a free (DOPA student) registration from the Google Form via its Apps
+ * Script. Authenticated by a shared secret (X-Form-Secret / body.secret).
+ */
+export const createExternalRegistration = asyncHandler(async (req, res) => {
+  const secret = process.env.FORM_INGEST_SECRET;
+  const provided = req.get('x-form-secret') || req.body?.secret || '';
+  if (!secret || !secretEqual(provided, secret)) {
+    res.status(401);
+    throw new Error('Unauthorized');
+  }
+
+  const { name, mobile, errors } = validateFreeInput(req.body);
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join('; '));
+  }
+
+  const { duplicate, registration } = await provisionFreeSeat({
+    name,
+    mobile,
+    source: 'google_form',
+    body: req.body || {},
+  });
+  res.status(duplicate ? 200 : 201).json({
     success: true,
+    duplicate,
     data: { orderId: registration.orderId, registrationNumber: registration.registrationNumber },
   });
 });
@@ -172,8 +182,7 @@ export const getPass = asyncHandler(async (req, res) => {
   const confirmed =
     registration &&
     registration.registrationNumber &&
-    (registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
-      registration.paymentStatus === PAYMENT_STATUS.MANUAL);
+    Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus);
 
   if (!confirmed) {
     res.status(404);
