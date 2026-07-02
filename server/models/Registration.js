@@ -62,8 +62,7 @@ const registrationSchema = new mongoose.Schema(
     source: { type: String, default: 'online', index: true }, // 'online' | 'google_form'
     district: { type: String, trim: true, default: '' },
     currentStatus: { type: String, trim: true, default: '' }, // Plus Two / Repeater / Re-Repeater / Others
-    neetScore: { type: String, trim: true, default: '' },
-    dopaStudent: { type: String, trim: true, default: '' },
+    expectedScore: { type: String, trim: true, default: '' },
     remarks: { type: String, trim: true, default: '' },
 
     // --- Payment fields ---
