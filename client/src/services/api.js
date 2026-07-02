@@ -72,4 +72,8 @@ export const adminExport = () =>
 export const adminCheckIn = (code) =>
   api.post('/admin/checkin', { code }).then((r) => r.data);
 
+// The list of everyone checked in so far (most recent first) + count.
+export const adminListCheckIns = () =>
+  api.get('/admin/checkins').then((r) => r.data.data);
+
 export default api;

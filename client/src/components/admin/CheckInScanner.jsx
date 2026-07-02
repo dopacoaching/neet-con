@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { adminCheckIn } from '../../services/api.js';
+import { adminCheckIn, adminListCheckIns } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
 
 const REGION_ID = 'qr-reader-region';
@@ -27,6 +27,23 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [manual, setManual] = useState('');
+  const [checkedIn, setCheckedIn] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
+
+  const loadCheckedIn = useCallback(async () => {
+    try {
+      const data = await adminListCheckIns();
+      setCheckedIn(data.items || []);
+    } catch {
+      /* keep whatever we had */
+    } finally {
+      setListLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCheckedIn();
+  }, [loadCheckedIn]);
 
   const handleCode = useCallback(
     async (raw) => {
@@ -43,7 +60,10 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
       try {
         const res = await adminCheckIn(code);
         setResult({ ...res, result: res.result || (res.success ? 'checked_in' : 'not_confirmed') });
-        if (res.success) onCheckedIn?.();
+        if (res.success) {
+          onCheckedIn?.();
+          loadCheckedIn(); // refresh the running checked-in list
+        }
       } catch (err) {
         setResult({
           success: false,
@@ -59,7 +79,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
         }, 800);
       }
     },
-    [onCheckedIn]
+    [onCheckedIn, loadCheckedIn]
   );
 
   useEffect(() => {
@@ -176,6 +196,46 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
           <p className="mt-2 text-xs text-white/50">
             Point the camera at the student's QR. Camera access needs HTTPS (or localhost).
           </p>
+
+          {/* Running list of everyone checked in (updates after each scan). */}
+          <div className="mt-5 border-t border-white/10 pt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white/80">Checked in</h3>
+              <span className="rounded-full bg-green-500/20 px-2.5 py-0.5 text-xs font-bold text-green-300">
+                {checkedIn.length}
+              </span>
+            </div>
+            {listLoading ? (
+              <p className="mt-2 text-xs text-white/40">Loading…</p>
+            ) : checkedIn.length === 0 ? (
+              <p className="mt-2 text-xs text-white/40">No one checked in yet.</p>
+            ) : (
+              <ul className="mt-2 max-h-52 space-y-1.5 overflow-y-auto">
+                {checkedIn.map((p) => (
+                  <li
+                    key={p._id || p.registrationNumber}
+                    className="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium text-white">{p.fullName}</span>
+                      <span className="text-xs text-accent">{p.registrationNumber}</span>
+                    </span>
+                    <span className="shrink-0 text-right text-xs text-white/50">
+                      {p.checkedInAt
+                        ? new Date(p.checkedInAt).toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : ''}
+                      {p.checkedInBy ? (
+                        <span className="block text-white/30">{p.checkedInBy}</span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

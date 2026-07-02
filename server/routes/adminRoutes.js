@@ -9,6 +9,7 @@ import {
   summary,
   exportRegistrations,
   checkIn,
+  listCheckIns,
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
 import { loginLimiter } from '../middleware/rateLimiter.js';
@@ -37,6 +38,9 @@ router.get('/registrations/:id', protect, getRegistration);
 
 // Gate check-in by scanned QR code — any authenticated admin (incl. viewers).
 router.post('/checkin', protect, checkIn);
+
+// List of everyone checked in so far — any authenticated admin.
+router.get('/checkins', protect, listCheckIns);
 
 // Manual status changes require the "admin" role (not "viewer").
 router.patch('/registrations/:id/status', protect, requireAdminRole, updateRegistrationStatus);

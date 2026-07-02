@@ -267,6 +267,19 @@ const checkinView = (r) => ({
 });
 
 /**
+ * GET /api/admin/checkins
+ * The list of everyone already checked in (most recent first) + a count.
+ * Available to any authenticated admin (gate staff may be viewers).
+ */
+export const listCheckIns = asyncHandler(async (req, res) => {
+  const items = await Registration.find({ checkedInAt: { $ne: null } })
+    .sort({ checkedInAt: -1 })
+    .select('registrationNumber fullName mobileNumber preparingFor schoolOrCollege checkedInAt checkedInBy')
+    .lean();
+  res.json({ success: true, data: { count: items.length, items } });
+});
+
+/**
  * POST /api/admin/checkin
  * Body: { code }  — the registration code encoded in the student's QR.
  * Looks the student up, validates the seat, and marks attendance (once).
