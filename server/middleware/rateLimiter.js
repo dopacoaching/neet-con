@@ -38,3 +38,20 @@ export const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * Tighter limiter for the PUBLIC endpoints that return registrant data keyed
+ * only by order id (entry pass + payment status). Backstops the unguessable
+ * order id against enumeration while staying comfortably above legitimate use
+ * (the Thank-You page polls a handful of times, plus one pass load).
+ */
+export const publicReadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests. Please slow down and try again shortly.',
+  },
+});

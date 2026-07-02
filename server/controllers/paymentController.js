@@ -298,6 +298,8 @@ export const getPaymentStatus = asyncHandler(async (req, res) => {
     return d.length >= 4 ? `••••••${d.slice(-4)}` : d;
   };
 
+  // Public PII (name, masked mobile, amount): never cache anywhere.
+  res.set('Cache-Control', 'no-store');
   res.json({
     success: true,
     data: {

@@ -98,6 +98,10 @@ export const getPass = asyncHandler(async (req, res) => {
   const filename = `neetcon-2026-${String(registration.registrationNumber).replace(/\s+/g, '-')}.png`;
   res.setHeader('Content-Type', 'image/png');
   res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-  res.setHeader('Cache-Control', 'public, max-age=86400');
+  // Contains PII (name + registration code): keep it out of shared/CDN caches
+  // (private only), and allow the cross-origin client (Vercel) to render it as
+  // an <img> despite the API's default same-origin resource policy.
+  res.setHeader('Cache-Control', 'private, max-age=3600');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   res.send(png);
 });

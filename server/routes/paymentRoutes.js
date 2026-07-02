@@ -6,6 +6,7 @@ import {
   getPaymentStatus,
   mockPayPage,
 } from '../controllers/paymentController.js';
+import { publicReadLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.route('/callback').get(paymentCallback).post(paymentCallback);
 // Server-to-server webhook.
 router.post('/webhook', paymentWebhook);
 
-router.get('/status/:orderId', getPaymentStatus);
+router.get('/status/:orderId', publicReadLimiter, getPaymentStatus);
 
 // MOCK-only simulated checkout page (404 when HDFC_MOCK=false).
 router.get('/mock-pay', mockPayPage);

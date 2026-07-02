@@ -41,6 +41,8 @@ export const debugRecent = (req, res) => {
   if (!process.env.WHATSAPP_VERIFY_TOKEN || req.query.token !== process.env.WHATSAPP_VERIFY_TOKEN) {
     return res.sendStatus(403);
   }
+  // Events contain recipient phone numbers — never cache.
+  res.set('Cache-Control', 'no-store');
   return res.json({ success: true, count: RECENT.length, events: RECENT });
 };
 

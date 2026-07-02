@@ -15,6 +15,12 @@ import { loginLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
+// Admin responses carry full PII — never cache them (browser, proxy or CDN).
+router.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 // --- Public (auth) ---
 router.post('/login', loginLimiter, login);
 router.post('/logout', logout);

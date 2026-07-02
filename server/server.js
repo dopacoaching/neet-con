@@ -17,6 +17,7 @@ import morgan from 'morgan';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
+import mongoSanitize from './middleware/sanitize.js';
 
 import registrationRoutes from './routes/registrationRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
@@ -33,8 +34,22 @@ app.set('trust proxy', 1);
 // --- Security & parsing middleware ---
 app.use(
   helmet({
-    // The mock pay page is inline HTML; relax CSP only enough for it in dev.
-    contentSecurityPolicy: false,
+    // API serves JSON + the entry-pass PNG + (dev-only) the inline mock-pay
+    // page. Lock things down with a conservative CSP; 'unsafe-inline' style is
+    // only needed by the mock page. COEP stays off (it would block the pass
+    // image); the pass endpoint sets its own cross-origin CORP where needed.
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        'script-src': ["'self'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", 'data:'],
+        'object-src': ["'none'"],
+        'base-uri': ["'self'"],
+        'frame-ancestors': ["'none'"],
+        'form-action': ["'self'"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   })
 );
@@ -62,6 +77,9 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Strip NoSQL operator keys ($ / .) from all incoming requests.
+app.use(mongoSanitize);
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
