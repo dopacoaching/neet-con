@@ -17,13 +17,19 @@ const PaymentFailedPage = () => {
           ✕
         </div>
         <h1 className="mt-5 font-heading text-3xl font-extrabold">
-          {reason === 'duplicate' ? 'You already have a seat' : 'Payment not completed'}
+          {reason === 'duplicate'
+            ? 'You already have a seat'
+            : reason === 'timeout'
+            ? "Still confirming your payment"
+            : 'Payment not completed'}
         </h1>
         <p className="mt-2 max-w-md text-white/70">
           {reason === 'duplicate'
             ? 'This mobile number already has a confirmed seat, so we did not book a second one. If you were charged again, it will be refunded after review — please contact DOPA support with your reference number.'
             : reason === 'signature'
             ? 'We could not verify the payment securely. If money was debited, it will be refunded automatically.'
+            : reason === 'timeout'
+            ? "The bank is taking longer than usual to confirm this payment. If money was debited, please don't pay again yet — check WhatsApp for your confirmation shortly, or contact DOPA support with your reference number before retrying."
             : 'Your payment was not successful or was cancelled. No seat has been booked yet.'}
         </p>
         {orderId && (
@@ -32,22 +38,26 @@ const PaymentFailedPage = () => {
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {/* Form data is kept in sessionStorage, so the form pre-fills on retry. */}
-          <Link to="/register" className="btn-primary">
-            Try Again
-          </Link>
+          {reason !== 'timeout' && (
+            <Link to="/register" className="btn-primary">
+              Try Again
+            </Link>
+          )}
           <Link to="/" className="btn-ghost border-white/30 !text-white hover:!border-accent hover:!text-accent hover:!bg-white/5">
             Back to home
           </Link>
         </div>
 
-        <div className="mt-10 max-w-md rounded-2xl bg-white/5 p-5 text-sm text-white/70">
-          <p className="font-semibold text-white">If money was deducted</p>
-          <p className="mt-1">
-            {reason === 'duplicate'
-              ? 'Since your seat was already booked, any second charge will be refunded after our team reviews it. Please contact DOPA support with your reference number.'
-              : "Bank debits that don't confirm a seat are auto-reversed within 5–7 working days. For help, contact DOPA support with your reference number."}
-          </p>
-        </div>
+        {reason !== 'timeout' && (
+          <div className="mt-10 max-w-md rounded-2xl bg-white/5 p-5 text-sm text-white/70">
+            <p className="font-semibold text-white">If money was deducted</p>
+            <p className="mt-1">
+              {reason === 'duplicate'
+                ? 'Since your seat was already booked, any second charge will be refunded after our team reviews it. Please contact DOPA support with your reference number.'
+                : "Bank debits that don't confirm a seat are auto-reversed within 5–7 working days. For help, contact DOPA support with your reference number."}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

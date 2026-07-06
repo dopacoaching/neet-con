@@ -45,8 +45,12 @@ const ThankYouPage = () => {
           setStatus('pending');
           timer = setTimeout(poll, RETRY_MS);
         } else {
-          // Give up — send to failed page.
-          navigate(`/payment-failed?orderId=${encodeURIComponent(orderId)}`, { replace: true });
+          // Give up polling — but we genuinely don't know the outcome yet
+          // (HDFC may just be slow), so don't tell the user it failed.
+          navigate(
+            `/payment-failed?orderId=${encodeURIComponent(orderId)}&reason=timeout`,
+            { replace: true }
+          );
         }
       } catch {
         if (!active) return;

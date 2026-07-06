@@ -80,8 +80,8 @@ const AdminDashboardPage = () => {
     try {
       const full = await adminGetRegistration(row._id);
       setSelected(full);
-    } catch {
-      /* keep the list row data */
+    } catch (err) {
+      toast.error(err.message || 'Could not load full details — showing list data only');
     }
   };
 

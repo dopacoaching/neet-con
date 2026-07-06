@@ -22,12 +22,28 @@ const applyPaymentResult = async (parsed) => {
   const { orderId, status, txnId, raw } = parsed;
   if (!orderId) return { registration: null, changed: false, reason: 'missing orderId' };
 
-  const registration = await Registration.findOne({ orderId });
-  if (!registration) return { registration: null, changed: false, reason: 'order not found' };
+  // Callback, webhook, and the status-poll safety net can all race to
+  // finalise the same order. Atomically claim it first so only one of them
+  // proceeds — otherwise two racing callers could both allocate a
+  // registration number and both fire the confirmation WhatsApp/email.
+  const lockStaleBefore = new Date(Date.now() - 30 * 1000);
+  const registration = await Registration.findOneAndUpdate(
+    {
+      orderId,
+      paymentStatus: { $nin: Registration.SEAT_HOLDING_STATUSES },
+      $or: [{ processingLock: { $ne: true } }, { processingLockAt: { $lt: lockStaleBefore } }],
+    },
+    { $set: { processingLock: true, processingLockAt: new Date() } },
+    { new: true }
+  );
 
-  // Already finalised — do not overwrite a CONFIRMED/MANUAL record.
-  if (Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus)) {
-    return { registration, changed: false, reason: 'already confirmed' };
+  if (!registration) {
+    const existing = await Registration.findOne({ orderId });
+    if (!existing) return { registration: null, changed: false, reason: 'order not found' };
+    if (Registration.SEAT_HOLDING_STATUSES.includes(existing.paymentStatus)) {
+      return { registration: existing, changed: false, reason: 'already confirmed' };
+    }
+    return { registration: existing, changed: false, reason: 'processing in progress' };
   }
 
   registration.hdfc_txn_id = txnId || registration.hdfc_txn_id;
@@ -44,6 +60,7 @@ const applyPaymentResult = async (parsed) => {
     });
     if (dupe) {
       registration.paymentStatus = PAYMENT_STATUS.FAILED;
+      registration.processingLock = false;
       registration.notes = [
         registration.notes,
         `Auto-failed: mobile already confirmed under ${dupe.registrationNumber || dupe.orderId}. Possible duplicate payment — review for refund.`,
@@ -61,6 +78,7 @@ const applyPaymentResult = async (parsed) => {
     }
     registration.paymentStatus = PAYMENT_STATUS.CONFIRMED;
     registration.confirmedAt = new Date();
+    registration.processingLock = false;
     await registration.save();
 
     // Send the confirmation + QR via WhatsApp. Fire-and-forget so the user's
@@ -83,6 +101,7 @@ const applyPaymentResult = async (parsed) => {
 
   // FAILURE / ABORTED / UNKNOWN
   registration.paymentStatus = PAYMENT_STATUS.FAILED;
+  registration.processingLock = false;
   await registration.save();
   return { registration, changed: true, reason: 'failed' };
 };

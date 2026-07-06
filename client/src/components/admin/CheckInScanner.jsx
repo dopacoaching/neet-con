@@ -82,6 +82,16 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
     [onCheckedIn, loadCheckedIn]
   );
 
+  // Camera start/stop should happen exactly once per mount — not every time
+  // `handleCode` gets a new identity (e.g. `onCheckedIn`/`loadList` changes
+  // identity whenever the parent's filters change, which would otherwise
+  // tear down and restart the live camera mid-scan). Route the QR callback
+  // through a ref so the effect below can have empty deps.
+  const handleCodeRef = useRef(handleCode);
+  useEffect(() => {
+    handleCodeRef.current = handleCode;
+  }, [handleCode]);
+
   useEffect(() => {
     if (!document.getElementById(REGION_ID)) return undefined;
     const scanner = new Html5Qrcode(REGION_ID, { verbose: false });
@@ -92,7 +102,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
       .start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decodedText) => handleCode(decodedText),
+        (decodedText) => handleCodeRef.current(decodedText),
         () => {} // ignore per-frame "not found" errors
       )
       .then(() => {
@@ -112,7 +122,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
         runningRef.current = false;
       }
     };
-  }, [handleCode]);
+  }, []);
 
   const submitManual = (e) => {
     e.preventDefault();

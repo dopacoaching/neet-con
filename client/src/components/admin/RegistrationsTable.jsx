@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import StatusBadge from './StatusBadge.jsx';
 
 const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowClick }) => {
-  const { page = 1, totalPages = 1, total = 0 } = pagination || {};
+  const { page = 1, totalPages = 1, total = 0, limit = 20 } = pagination || {};
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04]">
@@ -45,7 +45,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                   className="cursor-pointer transition hover:bg-white/5"
                 >
                   <td className="px-4 py-3 text-white/40">
-                    {(page - 1) * (pagination?.limit || 20) + i + 1}
+                    {(page - 1) * limit + i + 1}
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-semibold text-white">{r.fullName}</div>

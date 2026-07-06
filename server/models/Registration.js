@@ -77,6 +77,13 @@ const registrationSchema = new mongoose.Schema(
     hdfc_txn_id: { type: String, default: '' },
     hdfc_response: { type: mongoose.Schema.Types.Mixed, default: null }, // raw payload (audit)
     paymentAttempts: { type: Number, default: 0 },
+    // Transient: held only while a callback/webhook/status-poll is actively
+    // finalising this order, so the three racing confirmation paths can't
+    // both process the same order at once. Always released back to false;
+    // processingLockAt lets a stale lock (crash mid-request) expire instead
+    // of stranding the order unconfirmable forever.
+    processingLock: { type: Boolean, default: false },
+    processingLockAt: { type: Date, default: null },
 
     // --- Meta ---
     confirmedAt: { type: Date, default: null },
