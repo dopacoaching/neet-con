@@ -99,7 +99,18 @@ const applyPaymentResult = async (parsed) => {
     return { registration, changed: true, reason: 'confirmed' };
   }
 
-  // FAILURE / ABORTED / UNKNOWN
+  // UNKNOWN = not a final verdict (NEW / PENDING_VBV / a webhook for a
+  // non-terminal event like txn-created). The student may still be mid-payment
+  // in their UPI app — leave the order PENDING so the status-poll, webhook, or
+  // stale-sweep can finalise it once the gateway actually decides. Marking it
+  // FAILED here would kill an in-flight payment.
+  if (status !== 'FAILURE' && status !== 'ABORTED') {
+    registration.processingLock = false;
+    await registration.save();
+    return { registration, changed: false, reason: 'not final' };
+  }
+
+  // FAILURE / ABORTED
   registration.paymentStatus = PAYMENT_STATUS.FAILED;
   registration.processingLock = false;
   await registration.save();
@@ -180,6 +191,23 @@ export const paymentCallback = asyncHandler(async (req, res) => {
   // HMAC-verify (live) / hash-verify (mock) before any DB mutation.
   const parsed = parseHdfcResponse(body);
 
+  try {
+    return await handleCallback(res, clientUrl, parsed);
+  } catch (err) {
+    // This is a browser redirect — an unhandled throw here would dump raw
+    // JSON at a student who may have just paid. Land them on the Thank-You
+    // page instead: its polling (and the stale-sweep) will surface the real
+    // outcome once the transient error clears.
+    console.error(`[payment] callback error for ${parsed.orderId}: ${err?.message || err}`);
+    const target = parsed.orderId
+      ? `${clientUrl}/thank-you?orderId=${encodeURIComponent(parsed.orderId)}`
+      : `${clientUrl}/payment-failed`;
+    return res.redirect(target);
+  }
+});
+
+const handleCallback = async (res, clientUrl, parsed) => {
+
   let toApply = parsed;
   if (!parsed.verified) {
     // The return-URL signature didn't verify. Rather than failing a possibly-
@@ -191,9 +219,16 @@ export const paymentCallback = asyncHandler(async (req, res) => {
       `[payment] callback signature unverified for ${parsed.orderId}; reconciling via Order Status API`
     );
     const gwStatus = parsed.orderId ? await fetchOrderStatus(parsed.orderId) : null;
+    if (!parsed.orderId) {
+      return res.redirect(`${clientUrl}/payment-failed?reason=signature`);
+    }
     if (!gwStatus || gwStatus === 'UNKNOWN') {
+      // The gateway hasn't reached a verdict (or couldn't be reached). Don't
+      // declare failure — send the user to the Thank-You page, whose polling
+      // will confirm/fail once the gateway decides (or show the neutral
+      // "still confirming" screen after it times out).
       return res.redirect(
-        `${clientUrl}/payment-failed?orderId=${encodeURIComponent(parsed.orderId || '')}&reason=signature`
+        `${clientUrl}/thank-you?orderId=${encodeURIComponent(parsed.orderId)}`
       );
     }
     toApply = {
@@ -210,7 +245,12 @@ export const paymentCallback = asyncHandler(async (req, res) => {
     (result.registration.paymentStatus === PAYMENT_STATUS.CONFIRMED ||
       result.registration.paymentStatus === PAYMENT_STATUS.MANUAL);
 
-  const target = confirmed ? 'thank-you' : 'payment-failed';
+  // A verified callback with a non-terminal status (payment still in flight,
+  // or another handler holds the processing lock right now) isn't a failure —
+  // let the Thank-You page's polling deliver the real verdict.
+  const undecided =
+    !confirmed && (result.reason === 'not final' || result.reason === 'processing in progress');
+  const target = confirmed || undecided ? 'thank-you' : 'payment-failed';
   let redirectUrl = `${clientUrl}/${target}?orderId=${encodeURIComponent(parsed.orderId || '')}`;
   // A payment that succeeded at the gateway but was auto-failed because the
   // mobile already holds a seat is a real charge needing a manual refund — flag
@@ -220,7 +260,7 @@ export const paymentCallback = asyncHandler(async (req, res) => {
     redirectUrl += '&reason=duplicate';
   }
   return res.redirect(redirectUrl);
-});
+};
 
 /**
  * POST /api/payment/webhook
@@ -287,9 +327,22 @@ export const reconcileStalePendingPayments = async () => {
   if (isMockMode()) return;
 
   const staleBefore = new Date(Date.now() - 20 * 60 * 1000);
+  const recentWindow = new Date(Date.now() - 6 * 60 * 60 * 1000);
   const stale = await Registration.find({
-    paymentStatus: PAYMENT_STATUS.PENDING,
-    createdAt: { $lt: staleBefore },
+    $or: [
+      // Never finalised at all.
+      { paymentStatus: PAYMENT_STATUS.PENDING, createdAt: { $lt: staleBefore } },
+      // Marked FAILED but recent enough that a success could still surface:
+      // HDFC's hosted page offers "Retry Via" on the SAME order, so a student
+      // whose first attempt failed can retry and get charged — and if that
+      // success callback/webhook is missed, only this sweep can catch it.
+      // (The order session itself expires 15 min after creation, so 6h is a
+      // generous bound and keeps the recheck set small.)
+      {
+        paymentStatus: PAYMENT_STATUS.FAILED,
+        createdAt: { $gte: recentWindow, $lt: staleBefore },
+      },
+    ],
   })
     .limit(50)
     .lean();
@@ -297,7 +350,13 @@ export const reconcileStalePendingPayments = async () => {
   for (const reg of stale) {
     try {
       const gwStatus = await fetchOrderStatus(reg.orderId);
-      if (gwStatus === 'SUCCESS' || gwStatus === 'FAILURE' || gwStatus === 'ABORTED') {
+      const isFailedRecheck = reg.paymentStatus === PAYMENT_STATUS.FAILED;
+      // For already-FAILED orders only a SUCCESS changes anything — skip
+      // re-applying a failure verdict they already have.
+      const shouldApply = isFailedRecheck
+        ? gwStatus === 'SUCCESS'
+        : gwStatus === 'SUCCESS' || gwStatus === 'FAILURE' || gwStatus === 'ABORTED';
+      if (shouldApply) {
         await applyPaymentResult({
           orderId: reg.orderId,
           status: gwStatus,

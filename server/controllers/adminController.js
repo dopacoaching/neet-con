@@ -310,23 +310,29 @@ export const checkIn = asyncHandler(async (req, res) => {
     });
   }
 
-  if (registration.checkedInAt) {
+  // Claim the check-in atomically so two gate scanners hitting the same QR at
+  // the same moment can't both admit — exactly one wins, the other sees
+  // "already checked in".
+  const updated = await Registration.findOneAndUpdate(
+    { _id: registration._id, checkedInAt: null },
+    { $set: { checkedInAt: new Date(), checkedInBy: req.admin.username } },
+    { new: true }
+  );
+
+  if (!updated) {
+    const current = await Registration.findById(registration._id);
     return res.status(200).json({
       success: false,
       result: 'already_checked_in',
       message: 'Already checked in — possible duplicate scan.',
-      data: checkinView(registration),
+      data: checkinView(current || registration),
     });
   }
-
-  registration.checkedInAt = new Date();
-  registration.checkedInBy = req.admin.username;
-  await registration.save();
 
   return res.json({
     success: true,
     result: 'checked_in',
     message: 'Checked in successfully. Admit the student.',
-    data: checkinView(registration),
+    data: checkinView(updated),
   });
 });
