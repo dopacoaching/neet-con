@@ -10,24 +10,29 @@ import { generateEventPass } from './eventPass.js';
  *  whose BODY carries the registration details.
  *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
- *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. neetcon_confirmation)
+ *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. neetcon_confirmation_free)
  *    - Category: UTILITY
  *    - Header:   IMAGE
  *    - Body with 7 NAMED variables (Meta's current editor requires named, not
  *      numbered, parameters — lowercase + underscores):
  *        {{full_name}} {{registration_code}} {{preparing_for}}
- *        {{event_date}} {{event_time}} {{venue}} {{amount}}
- *      Example body text:
- *        "Hi {{full_name}}, your NEET CON 2026 seat is CONFIRMED ✅
+ *        {{event_date}} {{event_time}} {{venue}} {{guest_count}}
+ *      Example body text (event is FREE — no amount variable):
+ *        "Hi {{full_name}}, your NEET CON 2026 seat is CONFIRMED ✅ (Free Entry)
  *         Registration Code: {{registration_code}}
  *         Preparing For: {{preparing_for}}
  *         Date: {{event_date}}, Time: {{event_time}}
  *         Venue: {{venue}}
- *         Amount Paid: ₹{{amount}}
+ *         Guests joining you: {{guest_count}}
  *         Show the QR above at the entry desk. See you there!"
  *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
  *      link for the venue. Static-URL buttons need NO code change (only dynamic
  *      {{n}} URL buttons would). The QR is always the image header (top).
+ *
+ *  NOTE: Meta template text is fixed once approved — this code's body
+ *  parameters below must match whatever template WHATSAPP_TEMPLATE_NAME
+ *  actually points to. If you change the wording/variables in Meta, update
+ *  this file's `components` array to match, and vice versa.
  *
  *  ENV (server/.env, never commit):
  *    WHATSAPP_PHONE_NUMBER_ID   the Cloud API phone number id
@@ -166,7 +171,11 @@ export const sendConfirmationWhatsApp = async (reg) => {
               { type: 'text', parameter_name: 'event_date', text: EVENT.date },
               { type: 'text', parameter_name: 'event_time', text: EVENT.time },
               { type: 'text', parameter_name: 'venue', text: EVENT.venue },
-              { type: 'text', parameter_name: 'amount', text: String(reg.amount) },
+              {
+                type: 'text',
+                parameter_name: 'guest_count',
+                text: String(Math.max(0, Math.trunc(Number(reg.guestCount) || 0))),
+              },
             ],
           },
         ],
