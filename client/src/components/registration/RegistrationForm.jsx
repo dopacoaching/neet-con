@@ -194,7 +194,7 @@ const RegistrationForm = () => {
 
       <div>
         <label className="label" htmlFor="guestCount">
-          Family / Friends Accompanying You <span className="text-navy/40">(optional)</span>
+          Family / Friends Accompanying You <span className="text-brand">*</span>
         </label>
         <input
           id="guestCount"
@@ -206,17 +206,14 @@ const RegistrationForm = () => {
           className="input-field"
           placeholder="0"
           {...register('guestCount', {
-            setValueAs: (v) => {
-              if (v === '' || v === null || v === undefined) return 0;
-              const n = Math.trunc(Number(v));
-              return Number.isFinite(n) ? n : 0;
-            },
-            validate: (v) =>
-              v >= 0 && v <= 20 ? true : 'Enter a number between 0 and 20, or leave it blank',
+            required: 'Enter the number of guests (enter 0 if none)',
+            min: { value: 0, message: 'Cannot be negative' },
+            max: { value: 20, message: 'Please contact us directly for large groups' },
+            valueAsNumber: true,
           })}
         />
         <p className="mt-1 text-xs text-navy/50">
-          How many family members or friends will come with you to the event?
+          How many family members or friends will come with you to the event? Enter 0 if none.
         </p>
         {errors.guestCount && (
           <p className="mt-1 text-sm text-red-600">{errors.guestCount.message}</p>
