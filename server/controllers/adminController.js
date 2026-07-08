@@ -206,9 +206,15 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
  * Dashboard cards data.
  */
 export const summary = asyncHandler(async (req, res) => {
-  const [counts, checkedIn] = await Promise.all([
+  const [counts, checkedIn, guestAgg] = await Promise.all([
     Registration.aggregate([{ $group: { _id: '$paymentStatus', count: { $sum: 1 } } }]),
     Registration.countDocuments({ checkedInAt: { $ne: null } }),
+    // Only count guests for seats that actually hold (paid/manual/free) —
+    // a PENDING/FAILED attempt's guest count isn't a real headcount yet.
+    Registration.aggregate([
+      { $match: { paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES } } },
+      { $group: { _id: null, total: { $sum: { $ifNull: ['$guestCount', 0] } } } },
+    ]),
   ]);
 
   const byStatus = counts.reduce((acc, c) => {
@@ -217,6 +223,11 @@ export const summary = asyncHandler(async (req, res) => {
   }, {});
 
   const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
+  const totalGuests = guestAgg[0]?.total || 0;
+  const confirmedTotal =
+    (byStatus[PAYMENT_STATUS.CONFIRMED] || 0) +
+    (byStatus[PAYMENT_STATUS.MANUAL] || 0) +
+    (byStatus[PAYMENT_STATUS.FREE] || 0);
 
   res.json({
     success: true,
@@ -228,6 +239,8 @@ export const summary = asyncHandler(async (req, res) => {
       pending: byStatus[PAYMENT_STATUS.PENDING] || 0,
       failed: byStatus[PAYMENT_STATUS.FAILED] || 0,
       checkedIn,
+      totalGuests,
+      expectedHeadcount: confirmedTotal + totalGuests,
     },
   });
 });

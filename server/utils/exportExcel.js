@@ -15,6 +15,7 @@ export const buildRegistrationsWorkbook = (registrations) => {
     'School / College': r.schoolOrCollege || '',
     'Passed Year (12th)': r.passedYear || '',
     'Preparing For': r.preparingFor || '',
+    'Guests Accompanying': r.guestCount ?? 0,
     'Source': r.source === 'google_form' ? 'Google Form (DOPA)' : 'Online',
     'District / Place': r.district || '',
     'Current Status': r.currentStatus || '',
@@ -38,7 +39,7 @@ export const buildRegistrationsWorkbook = (registrations) => {
   // Reasonable column widths.
   worksheet['!cols'] = [
     { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 }, { wch: 26 }, // # .. Email
-    { wch: 28 }, { wch: 16 }, { wch: 14 }, // School, Passed Year, Preparing For
+    { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, // School, Passed Year, Preparing For, Guests
     { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 14 }, { wch: 30 }, // Source, District, Current Status, Expected Score, Remarks
     { wch: 15 }, { wch: 12 }, { wch: 26 }, { wch: 20 }, { wch: 16 }, // Payment Status .. Attempts
     { wch: 22 }, { wch: 22 }, { wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 30 }, // Registered .. Notes

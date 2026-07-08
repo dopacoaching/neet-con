@@ -192,6 +192,34 @@ const RegistrationForm = () => {
         </div>
       </div>
 
+      <div>
+        <label className="label" htmlFor="guestCount">
+          Family / Friends Accompanying You <span className="text-navy/40">(optional)</span>
+        </label>
+        <input
+          id="guestCount"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={20}
+          step={1}
+          className="input-field"
+          placeholder="0"
+          defaultValue={0}
+          {...register('guestCount', {
+            min: { value: 0, message: 'Cannot be negative' },
+            max: { value: 20, message: 'Please contact us directly for large groups' },
+            valueAsNumber: true,
+          })}
+        />
+        <p className="mt-1 text-xs text-navy/50">
+          How many family members or friends will come with you to the event?
+        </p>
+        {errors.guestCount && (
+          <p className="mt-1 text-sm text-red-600">{errors.guestCount.message}</p>
+        )}
+      </div>
+
       <button type="submit" className="btn-primary w-full text-base" disabled={submitting}>
         {submitting ? (
           <>

@@ -16,6 +16,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">School / College</th>
               <th className="px-4 py-3">Preparing</th>
+              <th className="px-4 py-3">Guests</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Registered</th>
             </tr>
@@ -24,7 +25,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 8 }).map((__, j) => (
+                  {Array.from({ length: 9 }).map((__, j) => (
                     <td key={j} className="px-4 py-3">
                       <span className="block h-4 w-full animate-pulse rounded bg-white/10" />
                     </td>
@@ -33,7 +34,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
               ))
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-white/40">
+                <td colSpan={9} className="px-4 py-12 text-center text-white/40">
                   No registrations found.
                 </td>
               </tr>
@@ -59,6 +60,7 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                   </td>
                   <td className="px-4 py-3 text-white/70">{r.schoolOrCollege || r.district || '—'}</td>
                   <td className="px-4 py-3 text-white/70">{r.preparingFor || r.currentStatus || '—'}</td>
+                  <td className="px-4 py-3 text-white/70">{r.guestCount > 0 ? `+${r.guestCount}` : '—'}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={r.paymentStatus} />
                   </td>

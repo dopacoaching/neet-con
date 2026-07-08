@@ -76,6 +76,12 @@ export const generateEventPass = async (reg) => {
   <text x="${RR}" y="580" text-anchor="end" font-family="Poppins" font-weight="600" font-size="27" fill="#ffffff">${prep}</text>`
     : '';
 
+  const guestCount = Math.max(0, Math.trunc(Number(reg.guestCount) || 0));
+  const guestsBlock = guestCount
+    ? `<text x="${RR}" y="396" text-anchor="end" font-family="Poppins" font-weight="600" font-size="21" letter-spacing="2" fill="#6f9bff">WITH GUESTS</text>
+  <text x="${RR}" y="452" text-anchor="end" font-family="Poppins" font-weight="700" font-size="46" fill="#00d0ff">+${guestCount}</text>`
+    : '';
+
   const svg = `<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -119,6 +125,7 @@ export const generateEventPass = async (reg) => {
 
   <text x="${RX}" y="396" font-family="Poppins" font-weight="600" font-size="21" letter-spacing="2" fill="#6f9bff">REGISTRATION CODE</text>
   <text x="${RX}" y="452" font-family="Poppins" font-weight="700" font-size="46" fill="#00d0ff">${esc(code)}</text>
+  ${guestsBlock}
 
   <line x1="${RX}" y1="504" x2="${RR}" y2="504" stroke="#ffffff" stroke-opacity="0.13" stroke-width="1.5"/>
 

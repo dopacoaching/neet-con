@@ -8,6 +8,14 @@ import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
+const MAX_GUESTS = 20;
+
+/** Parse a guest-count input into a clamped non-negative integer (defaults to 0). */
+const parseGuestCount = (v) => {
+  const n = Math.trunc(Number(v));
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(n, MAX_GUESTS);
+};
 
 /** Constant-time compare that never throws on length mismatch. */
 const secretEqual = (a, b) => {
@@ -35,6 +43,7 @@ export const createRegistration = asyncHandler(async (req, res) => {
     schoolOrCollege,
     passedYear = '',
     preparingFor,
+    guestCount = 0,
   } = req.body || {};
 
   // --- Validation ---
@@ -75,6 +84,7 @@ export const createRegistration = asyncHandler(async (req, res) => {
     schoolOrCollege: schoolOrCollege.trim(),
     passedYear: String(passedYear).trim(),
     preparingFor,
+    guestCount: parseGuestCount(guestCount),
     orderId,
     paymentStatus: PAYMENT_STATUS.PENDING,
   });
@@ -123,6 +133,9 @@ const provisionFreeSeat = async ({ name, mobile, source, body }) => {
     currentStatus: String(body.currentStatus || '').trim(),
     expectedScore: String(body.expectedScore || '').trim(),
     remarks: String(body.remarks || '').trim(),
+    // Google Form column can be named a few different ways depending on how
+    // the sheet/Apps Script maps it — accept the common ones.
+    guestCount: parseGuestCount(body.guestCount ?? body.accompanying ?? body.guests),
     orderId: generateOrderId(),
     paymentStatus: PAYMENT_STATUS.FREE,
     amount: 0,

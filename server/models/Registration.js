@@ -57,6 +57,10 @@ const registrationSchema = new mongoose.Schema(
       enum: Object.values(PREPARING_FOR),
       required: false,
     },
+    // How many family/friends the registrant is bringing along (for headcount/
+    // logistics planning — they are not seated as separate registrations).
+    // Applies to both the paid online flow and the free Google-Form (DOPA) flow.
+    guestCount: { type: Number, default: 0, min: 0, max: 20 },
 
     // --- Free / Google-Form (DOPA student) fields ---
     source: { type: String, default: 'online', index: true }, // 'online' | 'google_form'

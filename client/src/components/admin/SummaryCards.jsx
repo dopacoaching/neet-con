@@ -5,6 +5,8 @@ const CARD_DEFS = [
   { key: 'checkedIn', label: 'Checked In', tone: 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-400/20' },
   { key: 'pending', label: 'Pending', tone: 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20' },
   { key: 'failed', label: 'Failed', tone: 'bg-red-500/10 text-red-300 ring-1 ring-red-400/20' },
+  { key: 'totalGuests', label: 'Guests Accompanying', tone: 'bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-fuchsia-400/20' },
+  { key: 'expectedHeadcount', label: 'Expected Headcount', tone: 'bg-teal-500/10 text-teal-300 ring-1 ring-teal-400/20' },
 ];
 
 const SummaryCards = ({ summary, loading }) => {
@@ -16,10 +18,12 @@ const SummaryCards = ({ summary, loading }) => {
     checkedIn: summary?.checkedIn ?? 0,
     pending: summary?.pending ?? 0,
     failed: summary?.failed ?? 0,
+    totalGuests: summary?.totalGuests ?? 0,
+    expectedHeadcount: summary?.expectedHeadcount ?? 0,
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-8">
       {CARD_DEFS.map((c) => (
         <div key={c.key} className={`rounded-2xl p-5 ${c.tone}`}>
           <p className="text-xs font-semibold uppercase tracking-wide opacity-80">{c.label}</p>
