@@ -205,11 +205,14 @@ const RegistrationForm = () => {
           step={1}
           className="input-field"
           placeholder="0"
-          defaultValue={0}
           {...register('guestCount', {
-            min: { value: 0, message: 'Cannot be negative' },
-            max: { value: 20, message: 'Please contact us directly for large groups' },
-            valueAsNumber: true,
+            setValueAs: (v) => {
+              if (v === '' || v === null || v === undefined) return 0;
+              const n = Math.trunc(Number(v));
+              return Number.isFinite(n) ? n : 0;
+            },
+            validate: (v) =>
+              v >= 0 && v <= 20 ? true : 'Enter a number between 0 and 20, or leave it blank',
           })}
         />
         <p className="mt-1 text-xs text-navy/50">
