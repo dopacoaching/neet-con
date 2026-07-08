@@ -29,7 +29,7 @@ const Footer = () => (
               Yamaniya Hall, Kuttikattor
             </a>
           </li>
-          <li>🎟️ ₹100 per student</li>
+          <li>🎟️ Free entry</li>
           <li>🎓 For NEET 2027 &amp; 2028 aspirants</li>
         </ul>
       </div>
@@ -85,8 +85,7 @@ const Footer = () => (
       <div className="section flex flex-col items-center justify-between gap-2 py-5 text-xs text-white/50 sm:flex-row">
         <p>© {new Date().getFullYear()} DOPA Coaching, Calicut. All rights reserved.</p>
         <p className="text-center sm:text-right">
-          Registration fee is non-refundable. By registering you agree to the event terms &amp;
-          conditions.
+          By registering you agree to the event terms &amp; conditions.
         </p>
       </div>
     </div>

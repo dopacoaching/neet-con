@@ -23,8 +23,8 @@ const RegistrationPage = () => {
             Register for NEET CON 2026
           </h1>
           <p className="mt-3 max-w-md text-white/70">
-            Fill in your details and pay ₹100 to confirm your seat. You'll receive a registration
-            number on successful payment.
+            Fill in your details to confirm your seat — entry is free. You'll receive a
+            registration number instantly.
           </p>
 
           <div className="mt-8 space-y-3 text-sm">
@@ -32,7 +32,7 @@ const RegistrationPage = () => {
               ['📅 Date', 'July 12, 2026'],
               ['🕘 Time', '9:30 AM – 4:00 PM'],
               ['📍 Venue', 'Yamaniya Hall, Kuttikattor'],
-              ['🎟️ Fee', '₹100 per student'],
+              ['🎟️ Fee', 'Free entry'],
             ].map(([k, v]) => (
               <div
                 key={k}

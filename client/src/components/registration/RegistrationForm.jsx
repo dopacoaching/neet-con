@@ -1,40 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { createRegistration, initiatePayment } from '../../services/api.js';
+import { createRegistration } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
 
 // 12th passing years: 2028 (current) down to 2005.
 const PASS_YEARS = Array.from({ length: 2028 - 2005 + 1 }, (_, i) => 2028 - i);
 const STORAGE_KEY = 'neetcon_reg_form';
 
-/**
- * Redirect the browser to the payment gateway.
- * - GET (mock + live HDFC SmartGateway): navigate to the hosted payment URL.
- * - POST (other gateways): auto-submit a hidden form carrying payment.fields.
- */
-const redirectToGateway = (payment) => {
-  if (payment.mock || payment.method === 'GET') {
-    window.location.href = payment.paymentUrl;
-    return;
-  }
-
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = payment.paymentUrl;
-  Object.entries(payment.fields || {}).forEach(([k, v]) => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = k;
-    input.value = v;
-    form.appendChild(input);
-  });
-  document.body.appendChild(form);
-  form.submit();
-};
-
 const RegistrationForm = () => {
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -42,7 +19,7 @@ const RegistrationForm = () => {
     formState: { errors },
   } = useForm({ mode: 'onTouched' });
 
-  // Restore previously-entered data (e.g. after a failed payment "Try Again").
+  // Restore previously-entered data (e.g. after a failed submission "Try Again").
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -55,18 +32,18 @@ const RegistrationForm = () => {
   const onSubmit = async (values) => {
     setSubmitting(true);
 
-    // Persist so the Payment Failed page can pre-fill on retry.
+    // Persist so the form can pre-fill on retry after a failure.
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(values));
 
     try {
+      // Free event — no payment step. Registering confirms the seat immediately.
       const { orderId } = await createRegistration(values);
-      const payment = await initiatePayment(orderId);
-      toast.success('Redirecting to secure payment…');
-      // Small delay so the toast is visible before the redirect.
-      setTimeout(() => redirectToGateway(payment), 400);
+      sessionStorage.removeItem(STORAGE_KEY);
+      toast.success('Registration confirmed!');
+      navigate(`/thank-you?orderId=${encodeURIComponent(orderId)}`);
     } catch (err) {
       // Do NOT clear the form on failure.
-      toast.error(err.message || 'Could not start payment. Please try again.');
+      toast.error(err.message || 'Could not complete registration. Please try again.');
       setSubmitting(false);
     }
   };
@@ -223,10 +200,10 @@ const RegistrationForm = () => {
       <button type="submit" className="btn-primary w-full text-base" disabled={submitting}>
         {submitting ? (
           <>
-            <Spinner /> Processing…
+            <Spinner /> Registering…
           </>
         ) : (
-          'Proceed to Pay ₹100'
+          'Complete Registration — Free'
         )}
       </button>
     </form>

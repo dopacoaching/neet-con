@@ -13,7 +13,7 @@ const BenefitsSection = () => (
       <div className="mx-auto max-w-2xl text-center">
         <p className="eyebrow">What you get</p>
         <h2 className="mt-2 font-heading text-3xl font-extrabold text-navy sm:text-4xl">
-          Worth far more than ₹100
+          Free to attend — worth far more
         </h2>
       </div>
 

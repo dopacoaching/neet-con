@@ -5,6 +5,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 import { generateEventPass } from '../utils/eventPass.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
+import { sendUserConfirmationEmail, sendOrganizerNotification } from '../utils/email.js';
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
@@ -33,7 +34,8 @@ const normalizeMobile = (v) => {
 
 /**
  * POST /api/registrations
- * Save a new registration with PENDING status and return an orderId.
+ * Event is free — confirm the seat immediately (no payment step) and return
+ * the orderId/registration number.
  */
 export const createRegistration = asyncHandler(async (req, res) => {
   const {
@@ -65,7 +67,7 @@ export const createRegistration = asyncHandler(async (req, res) => {
 
   const mobile = String(mobileNumber).trim();
 
-  // --- Duplicate protection: a CONFIRMED/MANUAL reg for this mobile already exists ---
+  // --- Duplicate protection: a seat-holding reg for this mobile already exists ---
   const existing = await Registration.findOne({
     mobileNumber: mobile,
     paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
@@ -86,15 +88,47 @@ export const createRegistration = asyncHandler(async (req, res) => {
     preparingFor,
     guestCount: parseGuestCount(guestCount),
     orderId,
-    paymentStatus: PAYMENT_STATUS.PENDING,
+    amount: 0,
+    paymentStatus: PAYMENT_STATUS.FREE,
+    registrationNumber: await nextRegistrationNumber(),
+    confirmedAt: new Date(),
   });
+
+  // Guard against a same-mobile registration racing in between the
+  // pre-create check above and create() (there's no later payment-confirm
+  // step to catch this now, so it has to be closed here).
+  const dupe = await Registration.findOne({
+    _id: { $ne: registration._id },
+    mobileNumber: mobile,
+    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+  });
+  if (dupe) {
+    registration.paymentStatus = PAYMENT_STATUS.FAILED;
+    registration.notes = `Auto-failed: mobile already registered under ${dupe.registrationNumber || dupe.orderId}.`;
+    await registration.save();
+    res.status(409);
+    throw new Error('This mobile number is already registered.');
+  }
+
+  // Send the confirmation + QR via WhatsApp, plus backup email. Fire-and-forget
+  // so the response is never delayed by Meta/SMTP; neither ever throws.
+  sendConfirmationWhatsApp(registration).catch((err) =>
+    console.error(`[whatsapp] registration send error: ${err?.message || err}`)
+  );
+  sendUserConfirmationEmail(registration).catch((err) =>
+    console.error(`[email] user send error: ${err?.message || err}`)
+  );
+  sendOrganizerNotification(registration).catch((err) =>
+    console.error(`[email] organizer send error: ${err?.message || err}`)
+  );
 
   res.status(201).json({
     success: true,
-    message: 'Registration saved. Proceed to payment.',
+    message: 'Registration confirmed!',
     data: {
       orderId: registration.orderId,
       registrationId: registration._id,
+      registrationNumber: registration.registrationNumber,
       amount: registration.amount,
       fullName: registration.fullName,
     },

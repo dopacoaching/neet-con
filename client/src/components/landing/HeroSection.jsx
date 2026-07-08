@@ -43,7 +43,7 @@ const HeroSection = () => {
               📍 Yamaniya Hall, Kuttikattor
             </a>
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
-              🎟️ Just ₹100
+              🎟️ Free Entry
             </span>
           </div>
 
@@ -54,7 +54,7 @@ const HeroSection = () => {
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link to="/register" className="btn-white text-base">
-              Register Now — ₹100
+              Register Now — Free
             </Link>
             <a
               href="#about"

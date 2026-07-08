@@ -10,8 +10,7 @@ const RegistrationCTA = () => {
             Secure your seat at NEET CON 2026
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-white/90">
-            Seats are limited — register before they run out. Just ₹100 for a day that could
-            decide your medical career.
+            Free entry — register for a day that could decide your medical career.
           </p>
 
           <div className="mt-8">
@@ -19,7 +18,7 @@ const RegistrationCTA = () => {
               to="/register"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-brand shadow-lg transition hover:bg-brand-50"
             >
-              Register Now — ₹100
+              Register Now — Free
             </Link>
           </div>
         </div>

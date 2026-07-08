@@ -34,7 +34,11 @@ const ThankYouPage = () => {
         if (!active) return;
         setData(res);
 
-        if (res.paymentStatus === 'CONFIRMED' || res.paymentStatus === 'MANUAL') {
+        if (
+          res.paymentStatus === 'CONFIRMED' ||
+          res.paymentStatus === 'MANUAL' ||
+          res.paymentStatus === 'FREE'
+        ) {
           setStatus('confirmed');
           return;
         }
@@ -70,10 +74,10 @@ const ThankYouPage = () => {
     return (
       <Shell>
         <Spinner className="h-8 w-8" />
-        <h1 className="mt-4 font-heading text-2xl font-bold">Verifying your payment…</h1>
+        <h1 className="mt-4 font-heading text-2xl font-bold">Confirming your registration…</h1>
         <p className="mt-2 text-white/70">
           {status === 'pending'
-            ? `Confirming with the bank (attempt ${retries.current}/${MAX_RETRIES})…`
+            ? `Just a moment (attempt ${retries.current}/${MAX_RETRIES})…`
             : 'Please wait a moment.'}
         </p>
         <p className="mt-1 text-sm text-white/50">Do not close or refresh this page.</p>
@@ -123,7 +127,7 @@ const ThankYouPage = () => {
         </div>
 
         <p className="mt-4 text-sm text-white/60">
-          Amount Paid: <strong className="text-white/90">₹{data.amount}</strong> ·{' '}
+          <strong className="text-white/90">Free Entry</strong> ·{' '}
           <a
             href={VENUE_MAP_URL}
             target="_blank"
