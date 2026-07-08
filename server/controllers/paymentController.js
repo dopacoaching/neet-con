@@ -275,6 +275,43 @@ export const paymentWebhook = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Background sweep for orders stuck at PENDING because neither the browser
+ * redirect nor the webhook ever reached us (user closed the tab, webhook
+ * misfired, etc.) and no one has since polled /status to trigger the
+ * reconciliation fallback there. Without this, an order that HDFC already
+ * finalised (declined or charged) can sit as PENDING in our DB forever.
+ * Only looks at orders past HDFC's own ~15min session expiry, so it never
+ * fights with an attempt that's still genuinely in progress.
+ */
+export const reconcileStalePendingPayments = async () => {
+  if (isMockMode()) return;
+
+  const staleBefore = new Date(Date.now() - 20 * 60 * 1000);
+  const stale = await Registration.find({
+    paymentStatus: PAYMENT_STATUS.PENDING,
+    createdAt: { $lt: staleBefore },
+  })
+    .limit(50)
+    .lean();
+
+  for (const reg of stale) {
+    try {
+      const gwStatus = await fetchOrderStatus(reg.orderId);
+      if (gwStatus === 'SUCCESS' || gwStatus === 'FAILURE' || gwStatus === 'ABORTED') {
+        await applyPaymentResult({
+          orderId: reg.orderId,
+          status: gwStatus,
+          txnId: reg.hdfc_txn_id,
+          raw: { source: 'stale-sweep', status: gwStatus },
+        });
+      }
+    } catch (err) {
+      console.error(`[payment] stale-sweep failed for ${reg.orderId}: ${err?.message || err}`);
+    }
+  }
+};
+
+/**
  * GET /api/payment/status/:orderId
  * Polled by the Thank You / Payment Failed pages.
  */
