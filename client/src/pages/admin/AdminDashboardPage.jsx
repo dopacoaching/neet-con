@@ -16,6 +16,11 @@ import { Spinner } from '../../components/ui/PageLoader.jsx';
 
 const STATUS_OPTIONS = ['All', 'CONFIRMED', 'FREE', 'PENDING', 'FAILED', 'MANUAL'];
 const PREP_OPTIONS = ['All', 'NEET 2027', 'NEET 2028'];
+const GUEST_INFO_OPTIONS = [
+  { value: 'All', label: 'All (guest info)' },
+  { value: 'needsReview', label: '⚠️ Needs review (unparsed reply)' },
+  { value: 'notAnswered', label: 'Awaiting guest count' },
+];
 
 const AdminDashboardPage = () => {
   const { admin, isAdminRole, logout } = useAdmin();
@@ -26,7 +31,13 @@ const AdminDashboardPage = () => {
   const [data, setData] = useState({ items: [], pagination: { page: 1, totalPages: 1, total: 0 } });
   const [listLoading, setListLoading] = useState(true);
 
-  const [filters, setFilters] = useState({ search: '', status: 'All', preparingFor: 'All', page: 1 });
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 'All',
+    preparingFor: 'All',
+    guestInfo: 'All',
+    page: 1,
+  });
   const [selected, setSelected] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -49,6 +60,7 @@ const AdminDashboardPage = () => {
       const params = { page: filters.page, limit: 20 };
       if (filters.status !== 'All') params.status = filters.status;
       if (filters.preparingFor !== 'All') params.preparingFor = filters.preparingFor;
+      if (filters.guestInfo !== 'All') params.guestInfo = filters.guestInfo;
       if (filters.search.trim()) params.search = filters.search.trim();
       setData(await adminListRegistrations(params));
     } catch (err) {
@@ -166,7 +178,7 @@ const AdminDashboardPage = () => {
         <SummaryCards summary={summary} loading={summaryLoading} />
 
         {/* Filters */}
-        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-3">
+        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-4">
           <input
             className="input-dark"
             placeholder="Search name, mobile, email, reg no…"
@@ -191,6 +203,17 @@ const AdminDashboardPage = () => {
             {PREP_OPTIONS.map((p) => (
               <option key={p} value={p} className="bg-[#081231] text-white">
                 {p === 'All' ? 'All (NEET 2027/2028)' : p}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input-dark"
+            value={filters.guestInfo}
+            onChange={(e) => setFilters((f) => ({ ...f, guestInfo: e.target.value, page: 1 }))}
+          >
+            {GUEST_INFO_OPTIONS.map((g) => (
+              <option key={g.value} value={g.value} className="bg-[#081231] text-white">
+                {g.label}
               </option>
             ))}
           </select>

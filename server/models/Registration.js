@@ -60,7 +60,19 @@ const registrationSchema = new mongoose.Schema(
     // How many family/friends the registrant is bringing along (for headcount/
     // logistics planning — they are not seated as separate registrations).
     // Applies to both the paid online flow and the free Google-Form (DOPA) flow.
-    guestCount: { type: Number, default: 0, min: 0, max: 20 },
+    // Left unset (no default) on purpose: pre-feature registrations never had
+    // this asked, so `{ $exists: false }` distinguishes "never asked" from a
+    // genuine "0 guests" answer.
+    guestCount: { type: Number, min: 0, max: 20 },
+    // Set when the one-off "how many guests?" WhatsApp follow-up was sent, so
+    // the webhook knows an inbound reply from this mobile is answering that
+    // specific question (and so the send script doesn't ask twice).
+    guestCountAskedAt: { type: Date, default: null },
+    // If a reply to that follow-up couldn't be parsed as a number (e.g. "hey
+    // who's this" or a voice note), the raw text is stashed here so an admin
+    // can read it and set guestCount manually instead of it silently vanishing.
+    guestCountReplyRaw: { type: String, default: '' },
+    guestCountReplyAt: { type: Date, default: null },
 
     // --- Free / Google-Form (DOPA student) fields ---
     source: { type: String, default: 'online', index: true }, // 'online' | 'google_form'

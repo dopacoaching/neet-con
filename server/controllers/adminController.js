@@ -60,17 +60,25 @@ export const me = asyncHandler(async (req, res) => {
 /**
  * GET /api/admin/registrations
  * Paginated, searchable, filterable list.
- * Query: page, limit, status, preparingFor, search
+ * Query: page, limit, status, preparingFor, search, guestInfo
+ *   guestInfo=needsReview -> replied to the guest-count ask but couldn't be
+ *     parsed (guestCountReplyRaw set) — needs a human to read + set manually.
+ *   guestInfo=notAnswered -> guestCount was never asked/answered at all.
  */
 export const listRegistrations = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
-  const { status, preparingFor, search } = req.query;
+  const { status, preparingFor, search, guestInfo } = req.query;
 
   const filter = {};
   if (status && Object.values(PAYMENT_STATUS).includes(status)) filter.paymentStatus = status;
   if (preparingFor && Object.values(PREPARING_FOR).includes(preparingFor))
     filter.preparingFor = preparingFor;
+  if (guestInfo === 'needsReview') {
+    filter.guestCountReplyRaw = { $ne: '' };
+  } else if (guestInfo === 'notAnswered') {
+    filter.guestCount = { $exists: false };
+  }
 
   if (search && search.trim()) {
     const term = search.trim();
@@ -125,7 +133,7 @@ export const getRegistration = asyncHandler(async (req, res) => {
  * Requires admin role.
  */
 export const updateRegistrationStatus = asyncHandler(async (req, res) => {
-  const { status, notes } = req.body || {};
+  const { status, notes, guestCount } = req.body || {};
   const registration = await Registration.findById(req.params.id);
   if (!registration) {
     res.status(404);
@@ -134,6 +142,17 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
   if (typeof notes === 'string') {
     registration.notes = notes;
+  }
+
+  if (guestCount !== undefined && guestCount !== null && guestCount !== '') {
+    const n = Math.trunc(Number(guestCount));
+    if (!Number.isFinite(n) || n < 0 || n > 20) {
+      res.status(400);
+      throw new Error('Guest count must be a number between 0 and 20');
+    }
+    registration.guestCount = n;
+    // Resolved — clear the "needs review" flag if one was set.
+    registration.guestCountReplyRaw = '';
   }
 
   if (status) {

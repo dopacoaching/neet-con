@@ -1,4 +1,70 @@
 import crypto from 'crypto';
+import Registration from '../models/Registration.js';
+
+/** Reduce a WhatsApp "from" number (E.164, no +) to its 10-digit Indian core. */
+const normalizeMobileFromWhatsApp = (from) => {
+  const digits = String(from || '').replace(/\D/g, '');
+  return digits.length > 10 ? digits.slice(-10) : digits;
+};
+
+/** Parse a free-text guest-count reply into a clamped 0-20 integer, or null if unparseable. */
+const parseGuestReply = (text) => {
+  const t = String(text || '').trim().toLowerCase();
+  if (!t) return null;
+  if (/^(no|none|nobody|no ?one|alone|solo|myself|just me)$/.test(t)) return 0;
+  const match = t.match(/\d+/);
+  if (!match) return null;
+  const n = parseInt(match[0], 10);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.min(n, 20);
+};
+
+/**
+ * If this inbound text is a reply to the "how many guests?" follow-up (i.e.
+ * from a mobile we asked, who hasn't answered yet), capture it into
+ * Registration.guestCount. No-op for anything else — never throws.
+ */
+const handleInboundGuestCountReply = async (msg) => {
+  if (msg.type !== 'text') return;
+  const mobile = normalizeMobileFromWhatsApp(msg.from);
+  if (mobile.length !== 10) return;
+
+  const reg = await Registration.findOne({
+    mobileNumber: mobile,
+    guestCountAskedAt: { $ne: null },
+    guestCount: { $exists: false },
+  }).sort({ guestCountAskedAt: -1 });
+  if (!reg) return; // not something we asked, or already answered
+
+  const guestCount = parseGuestReply(msg.text?.body);
+  if (guestCount === null) {
+    // Couldn't parse it — stash the raw text on the record itself (survives a
+    // server restart, unlike the in-memory debug buffer) so an admin can read
+    // it and set guestCount manually via the dashboard.
+    reg.guestCountReplyRaw = String(msg.text?.body || '').slice(0, 500);
+    reg.guestCountReplyAt = new Date();
+    await reg.save();
+    console.warn(
+      `[whatsapp-webhook] unparsed guest-count reply from ${mobile}: "${msg.text?.body || ''}"`
+    );
+    remember({ kind: 'guest_count_unparsed', from: msg.from, text: msg.text?.body || '' });
+    return;
+  }
+
+  reg.guestCount = guestCount;
+  reg.guestCountReplyRaw = '';
+  reg.guestCountReplyAt = new Date();
+  await reg.save();
+  console.log(
+    `[whatsapp-webhook] captured guestCount=${guestCount} for ${reg.registrationNumber} (${mobile})`
+  );
+  remember({
+    kind: 'guest_count_captured',
+    from: msg.from,
+    registrationNumber: reg.registrationNumber,
+    guestCount,
+  });
+};
 
 /** Constant-time string comparison that never throws on length mismatch. */
 const safeEqual = (a, b) => {
@@ -118,6 +184,12 @@ export const receiveWebhook = (req, res) => {
               `text=${msg.text?.body || ''}`
           );
           remember({ kind: 'inbound', from: msg.from, type: msg.type, text: msg.text?.body || '' });
+
+          // Fire-and-forget: capture a guest-count reply if this mobile is
+          // one we asked. Never blocks/throws back into the webhook handler.
+          handleInboundGuestCountReply(msg).catch((err) =>
+            console.error(`[whatsapp-webhook] guest-count capture failed: ${err.message}`)
+          );
         }
       }
     }

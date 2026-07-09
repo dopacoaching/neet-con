@@ -17,10 +17,20 @@ const Field = ({ label, value }) => (
  */
 const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated }) => {
   const [notes, setNotes] = useState(registration?.notes || '');
+  const [guestCount, setGuestCount] = useState(
+    registration?.guestCount === undefined || registration?.guestCount === null
+      ? ''
+      : String(registration.guestCount)
+  );
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setNotes(registration?.notes || '');
+    setGuestCount(
+      registration?.guestCount === undefined || registration?.guestCount === null
+        ? ''
+        : String(registration.guestCount)
+    );
   }, [registration]);
 
   // Close on Escape.
@@ -43,7 +53,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
     }
     setSaving(true);
     try {
-      const payload = { notes };
+      const payload = { notes, guestCount: guestCount === '' ? null : guestCount };
       if (statusOverride) payload.status = statusOverride;
       const updated = await adminUpdateStatus(r._id, payload);
       toast.success(statusOverride ? 'Status updated' : 'Notes saved');
@@ -94,8 +104,44 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             <Field label="School / College" value={r.schoolOrCollege} />
             <Field label="Year of 12th" value={r.passedYear} />
             <Field label="Preparing For" value={r.preparingFor} />
-            <Field label="Guests Accompanying" value={r.guestCount > 0 ? r.guestCount : 'None'} />
             <Field label="Amount" value={`₹${r.amount}`} />
+          </div>
+
+          {/* Guests accompanying */}
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-white/80" htmlFor="guestCount">
+              Guests Accompanying
+              {(r.guestCount === undefined || r.guestCount === null) && (
+                <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
+                  Not answered yet
+                </span>
+              )}
+            </label>
+            {isAdminRole ? (
+              <input
+                id="guestCount"
+                type="number"
+                min={0}
+                max={20}
+                className="input-dark w-32"
+                placeholder="—"
+                value={guestCount}
+                onChange={(e) => setGuestCount(e.target.value)}
+              />
+            ) : (
+              <p className="font-medium text-white">
+                {r.guestCount === undefined || r.guestCount === null ? '—' : r.guestCount}
+              </p>
+            )}
+            {r.guestCountReplyRaw && (
+              <p className="mt-2 rounded-lg bg-amber-500/10 p-2.5 text-xs text-amber-200 ring-1 ring-amber-400/20">
+                ⚠️ They replied on WhatsApp but it couldn't be read as a number:
+                <br />
+                <span className="font-medium">“{r.guestCountReplyRaw}”</span>
+                <br />
+                Set the count above manually based on their reply.
+              </p>
+            )}
           </div>
 
           {/* Free (Google Form / DOPA student) details */}
