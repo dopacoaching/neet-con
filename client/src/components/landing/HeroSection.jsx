@@ -86,7 +86,7 @@ const HeroSection = () => {
               </div>
               <div className="flex justify-between border-b border-white/10 pb-2">
                 <span>Time</span>
-                <strong>9:30 AM – 4:00 PM</strong>
+                <strong>10:00 AM – 4:30 PM</strong>
               </div>
               <div className="flex justify-between">
                 <span>Venue</span>

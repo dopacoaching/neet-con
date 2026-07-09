@@ -17,6 +17,11 @@ const SPEAKERS = [
     role: 'Director, DOPA',
     photo: '/Asif-head.png',
   },
+  {
+    name: 'Shamil Muchukunnu',
+    role: 'Mentalist',
+    photo: '/Shamil-head.png',
+  },
 ];
 
 const SpeakersSection = () => (
@@ -32,7 +37,7 @@ const SpeakersSection = () => (
         </p>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-3">
+      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-8 sm:grid-cols-4">
         {SPEAKERS.map((sp, i) => (
           <div
             key={i}

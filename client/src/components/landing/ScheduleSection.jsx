@@ -1,20 +1,35 @@
-// Programme for the day. Faculty is optional (e.g. Registration has none).
-// Times are indicative — the day runs 9:30 AM – 4:00 PM; per-item slots can be
-// added here once finalised.
+// Programme for the day. Faculty is optional (e.g. breaks have none).
 const SCHEDULE = [
-  { title: 'Registration', time: '9:30 AM' },
-  { title: 'Opening Remarks', speaker: 'Dr. Asif Mohammed' },
-  { title: 'DOPA NEET Assessment Tool — D-NAT', speaker: 'Dr. Ashiq Sainudheen' },
+  { title: 'Welcome', time: '10:00 – 10:10 AM', speaker: 'Dr. Asif' },
   {
-    title: 'Habit Formation and Academic Discipline Training for NEET Repeaters',
-    speaker: 'Dr. Niyas Paloth',
+    title: "Into the Aspirant's Mind",
+    time: '10:10 – 10:50 AM',
+    speaker: 'Shamil Muchukunnu',
   },
-  { title: 'Introduction to Basic Biology for NEET', speaker: 'Dr. Ashiq Sainudheen' },
-  { title: 'Introduction to Basic Physics for NEET', speaker: 'Anoop K' },
-  { title: 'Introduction to Basic Chemistry for NEET', speaker: 'Ashraf C' },
-  { title: 'Introduction to Basic Maths for NEET', speaker: 'Dr. Thabsheer' },
-  { title: 'Aiming for NEET 27–28 · Integrated School', speaker: 'Afsal Safwan' },
-  { title: 'Vote of Thanks', speaker: 'Dr. Ashiq Sahal' },
+  {
+    title: 'Doctor: Life Around the White Coat',
+    time: '10:50 – 11:20 AM',
+    speaker: 'Dr. Fathima Saheer',
+  },
+  {
+    title: 'NEET: Self Analysis & Tips',
+    time: '11:20 AM – 12:20 PM',
+    speaker: 'Dr. Ashiq Sainudheen',
+  },
+  {
+    title: 'Panel Discussion — Different Stories, One Dream',
+    time: '12:20 – 1:10 PM',
+    speaker: 'Dr. Niyas & Toppers',
+  },
+  { title: 'Training Habits', time: '1:10 – 1:30 PM', speaker: 'Afsal Safwan' },
+  { title: 'Break & 1-on-1 Counseling', time: '1:30 – 3:00 PM' },
+  {
+    title: 'Panel Discussion — From Basics to Experts',
+    time: '3:00 – 4:00 PM',
+    speaker: 'HODs',
+  },
+  { title: 'NEET 27 Menti', time: '4:00 – 4:30 PM', speaker: 'Dr. Ashiq' },
+  { title: 'Vote of Thanks', time: '4:00 – 4:30 PM' },
 ];
 
 const ScheduleSection = () => (
@@ -23,7 +38,7 @@ const ScheduleSection = () => (
       <div className="mx-auto max-w-2xl text-center">
         <p className="eyebrow-dark">Day schedule</p>
         <h2 className="mt-2 font-heading text-3xl font-extrabold sm:text-4xl">
-          9:30 AM – 4:00 PM · One power-packed day
+          10:00 AM – 4:30 PM · One power-packed day
         </h2>
       </div>
 
