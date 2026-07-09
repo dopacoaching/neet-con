@@ -36,6 +36,7 @@ const run = async () => {
   const targets = await Registration.find({
     paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
     guestCount: { $exists: false },
+    guestCountAskedAt: null, // skip anyone already asked (e.g. a prior test send)
   }).sort({ createdAt: 1 });
 
   console.log(`[guest-count-ask] ${targets.length} registration(s) to ask.`);

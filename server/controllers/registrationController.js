@@ -79,35 +79,32 @@ export const createRegistration = asyncHandler(async (req, res) => {
 
   const orderId = generateOrderId();
 
-  const registration = await Registration.create({
-    fullName: fullName.trim(),
-    mobileNumber: mobile,
-    emailAddress: String(emailAddress).trim().toLowerCase(),
-    schoolOrCollege: schoolOrCollege.trim(),
-    passedYear: String(passedYear).trim(),
-    preparingFor,
-    guestCount: parseGuestCount(guestCount),
-    orderId,
-    amount: 0,
-    paymentStatus: PAYMENT_STATUS.FREE,
-    registrationNumber: await nextRegistrationNumber(),
-    confirmedAt: new Date(),
-  });
-
-  // Guard against a same-mobile registration racing in between the
-  // pre-create check above and create() (there's no later payment-confirm
-  // step to catch this now, so it has to be closed here).
-  const dupe = await Registration.findOne({
-    _id: { $ne: registration._id },
-    mobileNumber: mobile,
-    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
-  });
-  if (dupe) {
-    registration.paymentStatus = PAYMENT_STATUS.FAILED;
-    registration.notes = `Auto-failed: mobile already registered under ${dupe.registrationNumber || dupe.orderId}.`;
-    await registration.save();
-    res.status(409);
-    throw new Error('This mobile number is already registered.');
+  // A unique partial index on { mobileNumber, paymentStatus: FREE } is the
+  // real guard against two concurrent requests for the same mobile number
+  // both passing the findOne check above — it rejects the loser atomically
+  // at the DB level instead of letting both docs get created first.
+  let registration;
+  try {
+    registration = await Registration.create({
+      fullName: fullName.trim(),
+      mobileNumber: mobile,
+      emailAddress: String(emailAddress).trim().toLowerCase(),
+      schoolOrCollege: schoolOrCollege.trim(),
+      passedYear: String(passedYear).trim(),
+      preparingFor,
+      guestCount: parseGuestCount(guestCount),
+      orderId,
+      amount: 0,
+      paymentStatus: PAYMENT_STATUS.FREE,
+      registrationNumber: await nextRegistrationNumber(),
+      confirmedAt: new Date(),
+    });
+  } catch (err) {
+    if (err?.code === 11000 && err?.keyPattern?.mobileNumber) {
+      res.status(409);
+      throw new Error('This mobile number is already registered.');
+    }
+    throw err;
   }
 
   // Send the confirmation + QR via WhatsApp, plus backup email. Fire-and-forget

@@ -10,7 +10,7 @@ import { publicReadLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-router.post('/initiate', initiatePayment);
+router.post('/initiate', publicReadLimiter, initiatePayment);
 
 // HDFC redirects back here. Support both GET and POST (gateways vary).
 router.route('/callback').get(paymentCallback).post(paymentCallback);

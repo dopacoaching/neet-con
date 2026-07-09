@@ -37,7 +37,6 @@ const registrationSchema = new mongoose.Schema(
       required: true,
       trim: true,
       match: [/^[6-9]\d{9}$/, 'Mobile number must be a valid 10-digit Indian number'],
-      index: true,
     },
     // Optional — confirmation + QR are delivered via WhatsApp (to mobileNumber).
     // Kept for records; validated only when provided.
@@ -119,6 +118,20 @@ registrationSchema.statics.SEAT_HOLDING_STATUSES = [
   PAYMENT_STATUS.MANUAL,
   PAYMENT_STATUS.FREE,
 ];
+
+// DB-level backstop against two concurrent requests for the same mobile
+// number both passing the app-level dupe check (see createRegistration).
+// Scoped to FREE — the only status the live (payment-free) flow ever
+// creates — since partial indexes can't express an $in over all
+// seat-holding statuses.
+registrationSchema.index(
+  { mobileNumber: 1 },
+  {
+    name: 'mobileNumber_free_unique',
+    unique: true,
+    partialFilterExpression: { paymentStatus: PAYMENT_STATUS.FREE },
+  }
+);
 
 const Registration = mongoose.model('Registration', registrationSchema);
 export default Registration;

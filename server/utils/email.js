@@ -68,7 +68,6 @@ const passAttachment = async (reg) => {
 export const buildUserEmailHtml = (reg) => {
   const name = esc(reg.fullName);
   const code = esc(reg.registrationNumber);
-  const amount = esc(reg.amount);
   return `<!doctype html>
 <html><body style="margin:0;background:#eef1f8;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0b1330">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
@@ -94,8 +93,7 @@ export const buildUserEmailHtml = (reg) => {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;font-size:14px">
           <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Date</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.date)}</td></tr>
           <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Time</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.time)}</td></tr>
-          <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Venue</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.venue)}</td></tr>
-          <tr><td style="padding:7px 0;color:#7a85a0">Amount Paid</td><td style="padding:7px 0;text-align:right;font-weight:bold">₹${amount}</td></tr>
+          <tr><td style="padding:7px 0;color:#7a85a0">Venue</td><td style="padding:7px 0;text-align:right;font-weight:bold">${esc(EVENT.venue)}</td></tr>
         </table>
 
         <a href="${esc(EVENT.mapUrl)}" style="display:inline-block;margin-top:22px;background:#002ef4;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;font-size:14px">Get Directions</a>
@@ -116,8 +114,7 @@ const userText = (reg) =>
   `Name: ${reg.fullName}\n` +
   `Date: ${EVENT.date}\n` +
   `Time: ${EVENT.time}\n` +
-  `Venue: ${EVENT.venue}\n` +
-  `Amount Paid: ₹${reg.amount}\n\n` +
+  `Venue: ${EVENT.venue}\n\n` +
   `Show the QR on your entry pass (attached) at the registration desk.\n` +
   `Directions: ${EVENT.mapUrl}\n\n` +
   `DOPA Coaching, Calicut`;
@@ -173,7 +170,7 @@ export const buildOrganizerEmailHtml = (reg) => {
 <html><body style="margin:0;background:#eef1f8;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0b1330">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e4e8f3">
-      <tr><td style="background:#001e5f;padding:20px 24px;color:#ffffff;font-size:17px;font-weight:bold">New paid registration · NEET CON 2026</td></tr>
+      <tr><td style="background:#001e5f;padding:20px 24px;color:#ffffff;font-size:17px;font-weight:bold">New registration · NEET CON 2026</td></tr>
       <tr><td style="padding:8px 12px 20px">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">
           ${row('Registration Code', reg.registrationNumber)}
@@ -182,7 +179,6 @@ export const buildOrganizerEmailHtml = (reg) => {
           ${row('Email', reg.emailAddress)}
           ${row('School / College', reg.schoolOrCollege)}
           ${row('Preparing For', reg.preparingFor)}
-          ${row('Amount Paid', `₹${reg.amount}`)}
           ${row('Order ID', reg.orderId)}
           ${row('Confirmed At', reg.confirmedAt ? new Date(reg.confirmedAt).toLocaleString('en-IN') : '')}
         </table>
@@ -193,7 +189,7 @@ export const buildOrganizerEmailHtml = (reg) => {
 };
 
 /**
- * Notify the organizer of a completed (paid) registration. Never throws.
+ * Notify the organizer of a completed registration. Never throws.
  * @returns {Promise<{ sent:boolean, reason?:string }>}
  */
 export const sendOrganizerNotification = async (reg) => {
@@ -209,10 +205,10 @@ export const sendOrganizerNotification = async (reg) => {
       to,
       subject: `New registration: ${reg.fullName} (${reg.registrationNumber})`,
       text:
-        `New paid registration for NEET CON 2026\n\n` +
+        `New registration for NEET CON 2026\n\n` +
         `Code: ${reg.registrationNumber}\nName: ${reg.fullName}\nMobile: ${reg.mobileNumber}\n` +
         `Email: ${reg.emailAddress || '—'}\nSchool: ${reg.schoolOrCollege}\nPreparing: ${reg.preparingFor}\n` +
-        `Amount: ₹${reg.amount}\nOrder: ${reg.orderId}`,
+        `Order: ${reg.orderId}`,
       html: buildOrganizerEmailHtml(reg),
     });
     console.log(`[email] organizer notified (${reg.registrationNumber}) -> ${to}`);
