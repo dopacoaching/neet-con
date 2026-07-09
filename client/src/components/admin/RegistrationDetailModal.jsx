@@ -104,7 +104,6 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             <Field label="School / College" value={r.schoolOrCollege} />
             <Field label="Year of 12th" value={r.passedYear} />
             <Field label="Preparing For" value={r.preparingFor} />
-            <Field label="Amount" value={`₹${r.amount}`} />
           </div>
 
           {/* Guests accompanying */}

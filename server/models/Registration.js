@@ -37,6 +37,7 @@ const registrationSchema = new mongoose.Schema(
       required: true,
       trim: true,
       match: [/^[6-9]\d{9}$/, 'Mobile number must be a valid 10-digit Indian number'],
+      index: true,
     },
     // Optional — confirmation + QR are delivered via WhatsApp (to mobileNumber).
     // Kept for records; validated only when provided.

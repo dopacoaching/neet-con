@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import toast from 'react-hot-toast';
 import { adminCheckIn, adminListCheckIns } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
 
@@ -8,7 +9,7 @@ const REGION_ID = 'qr-reader-region';
 const RESULT_STYLES = {
   checked_in: { ring: 'border-green-400', badge: 'bg-green-500', label: '✓ CHECKED IN' },
   already_checked_in: { ring: 'border-amber-400', badge: 'bg-amber-500', label: '! ALREADY IN' },
-  not_confirmed: { ring: 'border-red-400', badge: 'bg-red-500', label: '✕ NOT PAID' },
+  not_confirmed: { ring: 'border-red-400', badge: 'bg-red-500', label: '✕ NOT CONFIRMED' },
   not_found: { ring: 'border-red-400', badge: 'bg-red-500', label: '✕ NOT FOUND' },
 };
 
@@ -34,8 +35,8 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
     try {
       const data = await adminListCheckIns();
       setCheckedIn(data.items || []);
-    } catch {
-      /* keep whatever we had */
+    } catch (err) {
+      toast.error(err.message || 'Could not load checked-in list');
     } finally {
       setListLoading(false);
     }

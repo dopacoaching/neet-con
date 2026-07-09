@@ -43,6 +43,8 @@ const AdminDashboardPage = () => {
   const [scanning, setScanning] = useState(false);
 
   const searchTimer = useRef(null);
+  const listRequestId = useRef(0);
+  const detailRequestId = useRef(0);
 
   const loadSummary = useCallback(async () => {
     try {
@@ -55,6 +57,7 @@ const AdminDashboardPage = () => {
   }, []);
 
   const loadList = useCallback(async () => {
+    const requestId = ++listRequestId.current;
     setListLoading(true);
     try {
       const params = { page: filters.page, limit: 20 };
@@ -62,11 +65,14 @@ const AdminDashboardPage = () => {
       if (filters.preparingFor !== 'All') params.preparingFor = filters.preparingFor;
       if (filters.guestInfo !== 'All') params.guestInfo = filters.guestInfo;
       if (filters.search.trim()) params.search = filters.search.trim();
-      setData(await adminListRegistrations(params));
+      const result = await adminListRegistrations(params);
+      if (requestId !== listRequestId.current) return; // a newer request already landed
+      setData(result);
     } catch (err) {
+      if (requestId !== listRequestId.current) return;
       toast.error(err.message);
     } finally {
-      setListLoading(false);
+      if (requestId === listRequestId.current) setListLoading(false);
     }
   }, [filters]);
 
@@ -88,11 +94,14 @@ const AdminDashboardPage = () => {
 
   const openRow = async (row) => {
     // Open immediately with list data, then refresh with full detail.
+    const requestId = ++detailRequestId.current;
     setSelected(row);
     try {
       const full = await adminGetRegistration(row._id);
+      if (requestId !== detailRequestId.current) return; // a newer row was opened meanwhile
       setSelected(full);
     } catch (err) {
+      if (requestId !== detailRequestId.current) return;
       toast.error(err.message || 'Could not load full details — showing list data only');
     }
   };
