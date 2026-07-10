@@ -46,6 +46,21 @@ export const externalIngestLimiter = rateLimit({
 });
 
 /**
+ * Admin-triggered WhatsApp resend: real messages to real people, so cap it
+ * well below what a runaway double-click or frontend bug could rack up.
+ */
+export const whatsappResendLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many resend attempts. Please wait a minute and try again.',
+  },
+});
+
+/**
  * General API limiter (generous) applied to all /api routes as a safety net.
  */
 export const apiLimiter = rateLimit({

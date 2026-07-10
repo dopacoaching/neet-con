@@ -6,13 +6,14 @@ import {
   listRegistrations,
   getRegistration,
   updateRegistrationStatus,
+  resendWhatsApp,
   summary,
   exportRegistrations,
   checkIn,
   listCheckIns,
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
-import { loginLimiter } from '../middleware/rateLimiter.js';
+import { loginLimiter, whatsappResendLimiter } from '../middleware/rateLimiter.js';
 import originGuard from '../middleware/originGuard.js';
 
 const router = express.Router();
@@ -44,6 +45,15 @@ router.get('/checkins', protect, listCheckIns);
 
 // Manual status changes require the "admin" role (not "viewer").
 router.patch('/registrations/:id/status', protect, requireAdminRole, updateRegistrationStatus);
+
+// Resend the WhatsApp confirmation — real message to a real person, admin role only.
+router.post(
+  '/registrations/:id/resend-whatsapp',
+  protect,
+  requireAdminRole,
+  whatsappResendLimiter,
+  resendWhatsApp
+);
 
 // Export requires "admin" role.
 router.get('/export', protect, requireAdminRole, exportRegistrations);

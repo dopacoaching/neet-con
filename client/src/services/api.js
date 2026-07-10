@@ -62,6 +62,9 @@ export const adminGetRegistration = (id) =>
 export const adminUpdateStatus = (id, payload) =>
   api.patch(`/admin/registrations/${id}/status`, payload).then((r) => r.data.data);
 
+export const adminResendWhatsApp = (id) =>
+  api.post(`/admin/registrations/${id}/resend-whatsapp`).then((r) => r.data.data);
+
 // Returns a Blob for download.
 export const adminExport = () =>
   api.get('/admin/export', { responseType: 'blob' }).then((r) => r.data);

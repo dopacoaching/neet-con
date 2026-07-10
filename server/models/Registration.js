@@ -109,6 +109,18 @@ const registrationSchema = new mongoose.Schema(
     // --- Event check-in (QR scan at the gate) ---
     checkedInAt: { type: Date, default: null },
     checkedInBy: { type: String, default: '' }, // admin username who scanned
+
+    // --- WhatsApp confirmation delivery (set by sendConfirmationWhatsApp) ---
+    // Lets admins see and resend to anyone whose confirmation never went out,
+    // instead of it only ever being logged to the server console.
+    whatsappStatus: {
+      type: String,
+      enum: ['sent', 'failed', 'skipped', 'unknown'],
+      default: 'unknown',
+    },
+    whatsappMessageId: { type: String, default: '' },
+    whatsappError: { type: String, default: '' },
+    whatsappSentAt: { type: Date, default: null },
   },
   { timestamps: true } // adds createdAt + updatedAt
 );

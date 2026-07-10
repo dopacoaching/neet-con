@@ -21,6 +21,12 @@ const GUEST_INFO_OPTIONS = [
   { value: 'needsReview', label: '⚠️ Needs review (unparsed reply)' },
   { value: 'notAnswered', label: 'Awaiting guest count' },
 ];
+const WHATSAPP_STATUS_OPTIONS = [
+  { value: 'All', label: 'All (WhatsApp)' },
+  { value: 'failed', label: '✕ WhatsApp failed' },
+  { value: 'unknown', label: '? WhatsApp unknown (pre-tracking)' },
+  { value: 'sent', label: '✓ WhatsApp sent' },
+];
 
 const AdminDashboardPage = () => {
   const { admin, isAdminRole, logout } = useAdmin();
@@ -36,6 +42,7 @@ const AdminDashboardPage = () => {
     status: 'All',
     preparingFor: 'All',
     guestInfo: 'All',
+    whatsappStatus: 'All',
     page: 1,
   });
   const [selected, setSelected] = useState(null);
@@ -64,6 +71,7 @@ const AdminDashboardPage = () => {
       if (filters.status !== 'All') params.status = filters.status;
       if (filters.preparingFor !== 'All') params.preparingFor = filters.preparingFor;
       if (filters.guestInfo !== 'All') params.guestInfo = filters.guestInfo;
+      if (filters.whatsappStatus !== 'All') params.whatsappStatus = filters.whatsappStatus;
       if (filters.search.trim()) params.search = filters.search.trim();
       const result = await adminListRegistrations(params);
       if (requestId !== listRequestId.current) return; // a newer request already landed
@@ -187,7 +195,7 @@ const AdminDashboardPage = () => {
         <SummaryCards summary={summary} loading={summaryLoading} />
 
         {/* Filters */}
-        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-4">
+        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 lg:grid-cols-5">
           <input
             className="input-dark"
             placeholder="Search name, mobile, email, reg no…"
@@ -223,6 +231,17 @@ const AdminDashboardPage = () => {
             {GUEST_INFO_OPTIONS.map((g) => (
               <option key={g.value} value={g.value} className="bg-[#081231] text-white">
                 {g.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input-dark"
+            value={filters.whatsappStatus}
+            onChange={(e) => setFilters((f) => ({ ...f, whatsappStatus: e.target.value, page: 1 }))}
+          >
+            {WHATSAPP_STATUS_OPTIONS.map((w) => (
+              <option key={w.value} value={w.value} className="bg-[#081231] text-white">
+                {w.label}
               </option>
             ))}
           </select>

@@ -1,5 +1,29 @@
 import { generateQrBuffer } from './qrcode.js';
 import { generateEventPass } from './eventPass.js';
+import Registration from '../models/Registration.js';
+
+/** Persist the outcome of a confirmation send so admins can see/resend failures
+ *  instead of it only ever being logged to the server console. Never throws. */
+const trackResult = async (reg, result) => {
+  if (!reg?._id) return;
+  const isMock = result.reason === 'mock';
+  const status = isMock ? 'skipped' : result.sent ? 'sent' : 'failed';
+  try {
+    await Registration.updateOne(
+      { _id: reg._id },
+      {
+        $set: {
+          whatsappStatus: status,
+          whatsappMessageId: result.messageId || '',
+          whatsappError: status === 'failed' ? result.reason || '' : '',
+          whatsappSentAt: status === 'sent' ? new Date() : null,
+        },
+      }
+    );
+  } catch (err) {
+    console.error(`[whatsapp] failed to record send status for ${reg.registrationNumber}: ${err.message}`);
+  }
+};
 
 /**
  * WhatsApp confirmation sender — Meta WhatsApp Cloud API.
@@ -120,13 +144,21 @@ const uploadQrMedia = async (buffer, filename) => {
 };
 
 /**
- * Send the confirmation + QR to the registrant's WhatsApp.
- * Never throws — returns a result object the caller can log.
+ * Send the confirmation + QR to the registrant's WhatsApp, and persist the
+ * outcome onto the registration (whatsappStatus/whatsappError/etc.) so a
+ * failure is visible/resendable from the admin dashboard instead of only
+ * ever being logged to the server console. Never throws.
  *
  * @param {object} reg  the confirmed registration document
  * @returns {Promise<{ sent: boolean, reason?: string, messageId?: string }>}
  */
 export const sendConfirmationWhatsApp = async (reg) => {
+  const result = await sendConfirmationWhatsAppRaw(reg);
+  await trackResult(reg, result);
+  return result;
+};
+
+const sendConfirmationWhatsAppRaw = async (reg) => {
   if (!reg?.mobileNumber) {
     return { sent: false, reason: 'no mobile number on record' };
   }

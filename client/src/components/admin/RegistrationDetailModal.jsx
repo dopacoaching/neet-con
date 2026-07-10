@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import StatusBadge from './StatusBadge.jsx';
-import { adminUpdateStatus } from '../../services/api.js';
+import { adminUpdateStatus, adminResendWhatsApp } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
+
+const WHATSAPP_STATUS_STYLE = {
+  sent: { label: '✓ Sent', className: 'bg-green-500/15 text-green-300' },
+  failed: { label: '✕ Failed', className: 'bg-red-500/15 text-red-300' },
+  skipped: { label: '– Skipped (mock)', className: 'bg-white/10 text-white/50' },
+  unknown: { label: '? Unknown (pre-tracking)', className: 'bg-amber-500/15 text-amber-300' },
+};
 
 const Field = ({ label, value }) => (
   <div>
@@ -23,6 +30,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
       : String(registration.guestCount)
   );
   const [saving, setSaving] = useState(false);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     setNotes(registration?.notes || '');
@@ -62,6 +70,19 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
       toast.error(err.message || 'Update failed');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const resendWhatsApp = async () => {
+    setResending(true);
+    try {
+      const updated = await adminResendWhatsApp(r._id);
+      toast.success('WhatsApp confirmation resent');
+      onUpdated(updated);
+    } catch (err) {
+      toast.error(err.message || 'Resend failed');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -188,6 +209,45 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
                 }
               />
             </div>
+          </div>
+
+          {/* WhatsApp confirmation delivery */}
+          <div className="rounded-xl bg-white/5 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
+                WhatsApp Confirmation
+              </p>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                  (WHATSAPP_STATUS_STYLE[r.whatsappStatus] || WHATSAPP_STATUS_STYLE.unknown)
+                    .className
+                }`}
+              >
+                {(WHATSAPP_STATUS_STYLE[r.whatsappStatus] || WHATSAPP_STATUS_STYLE.unknown).label}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <Field
+                label="Sent At"
+                value={
+                  r.whatsappSentAt ? format(new Date(r.whatsappSentAt), 'dd MMM yyyy, h:mm a') : '—'
+                }
+              />
+              {r.whatsappError && <Field label="Error" value={r.whatsappError} />}
+            </div>
+            {isAdminRole && isConfirmed && (
+              <button
+                onClick={resendWhatsApp}
+                className="btn-ghost-dark mt-3 !py-2 !px-4 text-sm"
+                disabled={resending}
+              >
+                {resending ? (
+                  <Spinner className="h-4 w-4 border-white/40 border-t-white" />
+                ) : (
+                  'Resend WhatsApp Confirmation'
+                )}
+              </button>
+            )}
           </div>
 
           {/* Notes */}

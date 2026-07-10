@@ -68,7 +68,7 @@ export const me = asyncHandler(async (req, res) => {
 export const listRegistrations = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
-  const { status, preparingFor, search, guestInfo } = req.query;
+  const { status, preparingFor, search, guestInfo, whatsappStatus } = req.query;
 
   const filter = {};
   if (status && Object.values(PAYMENT_STATUS).includes(status)) filter.paymentStatus = status;
@@ -78,6 +78,12 @@ export const listRegistrations = asyncHandler(async (req, res) => {
     filter.guestCountReplyRaw = { $ne: '' };
   } else if (guestInfo === 'notAnswered') {
     filter.guestCount = { $exists: false };
+  }
+  if (['sent', 'failed', 'skipped', 'unknown'].includes(whatsappStatus)) {
+    filter.whatsappStatus = whatsappStatus;
+    // Seat-holding only — a failed/pending registration was never eligible to
+    // get a confirmation in the first place, so it's not a "missed" send.
+    filter.paymentStatus = filter.paymentStatus || { $in: Registration.SEAT_HOLDING_STATUSES };
   }
 
   if (search && search.trim()) {
@@ -218,6 +224,32 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
   await registration.save();
   res.json({ success: true, data: registration.toObject() });
+});
+
+/**
+ * POST /api/admin/registrations/:id/resend-whatsapp
+ * Re-send the confirmation + QR to a registrant who never got it (or whose
+ * send failed). Only makes sense for a seat-holding registration. Requires
+ * admin role. Awaited (not fire-and-forget) so the admin gets a real result.
+ */
+export const resendWhatsApp = asyncHandler(async (req, res) => {
+  const registration = await Registration.findById(req.params.id);
+  if (!registration) {
+    res.status(404);
+    throw new Error('Registration not found');
+  }
+  if (!Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus)) {
+    res.status(409);
+    throw new Error('This registration does not hold a confirmed seat.');
+  }
+
+  const result = await sendConfirmationWhatsApp(registration);
+  if (!result.sent) {
+    res.status(502);
+    throw new Error(`WhatsApp send failed: ${result.reason || 'unknown error'}`);
+  }
+  const updated = await Registration.findById(registration._id).lean();
+  res.json({ success: true, data: updated });
 });
 
 /**
