@@ -12,6 +12,7 @@ import SummaryCards from '../../components/admin/SummaryCards.jsx';
 import RegistrationsTable from '../../components/admin/RegistrationsTable.jsx';
 import RegistrationDetailModal from '../../components/admin/RegistrationDetailModal.jsx';
 import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
+import CheckedInList from '../../components/admin/CheckedInList.jsx';
 import { Spinner } from '../../components/ui/PageLoader.jsx';
 
 const STATUS_OPTIONS = ['All', 'CONFIRMED', 'FREE', 'PENDING', 'FAILED', 'MANUAL'];
@@ -47,7 +48,8 @@ const AdminDashboardPage = () => {
   });
   const [selected, setSelected] = useState(null);
   const [exporting, setExporting] = useState(false);
-  const [tab, setTab] = useState('registrations'); // 'registrations' | 'checkin'
+  const [tab, setTab] = useState('dashboard'); // 'dashboard' | 'registrations' | 'checkin'
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const searchTimer = useRef(null);
   const listRequestId = useRef(0);
@@ -153,7 +155,13 @@ const AdminDashboardPage = () => {
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#081231]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Logo dark />
+          <button
+            onClick={() => setTab('dashboard')}
+            className="rounded-lg transition hover:opacity-80"
+            aria-label="Go to dashboard"
+          >
+            <Logo dark />
+          </button>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-white/60 sm:inline">
               {admin?.username}{' '}
@@ -195,7 +203,14 @@ const AdminDashboardPage = () => {
 
         {/* Content */}
         <main className="min-w-0 flex-1 space-y-6">
-          {tab === 'registrations' ? (
+          {tab === 'dashboard' ? (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+              <h1 className="font-heading text-2xl font-extrabold text-white">Dashboard</h1>
+              <button onClick={() => setScannerOpen(true)} className="btn-primary !py-3 !px-6 text-base">
+                📷 Open Scanner
+              </button>
+            </div>
+          ) : tab === 'registrations' ? (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -279,7 +294,15 @@ const AdminDashboardPage = () => {
               />
             </>
           ) : (
-            <CheckInScanner onCheckedIn={loadList} />
+            <>
+              <div>
+                <h1 className="font-heading text-2xl font-extrabold text-white">Check-in</h1>
+                <p className="text-sm text-white/60">
+                  Students who have completed check-in — by scan, typed code, or manual entry.
+                </p>
+              </div>
+              <CheckedInList />
+            </>
           )}
         </main>
       </div>
@@ -291,6 +314,10 @@ const AdminDashboardPage = () => {
           onClose={() => setSelected(null)}
           onUpdated={handleUpdated}
         />
+      )}
+
+      {scannerOpen && (
+        <CheckInScanner onClose={() => setScannerOpen(false)} onCheckedIn={loadList} />
       )}
     </div>
   );

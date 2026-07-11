@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import StatusBadge from './StatusBadge.jsx';
-import { adminUpdateStatus, adminResendWhatsApp } from '../../services/api.js';
+import { adminUpdateStatus, adminResendWhatsApp, adminCheckIn } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
 
 const WHATSAPP_STATUS_STYLE = {
@@ -31,6 +31,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
   );
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
 
   useEffect(() => {
     setNotes(registration?.notes || '');
@@ -86,7 +87,34 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
     }
   };
 
+  const checkInNow = async () => {
+    setCheckingIn(true);
+    try {
+      const res = await adminCheckIn(r.registrationNumber);
+      if (!res.success && res.result !== 'already_checked_in') {
+        toast.error(res.message || 'Check-in failed');
+        return;
+      }
+      toast.success(res.message || 'Checked in');
+      onUpdated({
+        ...r,
+        checkedInAt: res.data.checkedInAt,
+        checkedInBy: res.data.checkedInBy,
+        guestCount: res.data.guestCount,
+      });
+    } catch (err) {
+      toast.error(err.message || 'Check-in failed');
+    } finally {
+      setCheckingIn(false);
+    }
+  };
+
   const isConfirmed = r.paymentStatus === 'CONFIRMED' || r.paymentStatus === 'MANUAL';
+  // Seat-holding statuses (mirrors Registration.SEAT_HOLDING_STATUSES server-side)
+  // — FREE is the status nearly every current registration has, so this must
+  // be checked separately from isConfirmed above (which only covers the old
+  // paid-flow statuses) for check-in/resend actions to actually show up.
+  const isSeatHolding = isConfirmed || r.paymentStatus === 'FREE';
 
   return (
     <div
@@ -209,6 +237,19 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
                 }
               />
             </div>
+            {isSeatHolding && !r.checkedInAt && (
+              <button
+                onClick={checkInNow}
+                className="btn-primary mt-3 !py-2 !px-4 text-sm"
+                disabled={checkingIn}
+              >
+                {checkingIn ? (
+                  <Spinner className="h-4 w-4 border-white/40 border-t-white" />
+                ) : (
+                  '✓ Check In Now'
+                )}
+              </button>
+            )}
           </div>
 
           {/* WhatsApp confirmation delivery */}
@@ -235,7 +276,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
               />
               {r.whatsappError && <Field label="Error" value={r.whatsappError} />}
             </div>
-            {isAdminRole && isConfirmed && (
+            {isAdminRole && isSeatHolding && (
               <button
                 onClick={resendWhatsApp}
                 className="btn-ghost-dark mt-3 !py-2 !px-4 text-sm"

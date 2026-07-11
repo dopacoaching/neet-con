@@ -340,7 +340,9 @@ const checkinView = (r) => ({
 export const listCheckIns = asyncHandler(async (req, res) => {
   const items = await Registration.find({ checkedInAt: { $ne: null } })
     .sort({ checkedInAt: -1 })
-    .select('registrationNumber fullName mobileNumber preparingFor schoolOrCollege checkedInAt checkedInBy')
+    .select(
+      'registrationNumber fullName mobileNumber preparingFor schoolOrCollege checkedInAt checkedInBy guestCount'
+    )
     .lean();
   res.json({ success: true, data: { count: items.length, items } });
 });
