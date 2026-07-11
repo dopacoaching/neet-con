@@ -18,7 +18,7 @@ import { generateQrBuffer } from './qrcode.js';
 
 const EVENT = {
   date: process.env.EVENT_DATE || '12 July 2026',
-  time: process.env.EVENT_TIME || '10:00 AM – 4:30 PM',
+  time: process.env.EVENT_TIME || '9:30 AM – 4:00 PM',
   venue: process.env.EVENT_VENUE || 'Yamaniya Hall, Kuttikattor',
   mapUrl: process.env.EVENT_MAP_URL || 'https://maps.app.goo.gl/b6ZUgZSWgj33UPXv5',
 };

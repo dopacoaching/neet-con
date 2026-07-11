@@ -30,7 +30,7 @@ const RegistrationPage = () => {
           <div className="mt-8 space-y-3 text-sm">
             {[
               ['📅 Date', 'July 12, 2026'],
-              ['🕘 Time', '10:00 AM – 4:30 PM'],
+              ['🕘 Time', '9:30 AM – 4:00 PM'],
               ['📍 Venue', 'Yamaniya Hall, Kuttikattor'],
               ['🎟️ Fee', 'Free entry'],
             ].map(([k, v]) => (
