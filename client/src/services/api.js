@@ -79,6 +79,11 @@ export const adminCheckIn = (code) =>
 export const adminListCheckIns = () =>
   api.get('/admin/checkins').then((r) => r.data.data);
 
+// Register a walk-in student (never registered online) and check them in
+// immediately. Returns the same envelope shape as adminCheckIn.
+export const adminRegisterWalkIn = (payload) =>
+  api.post('/admin/registrations/walk-in', payload).then((r) => r.data);
+
 // Set guest count at the gate (spoken/typed during check-in).
 export const adminSetGuestCount = (id, guestCount) =>
   api.patch(`/admin/registrations/${id}/guest-count`, { guestCount }).then((r) => r.data.data);

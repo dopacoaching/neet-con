@@ -3,6 +3,7 @@ import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registrat
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { buildRegistrationsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
+import generateOrderId from '../utils/generateOrderId.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import { sendUserConfirmationEmail } from '../utils/email.js';
 import {
@@ -401,6 +402,89 @@ export const checkIn = asyncHandler(async (req, res) => {
     result: 'checked_in',
     message: 'Checked in successfully. Admit the student.',
     data: checkinView(updated),
+  });
+});
+
+const WALKIN_MOBILE_RE = /^[6-9]\d{9}$/;
+
+/**
+ * POST /api/admin/registrations/walk-in
+ * Register a student on the spot at the gate (they never registered online)
+ * and check them in immediately in the same action. Name, mobile, and guest
+ * count are required; school/college and preparing-for are optional. Any
+ * authenticated admin (incl. viewer-role gate staff) can do this.
+ */
+export const registerWalkIn = asyncHandler(async (req, res) => {
+  const { fullName, mobileNumber, schoolOrCollege = '', preparingFor = '', guestCount } =
+    req.body || {};
+
+  const errors = [];
+  if (!fullName || !String(fullName).trim()) errors.push('Full name is required');
+  if (!mobileNumber || !WALKIN_MOBILE_RE.test(String(mobileNumber).trim()))
+    errors.push('A valid 10-digit Indian mobile number is required');
+  const n = Math.trunc(Number(guestCount));
+  if (guestCount === undefined || guestCount === null || guestCount === '' || !Number.isFinite(n))
+    errors.push('Guest count is required');
+  else if (n < 0 || n > 20) errors.push('Guest count must be between 0 and 20');
+  if (preparingFor && !Object.values(PREPARING_FOR).includes(preparingFor))
+    errors.push('Preparing For must be "NEET 2027" or "NEET 2028"');
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join('; '));
+  }
+
+  const mobile = String(mobileNumber).trim();
+
+  const existing = await Registration.findOne({
+    mobileNumber: mobile,
+    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+  });
+  if (existing) {
+    res.status(409);
+    throw new Error(
+      `This mobile number is already registered under ${existing.registrationNumber || existing.orderId} — check them in from Registrations instead.`
+    );
+  }
+
+  const orderId = generateOrderId();
+
+  let registration;
+  try {
+    registration = await Registration.create({
+      fullName: String(fullName).trim(),
+      mobileNumber: mobile,
+      schoolOrCollege: String(schoolOrCollege).trim(),
+      preparingFor: preparingFor || undefined,
+      guestCount: n,
+      orderId,
+      amount: 0,
+      paymentStatus: PAYMENT_STATUS.FREE,
+      registrationNumber: await nextRegistrationNumber(),
+      confirmedAt: new Date(),
+      source: 'admin_walk_in',
+      checkedInAt: new Date(),
+      checkedInBy: req.admin.username,
+    });
+  } catch (err) {
+    if (err?.code === 11000 && err?.keyPattern?.mobileNumber) {
+      res.status(409);
+      throw new Error('This mobile number is already registered.');
+    }
+    throw err;
+  }
+
+  // Send the confirmation + QR via WhatsApp. Fire-and-forget so the response
+  // is never delayed by Meta; never throws. No email on file for a walk-in.
+  sendConfirmationWhatsApp(registration).catch((err) =>
+    console.error(`[whatsapp] walk-in send error: ${err?.message || err}`)
+  );
+
+  return res.status(201).json({
+    success: true,
+    result: 'checked_in',
+    message: 'Registered and checked in successfully. Admit the student.',
+    data: checkinView(registration),
   });
 });
 

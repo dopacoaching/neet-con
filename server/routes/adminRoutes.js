@@ -12,6 +12,7 @@ import {
   checkIn,
   listCheckIns,
   setGuestCountAtGate,
+  registerWalkIn,
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
 import { loginLimiter, whatsappResendLimiter } from '../middleware/rateLimiter.js';
@@ -43,6 +44,10 @@ router.post('/checkin', protect, checkIn);
 
 // List of everyone checked in so far — any authenticated admin.
 router.get('/checkins', protect, listCheckIns);
+
+// Register a walk-in student (never registered online) and check them in
+// immediately — any authenticated admin (incl. viewer-role gate staff).
+router.post('/registrations/walk-in', protect, registerWalkIn);
 
 // Set guest count at the gate (spoken/typed during check-in) — any authenticated
 // admin, since gate staff may be viewer-role and this doesn't touch seat status.

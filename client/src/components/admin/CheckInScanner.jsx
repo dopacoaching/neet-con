@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import toast from 'react-hot-toast';
-import { adminCheckIn, adminSetGuestCount } from '../../services/api.js';
+import { adminCheckIn, adminSetGuestCount, adminRegisterWalkIn } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
 
 const REGION_ID = 'qr-reader-region';
@@ -36,6 +36,15 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
   const [manual, setManual] = useState('');
   const [guestPrompt, setGuestPrompt] = useState(null); // { id, fullName, value } | null
   const [guestSaving, setGuestSaving] = useState(false);
+  const [walkInOpen, setWalkInOpen] = useState(false);
+  const [walkIn, setWalkIn] = useState({
+    fullName: '',
+    mobileNumber: '',
+    schoolOrCollege: '',
+    preparingFor: '',
+    guestCount: '',
+  });
+  const [walkInSaving, setWalkInSaving] = useState(false);
 
   const handleCode = useCallback(
     async (raw) => {
@@ -152,6 +161,33 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
     }
   };
 
+  const submitWalkIn = async (e) => {
+    e.preventDefault();
+    if (!walkIn.fullName.trim() || !walkIn.mobileNumber.trim() || walkIn.guestCount === '') {
+      toast.error('Name, mobile number, and guest count are required');
+      return;
+    }
+    setWalkInSaving(true);
+    try {
+      const res = await adminRegisterWalkIn({
+        fullName: walkIn.fullName.trim(),
+        mobileNumber: walkIn.mobileNumber.trim(),
+        schoolOrCollege: walkIn.schoolOrCollege.trim(),
+        preparingFor: walkIn.preparingFor || undefined,
+        guestCount: walkIn.guestCount,
+      });
+      setResult({ ...res, result: res.result || 'checked_in' });
+      onCheckedIn?.();
+      toast.success('Registered and checked in');
+      setWalkIn({ fullName: '', mobileNumber: '', schoolOrCollege: '', preparingFor: '', guestCount: '' });
+      setWalkInOpen(false);
+    } catch (err) {
+      toast.error(err.message || 'Registration failed');
+    } finally {
+      setWalkInSaving(false);
+    }
+  };
+
   const style = result ? RESULT_STYLES[result.result] || RESULT_STYLES.not_found : null;
 
   return (
@@ -229,6 +265,73 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
           <p className="mt-2 text-xs text-white/50">
             Point the camera at the student's QR. Camera access needs HTTPS (or localhost).
           </p>
+
+          <div className="mt-5 border-t border-white/10 pt-4">
+            <button
+              onClick={() => setWalkInOpen((v) => !v)}
+              className="text-sm font-semibold text-accent hover:underline"
+            >
+              {walkInOpen ? '‹ Back to check-in' : "Student isn't registered? Register + check in →"}
+            </button>
+
+            {walkInOpen && (
+              <form onSubmit={submitWalkIn} className="mt-3 space-y-2.5">
+                <input
+                  className="input-dark"
+                  placeholder="Full name *"
+                  value={walkIn.fullName}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, fullName: e.target.value }))}
+                />
+                <input
+                  className="input-dark"
+                  placeholder="Mobile number *"
+                  value={walkIn.mobileNumber}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, mobileNumber: e.target.value }))}
+                />
+                <input
+                  className="input-dark"
+                  placeholder="School / College"
+                  value={walkIn.schoolOrCollege}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, schoolOrCollege: e.target.value }))}
+                />
+                <select
+                  className="input-dark"
+                  value={walkIn.preparingFor}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, preparingFor: e.target.value }))}
+                >
+                  <option value="" className="bg-[#081231] text-white">
+                    Preparing For (optional)
+                  </option>
+                  <option value="NEET 2027" className="bg-[#081231] text-white">
+                    NEET 2027
+                  </option>
+                  <option value="NEET 2028" className="bg-[#081231] text-white">
+                    NEET 2028
+                  </option>
+                </select>
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  className="input-dark"
+                  placeholder="Guest count *"
+                  value={walkIn.guestCount}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, guestCount: e.target.value }))}
+                />
+                <button
+                  type="submit"
+                  className="btn-primary w-full !py-2.5"
+                  disabled={walkInSaving}
+                >
+                  {walkInSaving ? (
+                    <Spinner className="h-4 w-4 border-white/40 border-t-white" />
+                  ) : (
+                    'Register & Check In'
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
 
