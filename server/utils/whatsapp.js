@@ -93,6 +93,9 @@ const ACCESS_TOKEN = () => process.env.WHATSAPP_ACCESS_TOKEN || '';
 const TEMPLATE_NAME = () => process.env.WHATSAPP_TEMPLATE_NAME || '';
 const TEMPLATE_LANG = () => process.env.WHATSAPP_TEMPLATE_LANG || 'en';
 const GUESTCOUNT_TEMPLATE_NAME = () => process.env.WHATSAPP_GUESTCOUNT_TEMPLATE_NAME || '';
+// Approved via the Graph API directly (2026-07-11); POSITIONAL parameters
+// {{1}}..{{4}} = full_name, event_date, event_time, venue.
+const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'neetcon_2026_reminder';
 const COUNTRY_CODE = () => process.env.WHATSAPP_COUNTRY_CODE || '91';
 
 export const isWhatsAppMock = () => String(process.env.WHATSAPP_MOCK).toLowerCase() === 'true';
@@ -100,6 +103,7 @@ export const isWhatsAppMock = () => String(process.env.WHATSAPP_MOCK).toLowerCas
 const isConfigured = () => !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && TEMPLATE_NAME());
 const isGuestCountAskConfigured = () =>
   !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && GUESTCOUNT_TEMPLATE_NAME());
+const isReminderConfigured = () => !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && REMINDER_TEMPLATE_NAME());
 
 const EVENT = {
   date: process.env.EVENT_DATE || '12 July 2026',
@@ -317,6 +321,73 @@ export const sendGuestCountAsk = async (reg) => {
     return { sent: true, messageId };
   } catch (err) {
     console.error(`[whatsapp] failed to send guest-count ask to ${to}: ${err.message}`);
+    return { sent: false, reason: err.message };
+  }
+};
+
+/**
+ * Send the day-before event reminder. Never throws — returns a result object
+ * the caller can log.
+ *
+ * @param {object} reg  the registration document (must have fullName, mobileNumber, registrationNumber)
+ * @returns {Promise<{ sent: boolean, reason?: string, messageId?: string }>}
+ */
+export const sendReminder = async (reg) => {
+  if (!reg?.mobileNumber) {
+    return { sent: false, reason: 'no mobile number on record' };
+  }
+  const to = toWhatsAppNumber(reg.mobileNumber);
+
+  if (isWhatsAppMock()) {
+    console.log(`[whatsapp] MOCK — would send reminder to ${to} (${reg.registrationNumber}).`);
+    return { sent: true, reason: 'mock' };
+  }
+
+  if (!isReminderConfigured()) {
+    console.warn(
+      `[whatsapp] reminder not configured — skipped ${to} (${reg.registrationNumber}). ` +
+        'Set WHATSAPP_REMINDER_TEMPLATE_NAME.'
+    );
+    return { sent: false, reason: 'not configured' };
+  }
+
+  try {
+    const payload = {
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name: REMINDER_TEMPLATE_NAME(),
+        language: { code: TEMPLATE_LANG() },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', text: String(reg.fullName) },
+              { type: 'text', text: EVENT.date },
+              { type: 'text', text: EVENT.time },
+              { type: 'text', text: EVENT.venue },
+            ],
+          },
+        ],
+      },
+    };
+
+    const res = await fetch(`${GRAPH}/${API_VERSION()}/${PHONE_NUMBER_ID()}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${ACCESS_TOKEN()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(`send failed (${res.status}): ${JSON.stringify(json.error || json).slice(0, 250)}`);
+    }
+
+    const messageId = json?.messages?.[0]?.id;
+    console.log(`[whatsapp] reminder sent to ${to} (${reg.registrationNumber}) id=${messageId}`);
+    return { sent: true, messageId };
+  } catch (err) {
+    console.error(`[whatsapp] failed to send reminder to ${to}: ${err.message}`);
     return { sent: false, reason: err.message };
   }
 };

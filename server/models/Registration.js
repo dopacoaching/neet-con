@@ -68,6 +68,9 @@ const registrationSchema = new mongoose.Schema(
     // the webhook knows an inbound reply from this mobile is answering that
     // specific question (and so the send script doesn't ask twice).
     guestCountAskedAt: { type: Date, default: null },
+    // Set when the day-before event reminder was sent, so the send script is
+    // safe to re-run without double-sending.
+    reminderSentAt: { type: Date, default: null },
     // If a reply to that follow-up couldn't be parsed as a number (e.g. "hey
     // who's this" or a voice note), the raw text is stashed here so an admin
     // can read it and set guestCount manually instead of it silently vanishing.
