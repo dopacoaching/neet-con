@@ -58,7 +58,7 @@ const CheckedInList = () => {
           {items.map((p) => (
             <li
               key={p._id || p.registrationNumber}
-              className="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2.5 text-sm"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2.5 text-sm"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium text-white">{p.fullName}</span>

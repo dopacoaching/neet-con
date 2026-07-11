@@ -251,14 +251,18 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
             </div>
           )}
 
-          <form onSubmit={submitManual} className="mt-4 flex gap-2">
+          <form onSubmit={submitManual} className="mt-4 flex flex-col gap-2 sm:flex-row">
             <input
               className="input-dark"
               placeholder="Or type code, e.g. NEET CON 001"
               value={manual}
               onChange={(e) => setManual(e.target.value)}
             />
-            <button type="submit" className="btn-primary whitespace-nowrap !py-2.5" disabled={busy}>
+            <button
+              type="submit"
+              className="btn-primary whitespace-nowrap !py-2.5 sm:w-auto"
+              disabled={busy}
+            >
               Check in
             </button>
           </form>

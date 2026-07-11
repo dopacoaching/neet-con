@@ -23,13 +23,15 @@ const SummaryCards = ({ summary, loading }) => {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-8">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-8">
       {CARD_DEFS.map((c) => (
-        <div key={c.key} className={`rounded-2xl p-5 ${c.tone}`}>
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-80">{c.label}</p>
-          <p className="mt-2 font-heading text-3xl font-extrabold">
+        <div key={c.key} className={`rounded-2xl p-3 sm:p-5 ${c.tone}`}>
+          <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80 sm:text-xs">
+            {c.label}
+          </p>
+          <p className="mt-1.5 font-heading text-2xl font-extrabold sm:mt-2 sm:text-3xl">
             {loading ? (
-              <span className="inline-block h-7 w-12 animate-pulse rounded bg-current opacity-20" />
+              <span className="inline-block h-6 w-10 animate-pulse rounded bg-current opacity-20 sm:h-7 sm:w-12" />
             ) : (
               values[c.key].toLocaleString('en-IN')
             )}

@@ -147,7 +147,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
 
         {/* Body */}
         <div className="space-y-5 p-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Mobile" value={r.mobileNumber} />
             <Field label="Email" value={r.emailAddress} />
             <Field label="School / College" value={r.schoolOrCollege} />
@@ -198,7 +198,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">
                 DOPA student (Google Form)
               </p>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <Field label="District / Place" value={r.district} />
                 <Field label="Current Status" value={r.currentStatus} />
                 <Field label="Expected NEET Score" value={r.expectedScore} />
@@ -211,7 +211,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
               Payment details
             </p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <Field label="Order ID" value={r.orderId} />
               <Field label="HDFC Txn ID" value={r.hdfc_txn_id} />
               <Field label="Attempts" value={String(r.paymentAttempts ?? 0)} />
@@ -267,7 +267,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
                 {(WHATSAPP_STATUS_STYLE[r.whatsappStatus] || WHATSAPP_STATUS_STYLE.unknown).label}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <Field
                 label="Sent At"
                 value={

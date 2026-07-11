@@ -176,12 +176,12 @@ const AdminDashboardPage = () => {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6">
-        {/* Sidebar */}
-        <nav className="w-44 shrink-0 space-y-1">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:flex-row sm:gap-6 sm:px-6">
+        {/* Sidebar — horizontal tab bar on mobile, vertical list from sm up */}
+        <nav className="flex gap-2 overflow-x-auto pb-1 sm:w-44 sm:shrink-0 sm:flex-col sm:gap-1 sm:overflow-visible sm:pb-0">
           <button
             onClick={() => setTab('registrations')}
-            className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+            className={`shrink-0 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition sm:w-full ${
               tab === 'registrations'
                 ? 'bg-accent/20 text-accent'
                 : 'text-white/60 hover:bg-white/5 hover:text-white'
@@ -191,7 +191,7 @@ const AdminDashboardPage = () => {
           </button>
           <button
             onClick={() => setTab('checkin')}
-            className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+            className={`shrink-0 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition sm:w-full ${
               tab === 'checkin'
                 ? 'bg-accent/20 text-accent'
                 : 'text-white/60 hover:bg-white/5 hover:text-white'
