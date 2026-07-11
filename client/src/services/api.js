@@ -79,4 +79,8 @@ export const adminCheckIn = (code) =>
 export const adminListCheckIns = () =>
   api.get('/admin/checkins').then((r) => r.data.data);
 
+// Set guest count at the gate (spoken/typed during check-in).
+export const adminSetGuestCount = (id, guestCount) =>
+  api.patch(`/admin/registrations/${id}/guest-count`, { guestCount }).then((r) => r.data.data);
+
 export default api;

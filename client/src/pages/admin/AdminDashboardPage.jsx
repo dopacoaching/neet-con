@@ -47,7 +47,7 @@ const AdminDashboardPage = () => {
   });
   const [selected, setSelected] = useState(null);
   const [exporting, setExporting] = useState(false);
-  const [scanning, setScanning] = useState(false);
+  const [tab, setTab] = useState('registrations'); // 'registrations' | 'checkin'
 
   const searchTimer = useRef(null);
   const listRequestId = useRef(0);
@@ -168,93 +168,121 @@ const AdminDashboardPage = () => {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-heading text-2xl font-extrabold text-white">Dashboard</h1>
-            <p className="text-sm text-white/60">NEET CON 2026 registrations overview</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setScanning(true)} className="btn-ghost-dark !py-2.5">
-              📷 Scan / Check-in
-            </button>
-            {isAdminRole && (
-              <button onClick={handleExport} className="btn-primary !py-2.5" disabled={exporting}>
-                {exporting ? (
-                  <>
-                    <Spinner /> Exporting…
-                  </>
-                ) : (
-                  '⬇ Export to Excel'
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6">
+        {/* Sidebar */}
+        <nav className="w-44 shrink-0 space-y-1">
+          <button
+            onClick={() => setTab('registrations')}
+            className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+              tab === 'registrations'
+                ? 'bg-accent/20 text-accent'
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            📋 Registrations
+          </button>
+          <button
+            onClick={() => setTab('checkin')}
+            className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+              tab === 'checkin'
+                ? 'bg-accent/20 text-accent'
+                : 'text-white/60 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            📷 Check-in
+          </button>
+        </nav>
+
+        {/* Content */}
+        <main className="min-w-0 flex-1 space-y-6">
+          {tab === 'registrations' ? (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h1 className="font-heading text-2xl font-extrabold text-white">Registrations</h1>
+                  <p className="text-sm text-white/60">NEET CON 2026 registrations overview</p>
+                </div>
+                {isAdminRole && (
+                  <button onClick={handleExport} className="btn-primary !py-2.5" disabled={exporting}>
+                    {exporting ? (
+                      <>
+                        <Spinner /> Exporting…
+                      </>
+                    ) : (
+                      '⬇ Export to Excel'
+                    )}
+                  </button>
                 )}
-              </button>
-            )}
-          </div>
-        </div>
+              </div>
 
-        <SummaryCards summary={summary} loading={summaryLoading} />
+              <SummaryCards summary={summary} loading={summaryLoading} />
 
-        {/* Filters */}
-        <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 lg:grid-cols-5">
-          <input
-            className="input-dark"
-            placeholder="Search name, mobile, email, reg no…"
-            onChange={(e) => onSearch(e.target.value)}
-          />
-          <select
-            className="input-dark"
-            value={filters.status}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value, page: 1 }))}
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s} className="bg-[#081231] text-white">
-                {s === 'All' ? 'All statuses' : s}
-              </option>
-            ))}
-          </select>
-          <select
-            className="input-dark"
-            value={filters.preparingFor}
-            onChange={(e) => setFilters((f) => ({ ...f, preparingFor: e.target.value, page: 1 }))}
-          >
-            {PREP_OPTIONS.map((p) => (
-              <option key={p} value={p} className="bg-[#081231] text-white">
-                {p === 'All' ? 'All (NEET 2027/2028)' : p}
-              </option>
-            ))}
-          </select>
-          <select
-            className="input-dark"
-            value={filters.guestInfo}
-            onChange={(e) => setFilters((f) => ({ ...f, guestInfo: e.target.value, page: 1 }))}
-          >
-            {GUEST_INFO_OPTIONS.map((g) => (
-              <option key={g.value} value={g.value} className="bg-[#081231] text-white">
-                {g.label}
-              </option>
-            ))}
-          </select>
-          <select
-            className="input-dark"
-            value={filters.whatsappStatus}
-            onChange={(e) => setFilters((f) => ({ ...f, whatsappStatus: e.target.value, page: 1 }))}
-          >
-            {WHATSAPP_STATUS_OPTIONS.map((w) => (
-              <option key={w.value} value={w.value} className="bg-[#081231] text-white">
-                {w.label}
-              </option>
-            ))}
-          </select>
-        </div>
+              {/* Filters */}
+              <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 lg:grid-cols-5">
+                <input
+                  className="input-dark"
+                  placeholder="Search name, mobile, email, reg no…"
+                  onChange={(e) => onSearch(e.target.value)}
+                />
+                <select
+                  className="input-dark"
+                  value={filters.status}
+                  onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value, page: 1 }))}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s} className="bg-[#081231] text-white">
+                      {s === 'All' ? 'All statuses' : s}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input-dark"
+                  value={filters.preparingFor}
+                  onChange={(e) => setFilters((f) => ({ ...f, preparingFor: e.target.value, page: 1 }))}
+                >
+                  {PREP_OPTIONS.map((p) => (
+                    <option key={p} value={p} className="bg-[#081231] text-white">
+                      {p === 'All' ? 'All (NEET 2027/2028)' : p}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input-dark"
+                  value={filters.guestInfo}
+                  onChange={(e) => setFilters((f) => ({ ...f, guestInfo: e.target.value, page: 1 }))}
+                >
+                  {GUEST_INFO_OPTIONS.map((g) => (
+                    <option key={g.value} value={g.value} className="bg-[#081231] text-white">
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input-dark"
+                  value={filters.whatsappStatus}
+                  onChange={(e) => setFilters((f) => ({ ...f, whatsappStatus: e.target.value, page: 1 }))}
+                >
+                  {WHATSAPP_STATUS_OPTIONS.map((w) => (
+                    <option key={w.value} value={w.value} className="bg-[#081231] text-white">
+                      {w.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        <RegistrationsTable
-          items={data.items}
-          loading={listLoading}
-          pagination={data.pagination}
-          onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
-          onRowClick={openRow}
-        />
-      </main>
+              <RegistrationsTable
+                items={data.items}
+                loading={listLoading}
+                pagination={data.pagination}
+                onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
+                onRowClick={openRow}
+              />
+            </>
+          ) : (
+            <CheckInScanner onCheckedIn={loadList} />
+          )}
+        </main>
+      </div>
 
       {selected && (
         <RegistrationDetailModal
@@ -263,10 +291,6 @@ const AdminDashboardPage = () => {
           onClose={() => setSelected(null)}
           onUpdated={handleUpdated}
         />
-      )}
-
-      {scanning && (
-        <CheckInScanner onClose={() => setScanning(false)} onCheckedIn={loadList} />
       )}
     </div>
   );

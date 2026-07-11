@@ -11,6 +11,7 @@ import {
   exportRegistrations,
   checkIn,
   listCheckIns,
+  setGuestCountAtGate,
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
 import { loginLimiter, whatsappResendLimiter } from '../middleware/rateLimiter.js';
@@ -42,6 +43,10 @@ router.post('/checkin', protect, checkIn);
 
 // List of everyone checked in so far — any authenticated admin.
 router.get('/checkins', protect, listCheckIns);
+
+// Set guest count at the gate (spoken/typed during check-in) — any authenticated
+// admin, since gate staff may be viewer-role and this doesn't touch seat status.
+router.patch('/registrations/:id/guest-count', protect, setGuestCountAtGate);
 
 // Manual status changes require the "admin" role (not "viewer").
 router.patch('/registrations/:id/status', protect, requireAdminRole, updateRegistrationStatus);

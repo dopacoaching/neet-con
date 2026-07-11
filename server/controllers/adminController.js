@@ -329,6 +329,7 @@ const checkinView = (r) => ({
   paymentStatus: r.paymentStatus,
   checkedInAt: r.checkedInAt,
   checkedInBy: r.checkedInBy,
+  guestCount: r.guestCount,
 });
 
 /**
@@ -399,4 +400,30 @@ export const checkIn = asyncHandler(async (req, res) => {
     message: 'Checked in successfully. Admit the student.',
     data: checkinView(updated),
   });
+});
+
+/**
+ * PATCH /api/admin/registrations/:id/guest-count
+ * Set the guest count from the gate (spoken/typed at check-in) rather than
+ * relying on the WhatsApp follow-up reply. Any authenticated admin (incl.
+ * viewer-role gate staff) can set this — it doesn't touch seat/payment status.
+ */
+export const setGuestCountAtGate = asyncHandler(async (req, res) => {
+  const n = Math.trunc(Number(req.body?.guestCount));
+  if (!Number.isFinite(n) || n < 0 || n > 20) {
+    res.status(400);
+    throw new Error('Guest count must be a number between 0 and 20');
+  }
+
+  const registration = await Registration.findByIdAndUpdate(
+    req.params.id,
+    { $set: { guestCount: n, guestCountReplyRaw: '' } },
+    { new: true }
+  );
+  if (!registration) {
+    res.status(404);
+    throw new Error('Registration not found');
+  }
+
+  res.json({ success: true, data: checkinView(registration) });
 });
