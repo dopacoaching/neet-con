@@ -30,6 +30,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
   const runningRef = useRef(false);
   const processingRef = useRef(false);
   const lastScan = useRef({ code: '', at: 0 });
+  const lastPausedToastAt = useRef(0);
 
   const [cameraError, setCameraError] = useState('');
   const [result, setResult] = useState(null);
@@ -50,7 +51,19 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
   const handleCode = useCallback(
     async (raw) => {
       const code = String(raw || '').trim();
-      if (!code || processingRef.current || guestPrompt) return;
+      if (!code) return;
+      if (guestPrompt) {
+        // Camera keeps decoding underneath the guest-count prompt — let staff
+        // know a scan was dropped instead of silently losing it (throttled so
+        // a QR held in frame doesn't spam this every ~100ms).
+        const now = Date.now();
+        if (now - lastPausedToastAt.current > 3000) {
+          lastPausedToastAt.current = now;
+          toast('Finish the guest count first, then re-scan.', { icon: '⏸️' });
+        }
+        return;
+      }
+      if (processingRef.current) return;
 
       // Ignore repeat decodes of the same code within 3s (camera fires fast).
       const now = Date.now();
@@ -231,7 +244,8 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
                   <li key={c.id}>
                     <button
                       onClick={() => handleCode(c.registrationNumber)}
-                      className="flex w-full items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-left text-sm transition hover:bg-white/10"
+                      disabled={busy}
+                      className="flex w-full items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-left text-sm transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span className="min-w-0">
                         <span className="block truncate font-medium text-white">{c.fullName}</span>

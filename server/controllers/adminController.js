@@ -374,11 +374,30 @@ export const checkIn = asyncHandler(async (req, res) => {
 
   let registration = await Registration.findOne({ registrationNumber: code });
 
-  // Fallback 1: exact 10-digit mobile number — unambiguous, safe to proceed.
+  // Fallback 1: exact 10-digit mobile number. Scoped to seat-holding
+  // statuses and routed through the same multiple-matches guard as the name
+  // search below — a mobile can have more than one Registration doc (e.g. an
+  // old FAILED attempt alongside the real FREE/CONFIRMED seat, or two family
+  // members sharing a number), so picking the first match blind could wrongly
+  // deny a legitimately confirmed attendee or check in the wrong person.
   if (!registration) {
     const digits = code.replace(/\D/g, '');
     if (digits.length === 10) {
-      registration = await Registration.findOne({ mobileNumber: digits });
+      const candidates = await Registration.find({
+        mobileNumber: digits,
+        paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+      }).limit(8);
+
+      if (candidates.length === 1) {
+        registration = candidates[0];
+      } else if (candidates.length > 1) {
+        return res.status(200).json({
+          success: false,
+          result: 'multiple_matches',
+          message: `${candidates.length} matches for "${code}" — pick the right one.`,
+          data: { candidates: candidates.map(checkinView) },
+        });
+      }
     }
   }
 
@@ -543,15 +562,19 @@ export const setGuestCountAtGate = asyncHandler(async (req, res) => {
     throw new Error('Guest count must be a number between 0 and 20');
   }
 
-  const registration = await Registration.findByIdAndUpdate(
-    req.params.id,
-    { $set: { guestCount: n, guestCountReplyRaw: '' } },
-    { new: true }
-  );
-  if (!registration) {
+  const existing = await Registration.findById(req.params.id);
+  if (!existing) {
     res.status(404);
     throw new Error('Registration not found');
   }
+  if (!Registration.SEAT_HOLDING_STATUSES.includes(existing.paymentStatus)) {
+    res.status(409);
+    throw new Error('This registration does not hold a confirmed seat.');
+  }
 
-  res.json({ success: true, data: checkinView(registration) });
+  existing.guestCount = n;
+  existing.guestCountReplyRaw = '';
+  await existing.save();
+
+  res.json({ success: true, data: checkinView(existing) });
 });
