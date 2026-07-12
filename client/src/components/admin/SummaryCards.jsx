@@ -2,9 +2,6 @@ const CARD_DEFS = [
   { key: 'total', label: 'Total Registrations', tone: 'bg-brand/20 text-white ring-1 ring-brand/30' },
   { key: 'confirmedTotal', label: 'Confirmed (Paid)', tone: 'bg-green-500/10 text-green-300 ring-1 ring-green-400/20' },
   { key: 'free', label: 'Free (DOPA)', tone: 'bg-violet-500/10 text-violet-300 ring-1 ring-violet-400/20' },
-  { key: 'checkedIn', label: 'Checked In', tone: 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-400/20' },
-  { key: 'checkedInGuests', label: 'Guests Checked In', tone: 'bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-400/20' },
-  { key: 'actualHeadcount', label: 'Actual Headcount', tone: 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-400/20' },
   { key: 'pending', label: 'Pending', tone: 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20' },
   { key: 'failed', label: 'Failed', tone: 'bg-red-500/10 text-red-300 ring-1 ring-red-400/20' },
   { key: 'totalGuests', label: 'Guests Accompanying (Expected)', tone: 'bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-fuchsia-400/20' },
@@ -17,9 +14,6 @@ const SummaryCards = ({ summary, loading }) => {
     // CONFIRMED + MANUAL both count as paid/confirmed seats.
     confirmedTotal: (summary?.confirmed ?? 0) + (summary?.manual ?? 0),
     free: summary?.free ?? 0,
-    checkedIn: summary?.checkedIn ?? 0,
-    checkedInGuests: summary?.checkedInGuests ?? 0,
-    actualHeadcount: summary?.actualHeadcount ?? 0,
     pending: summary?.pending ?? 0,
     failed: summary?.failed ?? 0,
     totalGuests: summary?.totalGuests ?? 0,
@@ -27,7 +21,7 @@ const SummaryCards = ({ summary, loading }) => {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-8">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-7">
       {CARD_DEFS.map((c) => (
         <div key={c.key} className={`rounded-2xl p-3 sm:p-5 ${c.tone}`}>
           <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80 sm:text-xs">

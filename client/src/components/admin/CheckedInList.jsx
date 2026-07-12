@@ -31,8 +31,42 @@ const CheckedInList = () => {
     load(false);
   }, [load]);
 
+  const checkedIn = items.length;
+  const checkedInGuests = items.reduce((sum, p) => sum + (p.guestCount || 0), 0);
+  const actualHeadcount = checkedIn + checkedInGuests;
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        {[
+          { label: 'Checked In', value: checkedIn, tone: 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-400/20' },
+          {
+            label: 'Guests Checked In',
+            value: checkedInGuests,
+            tone: 'bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-400/20',
+          },
+          {
+            label: 'Actual Headcount',
+            value: actualHeadcount,
+            tone: 'bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-400/20',
+          },
+        ].map((c) => (
+          <div key={c.label} className={`rounded-2xl p-3 sm:p-5 ${c.tone}`}>
+            <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80 sm:text-xs">
+              {c.label}
+            </p>
+            <p className="mt-1.5 font-heading text-2xl font-extrabold sm:mt-2 sm:text-3xl">
+              {loading ? (
+                <span className="inline-block h-6 w-10 animate-pulse rounded bg-current opacity-20 sm:h-7 sm:w-12" />
+              ) : (
+                c.value.toLocaleString('en-IN')
+              )}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-heading text-lg font-bold text-white">Checked-in students</h2>
         <div className="flex items-center gap-2">
@@ -92,6 +126,7 @@ const CheckedInList = () => {
           ))}
         </ul>
       )}
+      </div>
     </div>
   );
 };
