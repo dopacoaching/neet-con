@@ -359,7 +359,9 @@ export const listCheckIns = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/admin/checkin
- * Body: { code }  — the registration code encoded in the student's QR.
+ * Body: { code }  — the registration code encoded in the student's QR, OR
+ * (as a fallback for walk-ins without a printed QR, e.g. some Google-Form
+ * students) an exact mobile number, OR a name search.
  * Looks the student up, validates the seat, and marks attendance (once).
  * Available to any authenticated admin (gate staff may be viewers).
  */
@@ -370,7 +372,38 @@ export const checkIn = asyncHandler(async (req, res) => {
     throw new Error('No QR code / registration number provided');
   }
 
-  const registration = await Registration.findOne({ registrationNumber: code });
+  let registration = await Registration.findOne({ registrationNumber: code });
+
+  // Fallback 1: exact 10-digit mobile number — unambiguous, safe to proceed.
+  if (!registration) {
+    const digits = code.replace(/\D/g, '');
+    if (digits.length === 10) {
+      registration = await Registration.findOne({ mobileNumber: digits });
+    }
+  }
+
+  // Fallback 2: name search. Only auto-proceeds if exactly one seat-holding
+  // registration matches — otherwise surface the candidates so gate staff
+  // pick the right person instead of risking checking in the wrong one.
+  if (!registration) {
+    const safe = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const candidates = await Registration.find({
+      fullName: { $regex: safe, $options: 'i' },
+      paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+    }).limit(8);
+
+    if (candidates.length === 1) {
+      registration = candidates[0];
+    } else if (candidates.length > 1) {
+      return res.status(200).json({
+        success: false,
+        result: 'multiple_matches',
+        message: `${candidates.length} matches for "${code}" — pick the right one.`,
+        data: { candidates: candidates.map(checkinView) },
+      });
+    }
+  }
+
   if (!registration) {
     res.status(404);
     throw new Error(`No registration found for "${code}"`);

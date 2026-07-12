@@ -11,6 +11,7 @@ const RESULT_STYLES = {
   already_checked_in: { ring: 'border-amber-400', badge: 'bg-amber-500', label: '! ALREADY IN' },
   not_confirmed: { ring: 'border-red-400', badge: 'bg-red-500', label: '✕ NOT CONFIRMED' },
   not_found: { ring: 'border-red-400', badge: 'bg-red-500', label: '✕ NOT FOUND' },
+  multiple_matches: { ring: 'border-sky-400', badge: 'bg-sky-500', label: '? MULTIPLE MATCHES' },
 };
 
 // Results that represent an actual (found) registration — worth asking guest count for.
@@ -219,7 +220,36 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
             <div id={REGION_ID} className="overflow-hidden rounded-xl bg-black" />
           )}
 
-          {result && (
+          {result && result.result === 'multiple_matches' && (
+            <div className={`mt-4 rounded-xl border-2 ${style.ring} bg-white/5 p-4`}>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${style.badge}`}>
+                {style.label}
+              </span>
+              <p className="mt-2 text-sm font-medium text-white/80">{result.message}</p>
+              <ul className="mt-3 space-y-1.5">
+                {(result.data?.candidates || []).map((c) => (
+                  <li key={c.id}>
+                    <button
+                      onClick={() => handleCode(c.registrationNumber)}
+                      className="flex w-full items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-left text-sm transition hover:bg-white/10"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-white">{c.fullName}</span>
+                        <span className="text-xs text-accent">
+                          {c.registrationNumber} · {c.mobileNumber}
+                        </span>
+                      </span>
+                      {c.checkedInAt && (
+                        <span className="shrink-0 text-xs text-amber-300">already in</span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {result && result.result !== 'multiple_matches' && (
             <div className={`mt-4 rounded-xl border-2 ${style.ring} bg-white/5 p-4`}>
               <div className="flex items-center justify-between">
                 <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${style.badge}`}>
@@ -254,7 +284,7 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
           <form onSubmit={submitManual} className="mt-4 flex flex-col gap-2 sm:flex-row">
             <input
               className="input-dark"
-              placeholder="Or type code, e.g. NEET CON 001"
+              placeholder="Code, mobile number, or name"
               value={manual}
               onChange={(e) => setManual(e.target.value)}
             />
