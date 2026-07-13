@@ -149,5 +149,20 @@ registrationSchema.index(
   }
 );
 
+// Same backstop for admin manual-confirm — MANUAL is the only other status
+// this app still transitions a registration INTO at runtime (CONFIRMED is
+// legacy/payment-gateway-only and no longer reachable), so two admins racing
+// to manually confirm two different pending registrations for the same
+// mobile could otherwise both pass the app-level dupe check in
+// updateRegistrationStatus and both save.
+registrationSchema.index(
+  { mobileNumber: 1 },
+  {
+    name: 'mobileNumber_manual_unique',
+    unique: true,
+    partialFilterExpression: { paymentStatus: PAYMENT_STATUS.MANUAL },
+  }
+);
+
 const Registration = mongoose.model('Registration', registrationSchema);
 export default Registration;

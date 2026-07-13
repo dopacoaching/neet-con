@@ -206,7 +206,17 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
     registration.paymentStatus = status;
 
-    await registration.save();
+    try {
+      await registration.save();
+    } catch (err) {
+      // DB-level backstop (mobileNumber_manual_unique) catching the rare race
+      // where two admins pass the pre-check above for the same mobile at once.
+      if (err?.code === 11000 && err?.keyPattern?.mobileNumber) {
+        res.status(409);
+        throw new Error('This mobile number was just confirmed by another admin — refresh and check.');
+      }
+      throw err;
+    }
 
     // On a manual confirmation, send the confirmation + QR via WhatsApp and (if
     // the registrant gave an email) by email. Fire-and-forget so the admin
