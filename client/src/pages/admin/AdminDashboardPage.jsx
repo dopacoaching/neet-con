@@ -6,6 +6,7 @@ import {
   adminListRegistrations,
   adminGetRegistration,
   adminExport,
+  adminExportCheckIns,
 } from '../../services/api.js';
 import Logo from '../../components/ui/Logo.jsx';
 import SummaryCards from '../../components/admin/SummaryCards.jsx';
@@ -48,6 +49,7 @@ const AdminDashboardPage = () => {
   });
   const [selected, setSelected] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [exportingCheckIns, setExportingCheckIns] = useState(false);
   const [tab, setTab] = useState('dashboard'); // 'dashboard' | 'registrations' | 'checkin'
   const [scannerOpen, setScannerOpen] = useState(false);
 
@@ -142,6 +144,26 @@ const AdminDashboardPage = () => {
       toast.error(err.message || 'Export failed');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportCheckIns = async () => {
+    setExportingCheckIns(true);
+    try {
+      const blob = await adminExportCheckIns();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `neetcon2026-checkins-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('Export downloaded');
+    } catch (err) {
+      toast.error(err.message || 'Export failed');
+    } finally {
+      setExportingCheckIns(false);
     }
   };
 
@@ -295,11 +317,26 @@ const AdminDashboardPage = () => {
             </>
           ) : (
             <>
-              <div>
-                <h1 className="font-heading text-2xl font-extrabold text-white">Check-in</h1>
-                <p className="text-sm text-white/60">
-                  Students who have completed check-in — by scan, typed code, or manual entry.
-                </p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h1 className="font-heading text-2xl font-extrabold text-white">Check-in</h1>
+                  <p className="text-sm text-white/60">
+                    Students who have completed check-in — by scan, typed code, or manual entry.
+                  </p>
+                </div>
+                <button
+                  onClick={handleExportCheckIns}
+                  className="btn-primary !py-2.5"
+                  disabled={exportingCheckIns}
+                >
+                  {exportingCheckIns ? (
+                    <>
+                      <Spinner /> Exporting…
+                    </>
+                  ) : (
+                    '⬇ Export to Excel'
+                  )}
+                </button>
               </div>
               <CheckedInList />
             </>

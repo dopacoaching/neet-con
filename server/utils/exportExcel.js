@@ -50,3 +50,33 @@ export const buildRegistrationsWorkbook = (registrations) => {
 
   return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 };
+
+/**
+ * Build an .xlsx workbook of everyone checked in so far (gate roster).
+ * @param {Array<object>} registrations  Mongoose docs or plain objects, all with checkedInAt set
+ * @returns {Buffer}
+ */
+export const buildCheckInsWorkbook = (registrations) => {
+  const rows = registrations.map((r, idx) => ({
+    '#': idx + 1,
+    'Registration Number': r.registrationNumber || '',
+    'Full Name': r.fullName || '',
+    'Mobile Number': r.mobileNumber || '',
+    'School / College': r.schoolOrCollege || '',
+    'Preparing For': r.preparingFor || '',
+    'Guests Accompanying': r.guestCount ?? 0,
+    'Checked In At': r.checkedInAt ? new Date(r.checkedInAt).toLocaleString('en-IN') : '',
+    'Checked In By': r.checkedInBy || '',
+  }));
+
+  const worksheet = xlsx.utils.json_to_sheet(rows);
+  worksheet['!cols'] = [
+    { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 },
+    { wch: 28 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 18 },
+  ];
+
+  const workbook = xlsx.utils.book_new();
+  xlsx.utils.book_append_sheet(workbook, worksheet, 'Check-ins');
+
+  return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+};

@@ -79,6 +79,10 @@ export const adminCheckIn = (code) =>
 export const adminListCheckIns = () =>
   api.get('/admin/checkins').then((r) => r.data.data);
 
+// Excel export of the check-in roster. Returns a Blob for download.
+export const adminExportCheckIns = () =>
+  api.get('/admin/checkins/export', { responseType: 'blob' }).then((r) => r.data);
+
 // Register a walk-in student (never registered online) and check them in
 // immediately. Returns the same envelope shape as adminCheckIn.
 export const adminRegisterWalkIn = (payload) =>

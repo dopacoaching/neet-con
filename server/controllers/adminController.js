@@ -1,7 +1,7 @@
 import Admin from '../models/Admin.js';
 import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { buildRegistrationsWorkbook } from '../utils/exportExcel.js';
+import { buildRegistrationsWorkbook, buildCheckInsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
@@ -355,6 +355,29 @@ export const listCheckIns = asyncHandler(async (req, res) => {
     )
     .lean();
   res.json({ success: true, data: { count: items.length, items } });
+});
+
+/**
+ * GET /api/admin/checkins/export
+ * Excel roster of everyone checked in so far. Any authenticated admin
+ * (incl. viewer-role gate staff), matching listCheckIns' access level.
+ */
+export const exportCheckIns = asyncHandler(async (req, res) => {
+  const items = await Registration.find({ checkedInAt: { $ne: null } })
+    .sort({ checkedInAt: 1 })
+    .lean();
+  const buffer = buildCheckInsWorkbook(items);
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  );
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="neetcon2026-checkins-${stamp}.xlsx"`
+  );
+  res.send(buffer);
 });
 
 /**

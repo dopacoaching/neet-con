@@ -11,6 +11,7 @@ import {
   exportRegistrations,
   checkIn,
   listCheckIns,
+  exportCheckIns,
   setGuestCountAtGate,
   registerWalkIn,
 } from '../controllers/adminController.js';
@@ -44,6 +45,10 @@ router.post('/checkin', protect, checkIn);
 
 // List of everyone checked in so far — any authenticated admin.
 router.get('/checkins', protect, listCheckIns);
+
+// Excel export of the check-in roster — any authenticated admin, same
+// access level as viewing the list itself.
+router.get('/checkins/export', protect, exportCheckIns);
 
 // Register a walk-in student (never registered online) and check them in
 // immediately — any authenticated admin (incl. viewer-role gate staff).
