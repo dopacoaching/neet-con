@@ -6,10 +6,9 @@ import ScheduleSection from '../components/landing/ScheduleSection.jsx';
 import SpeakersSection from '../components/landing/SpeakersSection.jsx';
 import BenefitsSection from '../components/landing/BenefitsSection.jsx';
 import RegistrationCTA from '../components/landing/RegistrationCTA.jsx';
-import StickyRegisterButton from '../components/ui/StickyRegisterButton.jsx';
 
 const LandingPage = () => (
-  <div className="pb-20 md:pb-0">
+  <div>
     <Navbar />
     <main>
       <HeroSection />
@@ -20,7 +19,6 @@ const LandingPage = () => (
       <RegistrationCTA />
     </main>
     <Footer />
-    <StickyRegisterButton />
   </div>
 );
 

@@ -27,6 +27,11 @@ services:
         sync: false # e.g. https://neetcon-2026.vercel.app  (no trailing slash)
       - key: REGISTRATION_FEE
         value: "100"
+      # Event concluded (2026-07-12) — portal closed. Both POST /api/registrations
+      # and the Google-Form ingest endpoint reject with a clear message while
+      # this is "false". Flip back to "true" only if registrations ever reopen.
+      - key: REGISTRATIONS_OPEN
+        value: "false"
       - key: FORM_INGEST_SECRET
         sync: false # shared secret for the Google-Form free-registration ingest
       # --- HDFC SmartGateway (Juspay) ---

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { VENUE_MAP_URL } from '../../config/event.js';
 
 const HeroSection = () => {
@@ -19,9 +18,8 @@ const HeroSection = () => {
 
       <div className="section relative grid items-center gap-10 py-16 md:grid-cols-2 md:py-24">
         <div className="animate-fade-in">
-          <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-navy shadow-lg">
-            <span className="h-2 w-2 animate-pulse-soft rounded-full bg-current opacity-80" />
-            Registrations open · Limited seats
+          <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white">
+            Event concluded — thank you for joining us!
           </span>
           <h1 className="font-heading text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
             NEET CON <span className="text-accent">2026</span>
@@ -53,9 +51,6 @@ const HeroSection = () => {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Link to="/register" className="btn-white text-base">
-              Register Now — Free
-            </Link>
             <a
               href="#about"
               className="text-sm font-semibold text-white/80 transition hover:text-accent"

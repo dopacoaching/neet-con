@@ -45,10 +45,6 @@ const Navbar = () => {
             </a>
           ))}
         </div>
-
-        <Link to="/register" className="btn-primary !px-5 !py-2.5 text-sm">
-          Register Now
-        </Link>
       </nav>
     </header>
   );

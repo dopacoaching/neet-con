@@ -32,12 +32,21 @@ const normalizeMobile = (v) => {
   return d.length > 10 ? d.slice(-10) : d;
 };
 
+/** Registrations are open unless explicitly closed via REGISTRATIONS_OPEN=false
+ *  (event concluded — set in production once the portal is closed for good). */
+const isRegistrationsOpen = () => String(process.env.REGISTRATIONS_OPEN).toLowerCase() !== 'false';
+
 /**
  * POST /api/registrations
  * Event is free — confirm the seat immediately (no payment step) and return
  * the orderId/registration number.
  */
 export const createRegistration = asyncHandler(async (req, res) => {
+  if (!isRegistrationsOpen()) {
+    res.status(403);
+    throw new Error('Registrations for NEET CON 2026 are now closed. Thank you for your interest!');
+  }
+
   const {
     fullName,
     mobileNumber,
@@ -188,6 +197,11 @@ const provisionFreeSeat = async ({ name, mobile, source, body }) => {
  * Script. Authenticated by a shared secret (X-Form-Secret / body.secret).
  */
 export const createExternalRegistration = asyncHandler(async (req, res) => {
+  if (!isRegistrationsOpen()) {
+    res.status(410);
+    throw new Error('The NEET CON 2026 registration portal has closed — this Google Form connection is retired.');
+  }
+
   const secret = process.env.FORM_INGEST_SECRET;
   const provided = req.get('x-form-secret') || req.body?.secret || '';
   if (!secret || !secretEqual(provided, secret)) {
