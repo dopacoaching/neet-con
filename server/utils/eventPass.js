@@ -114,7 +114,11 @@ export const generateEventPass = async (reg) => {
   <text x="220" y="512" font-family="Poppins" font-weight="500" font-size="21" fill="#c9d6ff" text-anchor="middle">Show this at the entry desk</text>
 
   <!-- ===== RIGHT COLUMN: INFO ===== -->
-  ${LOGO_DATA_URI ? `<image x="1000" y="76" width="208" height="58" xlink:href="${LOGO_DATA_URI}"/>` : ''}
+  <!-- Backing chip matches the logo file's own flat navy exactly, so its
+       rectangular edge reads as a deliberate badge (like ENTRY PASS on the
+       left) instead of a mismatched box against the card's gradient. -->
+  ${LOGO_DATA_URI ? `<rect x="992" y="68" width="224" height="74" rx="14" fill="#050b95"/>
+  <image x="1004" y="79" width="200" height="52" xlink:href="${LOGO_DATA_URI}"/>` : ''}
 
   <text x="${RX}" y="130" font-family="Poppins" font-weight="700" font-size="58" fill="#ffffff">CareerX</text>
   <text x="${RX}" y="168" font-family="Poppins" font-weight="500" font-size="22" fill="#c3d0ff">The Gateway to Medical Career</text>
