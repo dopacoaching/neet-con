@@ -34,7 +34,7 @@ const trackResult = async (reg, result) => {
  *  whose BODY carries the registration details.
  *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
- *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. careerx_confirmation)
+ *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. careerx_event_confirmation)
  *    - Category: MARKETING (Meta's auto-classifier consistently rejects this
  *      content as UTILITY regardless of wording — see project history)
  *    - Header:   IMAGE
