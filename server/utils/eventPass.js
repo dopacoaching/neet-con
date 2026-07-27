@@ -1,5 +1,6 @@
 import { Resvg } from '@resvg/resvg-js';
 import QRCode from 'qrcode';
+import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -12,6 +13,18 @@ const FONT_FILES = [
   join(FONTS, 'Poppins-SemiBold.ttf'),
   join(FONTS, 'Poppins-Bold.ttf'),
 ];
+
+// CareerX wordmark, white/blue-on-transparent — the pass card's glass
+// surface is dark, so this is the same variant used on the site's navy
+// pages. Genuinely transparent (chroma-keyed), so it blends on any
+// background rather than needing a matching solid-color chip behind it.
+const LOGO_DATA_URI = (() => {
+  try {
+    return `data:image/png;base64,${readFileSync(join(ASSETS, 'careerx-logo-dark.png')).toString('base64')}`;
+  } catch {
+    return '';
+  }
+})();
 
 const EVENT = {
   venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
@@ -123,9 +136,12 @@ export const generateEventPass = async (reg) => {
   <g clip-path="url(#cardClip)">
     <circle cx="1250" cy="90" r="170" fill="#00c2ff" opacity="0.16" filter="url(#blurMd)"/>
 
-    <!-- Header -->
-    <text x="76" y="128" font-family="Poppins" font-weight="800" font-size="52" fill="url(#wordmark)">CareerX</text>
-    <text x="76" y="162" font-family="Poppins" font-weight="500" font-size="21" fill="#a9c3ff" opacity="0.85">The Gateway to Medical Career</text>
+    <!-- Header: the logo image already includes the "Gateway to Medical
+         Career" tagline, so only the text fallback repeats it separately. -->
+    ${LOGO_DATA_URI
+      ? `<image x="76" y="70" width="230" height="60" xlink:href="${LOGO_DATA_URI}"/>`
+      : `<text x="76" y="128" font-family="Poppins" font-weight="800" font-size="52" fill="url(#wordmark)">CareerX</text>
+    <text x="76" y="162" font-family="Poppins" font-weight="500" font-size="21" fill="#a9c3ff" opacity="0.85">The Gateway to Medical Career</text>`}
 
     <rect x="1000" y="70" width="188" height="46" rx="23" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.3"/>
     <text x="1094" y="99" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="18" letter-spacing="2.5" fill="#ffffff">ENTRY PASS</text>
