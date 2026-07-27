@@ -38,18 +38,18 @@ const trackResult = async (reg, result) => {
  *    - Category: MARKETING (Meta's auto-classifier consistently rejects this
  *      content as UTILITY regardless of wording — see project history)
  *    - Header:   IMAGE
- *    - Body with 6 NAMED variables (Meta's current editor requires named, not
+ *    - Body with 5 NAMED variables (Meta's current editor requires named, not
  *      numbered, parameters — lowercase + underscores). Named `ticket_id`
  *      rather than `registration_code` deliberately — the word "code" next to
- *      a short value pattern-matches Meta's OTP/authentication detector:
+ *      a short value pattern-matches Meta's OTP/authentication detector.
+ *      Date is intentionally omitted for now (event date not finalised):
  *        {{full_name}} {{ticket_id}}
- *        {{event_date}} {{event_time}} {{venue}} {{guest_count}}
+ *        {{event_time}} {{venue}} {{guest_count}}
  *      Example body text:
  *        "Hi {{full_name}}, you're confirmed for CareerX!
  *         Your Complete Roadmap After NEET 2026 — MBBS admissions, counselling
  *         strategy, and career options, all in one session.
  *         Ticket ID: {{ticket_id}}
- *         Date: {{event_date}}
  *         Time: {{event_time}}
  *         Venue: {{venue}}
  *         Guests joining you: {{guest_count}}
@@ -223,7 +223,6 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
                 parameter_name: 'ticket_id',
                 text: String(reg.registrationNumber),
               },
-              { type: 'text', parameter_name: 'event_date', text: EVENT.date },
               { type: 'text', parameter_name: 'event_time', text: EVENT.time },
               { type: 'text', parameter_name: 'venue', text: EVENT.venue },
               {

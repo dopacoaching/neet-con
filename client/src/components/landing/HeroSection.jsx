@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { EVENT_DATE, EVENT_TIME, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
+import { EVENT_TIME, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
 
 const HeroSection = () => {
   return (
@@ -32,7 +32,7 @@ const HeroSection = () => {
 
           <div className="mt-6 flex flex-wrap gap-2.5 text-sm">
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
-              📅 {EVENT_DATE}
+              📅 Date will be notified soon
             </span>
             <a
               href={VENUE_MAP_URL}
@@ -79,7 +79,7 @@ const HeroSection = () => {
             <div className="mt-6 space-y-3 text-sm text-white/80">
               <div className="flex justify-between border-b border-white/10 pb-2">
                 <span>Date</span>
-                <strong>{EVENT_DATE}</strong>
+                <strong>Will be notified soon</strong>
               </div>
               <div className="flex justify-between border-b border-white/10 pb-2">
                 <span>Time</span>
