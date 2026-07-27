@@ -8,9 +8,12 @@
   }
   body {
     @apply bg-white text-navy font-sans antialiased;
-    /* Safety net: never allow accidental horizontal scroll on small screens.
-       `clip` (not `hidden`) so it doesn't break the sticky navbar. */
-    overflow-x: clip;
+    /* No overflow-x rule here on purpose: any non-visible overflow on body/html
+       is a known WebKit bug trigger for descendant `position: fixed` elements
+       (they can scroll away with the page on iOS Safari instead of staying
+       pinned — see Navbar.jsx, which is fixed for the transparent-over-hero
+       effect). Each section with a decorative off-canvas element (Hero,
+       RegistrationCTA) scopes its own `overflow-hidden` locally instead. */
   }
   h1,
   h2,
