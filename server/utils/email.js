@@ -95,7 +95,7 @@ export const buildUserEmailHtml = (reg) => {
 
         <a href="${esc(EVENT.mapUrl)}" style="display:inline-block;margin-top:22px;background:#050b95;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;font-size:14px">Get Directions</a>
 
-        <p style="color:#7a85a0;font-size:13px;margin:24px 0 0;line-height:1.6">A copy has also been sent to your WhatsApp. Please keep this pass handy for entry. See you there!</p>
+        <p style="color:#7a85a0;font-size:13px;margin:24px 0 0;line-height:1.6">We're also trying to send a copy on WhatsApp. Please keep this email handy for entry either way. See you there!</p>
       </td></tr>
       <tr><td style="background:#f3f6fc;padding:16px 28px;color:#9aa3b8;font-size:12px;text-align:center">
         CareerX · DOPA Coaching · Automated confirmation — please do not reply.

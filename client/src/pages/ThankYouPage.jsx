@@ -125,9 +125,9 @@ const ThankYouPage = () => {
         </Link>
       </div>
       <p className="mt-6 max-w-sm text-sm text-white/50">
-        Your entry pass has also been sent on WhatsApp to{' '}
-        <span className="text-white/80">{data.mobileNumber || 'your registered mobile'}</span>. Please
-        download or screenshot it for the entry desk.
+        We're also trying to send a copy to WhatsApp/email on{' '}
+        <span className="text-white/80">{data.mobileNumber || 'your registered mobile'}</span>, but
+        please download or screenshot the pass above now so you have it either way.
       </p>
     </Shell>
   );
