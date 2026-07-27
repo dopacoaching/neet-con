@@ -1,7 +1,7 @@
 const CARD_DEFS = [
   { key: 'total', label: 'Total Registrations', tone: 'bg-brand/20 text-white ring-1 ring-brand/30' },
-  { key: 'confirmedTotal', label: 'Confirmed (Paid)', tone: 'bg-green-500/10 text-green-300 ring-1 ring-green-400/20' },
-  { key: 'free', label: 'Free (DOPA)', tone: 'bg-violet-500/10 text-violet-300 ring-1 ring-violet-400/20' },
+  { key: 'free', label: 'Registered Online', tone: 'bg-violet-500/10 text-violet-300 ring-1 ring-violet-400/20' },
+  { key: 'manual', label: 'Walk-in / Admin-added', tone: 'bg-blue-500/10 text-blue-300 ring-1 ring-blue-400/20' },
   { key: 'pending', label: 'Pending', tone: 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20' },
   { key: 'failed', label: 'Failed', tone: 'bg-red-500/10 text-red-300 ring-1 ring-red-400/20' },
   { key: 'totalGuests', label: 'Guests Accompanying (Expected)', tone: 'bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-fuchsia-400/20' },
@@ -11,9 +11,8 @@ const CARD_DEFS = [
 const SummaryCards = ({ summary, loading }) => {
   const values = {
     total: summary?.total ?? 0,
-    // CONFIRMED + MANUAL both count as paid/confirmed seats.
-    confirmedTotal: (summary?.confirmed ?? 0) + (summary?.manual ?? 0),
     free: summary?.free ?? 0,
+    manual: summary?.manual ?? 0,
     pending: summary?.pending ?? 0,
     failed: summary?.failed ?? 0,
     totalGuests: summary?.totalGuests ?? 0,
@@ -34,9 +33,6 @@ const SummaryCards = ({ summary, loading }) => {
               values[c.key].toLocaleString('en-IN')
             )}
           </p>
-          {c.key === 'confirmedTotal' && summary?.manual > 0 && (
-            <p className="mt-1 text-[11px] opacity-70">incl. {summary.manual} manual</p>
-          )}
         </div>
       ))}
     </div>

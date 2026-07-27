@@ -1,5 +1,4 @@
-import crypto from 'crypto';
-import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
+import Registration, { PAYMENT_STATUS, DOPA_STATUS, CURRENT_EVENT } from '../models/Registration.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { generateEventPass } from '../utils/eventPass.js';
@@ -9,52 +8,30 @@ import { sendUserConfirmationEmail, sendOrganizerNotification } from '../utils/e
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
-const MAX_GUESTS = 20;
 
-/** Parse a guest-count input into a clamped non-negative integer (defaults to 0). */
-const parseGuestCount = (v) => {
-  const n = Math.trunc(Number(v));
-  if (!Number.isFinite(n) || n < 0) return 0;
-  return Math.min(n, MAX_GUESTS);
-};
-
-/** Constant-time compare that never throws on length mismatch. */
-const secretEqual = (a, b) => {
-  const ab = Buffer.from(String(a || ''));
-  const bb = Buffer.from(String(b || ''));
-  if (ab.length !== bb.length) return false;
-  return crypto.timingSafeEqual(ab, bb);
-};
-
-/** Reduce any Indian contact number to its 10-digit core (drops +91 / 0 / spaces). */
-const normalizeMobile = (v) => {
-  const d = String(v || '').replace(/\D/g, '');
-  return d.length > 10 ? d.slice(-10) : d;
-};
-
-/** Registrations are open unless explicitly closed via REGISTRATIONS_OPEN=false
- *  (event concluded — set in production once the portal is closed for good). */
+/** Registrations are open unless explicitly closed via REGISTRATIONS_OPEN=false. */
 const isRegistrationsOpen = () => String(process.env.REGISTRATIONS_OPEN).toLowerCase() !== 'false';
 
 /**
  * POST /api/registrations
- * Event is free — confirm the seat immediately (no payment step) and return
- * the orderId/registration number.
+ * CareerX is free to attend — the seat is confirmed immediately (no payment
+ * step) and the registration number + entry pass are returned/sent right away.
  */
 export const createRegistration = asyncHandler(async (req, res) => {
   if (!isRegistrationsOpen()) {
     res.status(403);
-    throw new Error('Registrations for NEET CON 2026 are now closed. Thank you for your interest!');
+    throw new Error('Registrations for CareerX are now closed. Thank you for your interest!');
   }
 
   const {
     fullName,
     mobileNumber,
     emailAddress = '',
+    dopaStatus,
     schoolOrCollege,
+    batch = '',
+    neetScore = '',
     passedYear = '',
-    preparingFor,
-    guestCount = 0,
   } = req.body || {};
 
   // --- Validation ---
@@ -65,9 +42,14 @@ export const createRegistration = asyncHandler(async (req, res) => {
   // Email is optional now (confirmation goes to WhatsApp); validate only if given.
   if (emailAddress && !EMAIL_RE.test(String(emailAddress).trim()))
     errors.push('Enter a valid email address');
-  if (!schoolOrCollege || !schoolOrCollege.trim()) errors.push('School/College is required');
-  if (!preparingFor || !Object.values(PREPARING_FOR).includes(preparingFor))
-    errors.push('Preparing For must be "NEET 2027" or "NEET 2028"');
+  if (!dopaStatus || !Object.values(DOPA_STATUS).includes(dopaStatus))
+    errors.push('Please select DOPA or Non-DOPA');
+  if (!schoolOrCollege || !schoolOrCollege.trim())
+    errors.push(dopaStatus === DOPA_STATUS.DOPA ? 'Campus name is required' : 'Institution name is required');
+  if (dopaStatus === DOPA_STATUS.DOPA && (!batch || !String(batch).trim()))
+    errors.push('Batch is required');
+  if (!neetScore || !String(neetScore).trim()) errors.push('NEET 2026 score is required');
+  if (!passedYear || !String(passedYear).trim()) errors.push('12th pass-out year is required');
 
   if (errors.length) {
     res.status(400);
@@ -76,9 +58,10 @@ export const createRegistration = asyncHandler(async (req, res) => {
 
   const mobile = String(mobileNumber).trim();
 
-  // --- Duplicate protection: a seat-holding reg for this mobile already exists ---
+  // --- Duplicate protection: a seat-holding CareerX reg for this mobile already exists ---
   const existing = await Registration.findOne({
     mobileNumber: mobile,
+    event: CURRENT_EVENT,
     paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
   });
   if (existing) {
@@ -88,22 +71,23 @@ export const createRegistration = asyncHandler(async (req, res) => {
 
   const orderId = generateOrderId();
 
-  // A unique partial index on { mobileNumber, paymentStatus: FREE } is the
-  // real guard against two concurrent requests for the same mobile number
-  // both passing the findOne check above — it rejects the loser atomically
-  // at the DB level instead of letting both docs get created first.
+  // A unique partial index on { mobileNumber, event, paymentStatus: FREE } is
+  // the real guard against two concurrent requests for the same mobile number
+  // both passing the findOne check above — it rejects the loser atomically at
+  // the DB level instead of letting both docs get created first.
   let registration;
   try {
     registration = await Registration.create({
+      event: CURRENT_EVENT,
       fullName: fullName.trim(),
       mobileNumber: mobile,
       emailAddress: String(emailAddress).trim().toLowerCase(),
+      dopaStatus,
       schoolOrCollege: schoolOrCollege.trim(),
+      batch: dopaStatus === DOPA_STATUS.DOPA ? String(batch).trim() : '',
+      neetScore: String(neetScore).trim(),
       passedYear: String(passedYear).trim(),
-      preparingFor,
-      guestCount: parseGuestCount(guestCount),
       orderId,
-      amount: 0,
       paymentStatus: PAYMENT_STATUS.FREE,
       registrationNumber: await nextRegistrationNumber(),
       confirmedAt: new Date(),
@@ -135,108 +119,47 @@ export const createRegistration = asyncHandler(async (req, res) => {
       orderId: registration.orderId,
       registrationId: registration._id,
       registrationNumber: registration.registrationNumber,
-      amount: registration.amount,
       fullName: registration.fullName,
+      mobileNumber: registration.mobileNumber,
     },
   });
 });
 
-/** Validate the shared free-registration input; returns { name, mobile, errors }. */
-const validateFreeInput = (body = {}) => {
-  const name = String(body.name || body.fullName || '').trim();
-  const mobile = normalizeMobile(body.contactNumber || body.mobileNumber);
-  const errors = [];
-  if (!name) errors.push('Name is required');
-  if (!MOBILE_RE.test(mobile)) errors.push('A valid 10-digit contact number is required');
-  return { name, mobile, errors };
-};
-
 /**
- * Create a FREE (no-payment) seat and send the WhatsApp entry pass.
- * Idempotent: returns the existing seat for a mobile that already holds one.
- * @returns {Promise<{ duplicate:boolean, registration:object }>}
+ * GET /api/registrations/status/:orderId
+ * Public — the Thank-You page's data source. Gated by the unguessable orderId
+ * (same trust boundary as the pass endpoint). Registration is synchronous
+ * (no payment step), so this just confirms the seat exists and returns the
+ * bits the page needs to render.
  */
-const provisionFreeSeat = async ({ name, mobile, source, body }) => {
-  const existing = await Registration.findOne({
-    mobileNumber: mobile,
-    paymentStatus: {
-      $in: [PAYMENT_STATUS.CONFIRMED, PAYMENT_STATUS.MANUAL, PAYMENT_STATUS.FREE],
-    },
-  });
-  if (existing) return { duplicate: true, registration: existing };
-
-  const registration = await Registration.create({
-    fullName: name,
-    mobileNumber: mobile,
-    source,
-    district: String(body.district || '').trim(),
-    currentStatus: String(body.currentStatus || '').trim(),
-    expectedScore: String(body.expectedScore || '').trim(),
-    remarks: String(body.remarks || '').trim(),
-    // Google Form column can be named a few different ways depending on how
-    // the sheet/Apps Script maps it — accept the common ones.
-    guestCount: parseGuestCount(body.guestCount ?? body.accompanying ?? body.guests),
-    orderId: generateOrderId(),
-    paymentStatus: PAYMENT_STATUS.FREE,
-    amount: 0,
-    registrationNumber: await nextRegistrationNumber(),
-    confirmedAt: new Date(),
-  });
-
-  // Send the WhatsApp entry pass so free attendees can be scanned at the gate.
-  sendConfirmationWhatsApp(registration).catch((err) =>
-    console.error(`[whatsapp] free reg send error: ${err?.message || err}`)
-  );
-
-  return { duplicate: false, registration };
-};
-
-/**
- * POST /api/registrations/external
- * Ingest a free (DOPA student) registration from the Google Form via its Apps
- * Script. Authenticated by a shared secret (X-Form-Secret / body.secret).
- */
-export const createExternalRegistration = asyncHandler(async (req, res) => {
-  if (!isRegistrationsOpen()) {
-    res.status(410);
-    throw new Error('The NEET CON 2026 registration portal has closed — this Google Form connection is retired.');
+export const getRegistrationStatus = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const registration = await Registration.findOne({ orderId, event: CURRENT_EVENT }).lean();
+  if (!registration) {
+    res.status(404);
+    throw new Error('Registration not found');
   }
 
-  const secret = process.env.FORM_INGEST_SECRET;
-  const provided = req.get('x-form-secret') || req.body?.secret || '';
-  if (!secret || !secretEqual(provided, secret)) {
-    res.status(401);
-    throw new Error('Unauthorized');
-  }
-
-  const { name, mobile, errors } = validateFreeInput(req.body);
-  if (errors.length) {
-    res.status(400);
-    throw new Error(errors.join('; '));
-  }
-
-  const { duplicate, registration } = await provisionFreeSeat({
-    name,
-    mobile,
-    source: 'google_form',
-    body: req.body || {},
-  });
-  res.status(duplicate ? 200 : 201).json({
+  res.json({
     success: true,
-    duplicate,
-    data: { orderId: registration.orderId, registrationNumber: registration.registrationNumber },
+    data: {
+      fullName: registration.fullName,
+      mobileNumber: registration.mobileNumber,
+      registrationNumber: registration.registrationNumber,
+      paymentStatus: registration.paymentStatus,
+    },
   });
 });
 
 /**
  * GET /api/registrations/pass/:orderId
- * Public — returns the branded entry-pass PNG for a CONFIRMED registration.
+ * Public — returns the branded entry-pass PNG for a confirmed registration.
  * Gated by the orderId (which the registrant already holds); only available
  * once the seat is confirmed and a registration code exists.
  */
 export const getPass = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
-  const registration = await Registration.findOne({ orderId });
+  const registration = await Registration.findOne({ orderId, event: CURRENT_EVENT });
   const confirmed =
     registration &&
     registration.registrationNumber &&
@@ -248,7 +171,7 @@ export const getPass = asyncHandler(async (req, res) => {
   }
 
   const png = await generateEventPass(registration);
-  const filename = `neetcon-2026-${String(registration.registrationNumber).replace(/\s+/g, '-')}.png`;
+  const filename = `careerx-${String(registration.registrationNumber).replace(/\s+/g, '-')}.png`;
   res.setHeader('Content-Type', 'image/png');
   res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
   // Contains PII (name + registration code): keep it out of shared/CDN caches

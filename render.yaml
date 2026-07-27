@@ -1,4 +1,4 @@
-# Render Blueprint — NEET CON 2026 API (Express + MongoDB)
+# Render Blueprint — CareerX API (Express + MongoDB)
 # Deploy: Render Dashboard > New > Blueprint > pick this repo.
 # Secrets (sync:false) are NOT stored here — set them in the Render dashboard.
 services:
@@ -24,35 +24,10 @@ services:
       - key: ADMIN_CREDENTIALS
         sync: false # "email:password" bootstrap admin login(s)
       - key: CLIENT_URL
-        sync: false # e.g. https://neetcon-2026.vercel.app  (no trailing slash)
-      - key: REGISTRATION_FEE
-        value: "100"
-      # Event concluded (2026-07-12) — portal closed. Both POST /api/registrations
-      # and the Google-Form ingest endpoint reject with a clear message while
-      # this is "false". Flip back to "true" only if registrations ever reopen.
+        sync: false # e.g. https://careerx.dopacoaching.com  (no trailing slash)
+      # CareerX registrations are open (free — no payment step).
       - key: REGISTRATIONS_OPEN
-        value: "false"
-      - key: FORM_INGEST_SECRET
-        sync: false # shared secret for the Google-Form free-registration ingest
-      # --- HDFC SmartGateway (Juspay) ---
-      - key: HDFC_MOCK
-        value: "false" # LIVE payments — real money is charged
-      - key: HDFC_API_KEY
-        sync: false
-      - key: HDFC_MERCHANT_ID
-        sync: false
-      - key: HDFC_RESPONSE_KEY
-        sync: false
-      - key: HDFC_PAYMENT_PAGE_CLIENT_ID
-        sync: false
-      - key: HDFC_BASE_URL
-        value: https://smartgateway.hdfcbank.com
-      - key: HDFC_API_VERSION
-        value: "2023-06-30"
-      - key: HDFC_REDIRECT_URL
-        sync: false # https://<this-service>.onrender.com/api/payment/callback
-      - key: HDFC_WEBHOOK_URL
-        sync: false # https://<this-service>.onrender.com/api/payment/webhook
+        value: "true"
       # --- WhatsApp (Meta Cloud API) — primary confirmation channel ---
       - key: WHATSAPP_MOCK
         value: "false" # LIVE — real confirmation messages are sent
@@ -65,11 +40,11 @@ services:
       - key: WHATSAPP_APP_SECRET
         sync: false # Meta app secret — enables webhook HMAC verification (optional)
       - key: WHATSAPP_TEMPLATE_NAME
-        value: neetcon_confirmation
+        value: careerx_confirmation
       - key: WHATSAPP_GUESTCOUNT_TEMPLATE_NAME
-        value: neetcon_guest_count_ask
+        value: careerx_guest_count_ask
       - key: WHATSAPP_REMINDER_TEMPLATE_NAME
-        value: neetcon_2026_reminder
+        value: careerx_reminder
       - key: WHATSAPP_TEMPLATE_LANG
         value: en
       - key: WHATSAPP_COUNTRY_CODE
@@ -78,13 +53,13 @@ services:
         value: v21.0
       # --- Event details (shown in confirmation message / email) ---
       - key: EVENT_DATE
-        value: 12 July 2026
+        value: Saturday, 1 August 2026
       - key: EVENT_TIME
-        value: 9:30 AM – 4:00 PM
+        value: 9:30 AM onwards
       - key: EVENT_VENUE
-        value: Yamaniya Hall, Kuttikattor
+        value: Bhatia Hall, Kuttikatoor, Kozhikode
       - key: EVENT_MAP_URL
-        value: https://maps.app.goo.gl/b6ZUgZSWgj33UPXv5
+        value: https://maps.app.goo.gl/5xkHbG9FUSHaFLRQ6
       # --- Email (SMTP) — backup confirmation + organizer notification ---
       - key: SMTP_HOST
         value: smtp.gmail.com
@@ -97,6 +72,6 @@ services:
       - key: SMTP_PASS
         sync: false # Gmail App Password (16 chars, no spaces)
       - key: MAIL_FROM
-        sync: false # e.g. "NEET CON 2026 <your.gmail@gmail.com>"
+        sync: false # e.g. "CareerX <your.gmail@gmail.com>"
       - key: ORGANIZER_EMAIL
         sync: false # where new-registration notifications are sent

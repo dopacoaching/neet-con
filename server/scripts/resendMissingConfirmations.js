@@ -23,7 +23,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 loadEnv({ path: join(__dirname, '..', '.env') });
 
 import connectDB from '../config/db.js';
-import Registration from '../models/Registration.js';
+import Registration, { CURRENT_EVENT } from '../models/Registration.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 
 const dryRun = process.argv.includes('--dry-run');
@@ -35,6 +35,7 @@ const run = async () => {
   await connectDB();
 
   const targets = await Registration.find({
+    event: CURRENT_EVENT,
     paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
     $or: [
       { whatsappStatus: { $exists: false } }, // pre-existing docs, field never written

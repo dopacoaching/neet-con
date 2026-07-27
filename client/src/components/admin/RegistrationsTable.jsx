@@ -34,11 +34,9 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                 <StatusBadge status={r.paymentStatus} />
               </div>
               <p className="text-sm text-white/70">{r.mobileNumber}</p>
-              {(r.schoolOrCollege || r.district || r.preparingFor || r.currentStatus) && (
+              {(r.schoolOrCollege || r.dopaStatus) && (
                 <p className="truncate text-xs text-white/50">
-                  {[r.schoolOrCollege || r.district, r.preparingFor || r.currentStatus]
-                    .filter(Boolean)
-                    .join(' · ')}
+                  {[r.dopaStatus, r.schoolOrCollege].filter(Boolean).join(' · ')}
                 </p>
               )}
               <div className="flex items-center justify-between text-xs text-white/40">
@@ -59,8 +57,8 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Mobile</th>
               <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">School / College</th>
-              <th className="px-4 py-3">Preparing</th>
+              <th className="px-4 py-3">Campus / Institution</th>
+              <th className="px-4 py-3">DOPA</th>
               <th className="px-4 py-3">Guests</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Registered</th>
@@ -103,8 +101,8 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                   <td className="max-w-[200px] truncate px-4 py-3 text-white/70" title={r.emailAddress || ''}>
                     {r.emailAddress || '—'}
                   </td>
-                  <td className="px-4 py-3 text-white/70">{r.schoolOrCollege || r.district || '—'}</td>
-                  <td className="px-4 py-3 text-white/70">{r.preparingFor || r.currentStatus || '—'}</td>
+                  <td className="px-4 py-3 text-white/70">{r.schoolOrCollege || '—'}</td>
+                  <td className="px-4 py-3 text-white/70">{r.dopaStatus || '—'}</td>
                   <td className="px-4 py-3 text-white/70">{r.guestCount > 0 ? `+${r.guestCount}` : '—'}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={r.paymentStatus} />

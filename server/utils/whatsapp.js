@@ -34,17 +34,16 @@ const trackResult = async (reg, result) => {
  *  whose BODY carries the registration details.
  *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
- *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. neetcon_confirmation_free)
+ *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. careerx_confirmation)
  *    - Category: UTILITY
  *    - Header:   IMAGE
- *    - Body with 7 NAMED variables (Meta's current editor requires named, not
+ *    - Body with 6 NAMED variables (Meta's current editor requires named, not
  *      numbered, parameters — lowercase + underscores):
- *        {{full_name}} {{registration_code}} {{preparing_for}}
+ *        {{full_name}} {{registration_code}}
  *        {{event_date}} {{event_time}} {{venue}} {{guest_count}}
  *      Example body text (event is FREE — no amount variable):
- *        "Hi {{full_name}}, your NEET CON 2026 seat is CONFIRMED ✅ (Free Entry)
+ *        "Hi {{full_name}}, your CareerX seat is CONFIRMED ✅ (Free Entry)
  *         Registration Code: {{registration_code}}
- *         Preparing For: {{preparing_for}}
  *         Date: {{event_date}}, Time: {{event_time}}
  *         Venue: {{venue}}
  *         Guests joining you: {{guest_count}}
@@ -62,12 +61,12 @@ const trackResult = async (reg, result) => {
  *  sent to registrants who registered before the guest-count question
  *  existed (see server/scripts/sendGuestCountAsk.js). It needs its own
  *  approval:
- *    - Name:     matches WHATSAPP_GUESTCOUNT_TEMPLATE_NAME (e.g. neetcon_guest_count_ask)
+ *    - Name:     matches WHATSAPP_GUESTCOUNT_TEMPLATE_NAME (e.g. careerx_guest_count_ask)
  *    - Category: UTILITY
  *    - Header:   none
  *    - Body with 2 NAMED variables: {{full_name}} {{registration_code}}
  *      Example body text:
- *        "Hi {{full_name}}, quick update needed for your NEET CON 2026
+ *        "Hi {{full_name}}, quick update needed for your CareerX
  *         registration (Code: {{registration_code}}).
  *         How many family members or friends will be joining you at the
  *         event? Please reply with just a number (e.g. 0, 1, 2, 3).
@@ -95,7 +94,7 @@ const TEMPLATE_LANG = () => process.env.WHATSAPP_TEMPLATE_LANG || 'en';
 const GUESTCOUNT_TEMPLATE_NAME = () => process.env.WHATSAPP_GUESTCOUNT_TEMPLATE_NAME || '';
 // Approved via the Graph API directly (2026-07-11); POSITIONAL parameters
 // {{1}}..{{4}} = full_name, event_date, event_time, venue.
-const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'neetcon_2026_reminder';
+const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'careerx_reminder';
 const COUNTRY_CODE = () => process.env.WHATSAPP_COUNTRY_CODE || '91';
 
 export const isWhatsAppMock = () => String(process.env.WHATSAPP_MOCK).toLowerCase() === 'true';
@@ -106,9 +105,9 @@ const isGuestCountAskConfigured = () =>
 const isReminderConfigured = () => !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && REMINDER_TEMPLATE_NAME());
 
 const EVENT = {
-  date: process.env.EVENT_DATE || '12 July 2026',
-  time: process.env.EVENT_TIME || '9:30 AM – 4:00 PM',
-  venue: process.env.EVENT_VENUE || 'Yamaniya Hall, Kuttikattor',
+  date: process.env.EVENT_DATE || 'Saturday, 1 August 2026',
+  time: process.env.EVENT_TIME || '9:30 AM onwards',
+  venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
 };
 
 /**
@@ -217,11 +216,6 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
                 type: 'text',
                 parameter_name: 'registration_code',
                 text: String(reg.registrationNumber),
-              },
-              {
-                type: 'text',
-                parameter_name: 'preparing_for',
-                text: String(reg.preparingFor || reg.currentStatus || 'NEET Aspirant'),
               },
               { type: 'text', parameter_name: 'event_date', text: EVENT.date },
               { type: 'text', parameter_name: 'event_time', text: EVENT.time },

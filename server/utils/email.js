@@ -12,15 +12,15 @@ import { generateQrBuffer } from './qrcode.js';
  * ENV (server/.env):
  *   SMTP_HOST, SMTP_PORT, SMTP_SECURE ("true"/"false")
  *   SMTP_USER, SMTP_PASS            (Gmail: use an App Password)
- *   MAIL_FROM                       e.g. "NEET CON 2026 <no-reply@dopacoaching.com>"
+ *   MAIL_FROM                       e.g. "CareerX <no-reply@dopacoaching.com>"
  *   ORGANIZER_EMAIL                 where organizer notifications are sent
  */
 
 const EVENT = {
-  date: process.env.EVENT_DATE || '12 July 2026',
-  time: process.env.EVENT_TIME || '9:30 AM – 4:00 PM',
-  venue: process.env.EVENT_VENUE || 'Yamaniya Hall, Kuttikattor',
-  mapUrl: process.env.EVENT_MAP_URL || 'https://maps.app.goo.gl/b6ZUgZSWgj33UPXv5',
+  date: process.env.EVENT_DATE || 'Saturday, 1 August 2026',
+  time: process.env.EVENT_TIME || '9:30 AM onwards',
+  venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
+  mapUrl: process.env.EVENT_MAP_URL || 'https://maps.app.goo.gl/5xkHbG9FUSHaFLRQ6',
 };
 
 const FROM = () => process.env.MAIL_FROM || process.env.SMTP_USER || '';
@@ -72,23 +72,23 @@ export const buildUserEmailHtml = (reg) => {
 <html><body style="margin:0;background:#eef1f8;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0b1330">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e8f3">
-      <tr><td style="background:#001e5f;padding:24px 28px">
-        <div style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:.3px">NEET CON 2026</div>
-        <div style="color:#9fb4ff;font-size:13px;margin-top:3px">DOPA Coaching · Calicut</div>
+      <tr><td style="background:#050b95;padding:24px 28px">
+        <div style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:.3px">CareerX</div>
+        <div style="color:#9fc3ff;font-size:13px;margin-top:3px">The Gateway to Medical Career · DOPA Coaching</div>
       </td></tr>
       <tr><td style="padding:28px">
         <span style="display:inline-block;background:#e7f8ee;color:#138a4e;font-size:12px;font-weight:bold;padding:6px 12px;border-radius:999px">✓ SEAT CONFIRMED</span>
         <h1 style="font-size:22px;margin:16px 0 6px;color:#0b1330">You're all set, ${name}!</h1>
-        <p style="color:#5b6478;margin:0 0 22px;font-size:14px;line-height:1.6">Your registration for NEET CON 2026 is confirmed. Your entry pass is below — show the QR at the registration desk.</p>
+        <p style="color:#5b6478;margin:0 0 22px;font-size:14px;line-height:1.6">Your registration for CareerX is confirmed. Your entry pass is below — show the QR at the registration desk.</p>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f6fc;border-radius:12px;margin-bottom:22px">
           <tr><td style="padding:16px 18px">
             <div style="font-size:11px;color:#7a85a0;text-transform:uppercase;letter-spacing:1.2px">Registration Code</div>
-            <div style="font-size:25px;font-weight:bold;color:#002ef4;letter-spacing:1px;margin-top:4px">${code}</div>
+            <div style="font-size:25px;font-weight:bold;color:#050b95;letter-spacing:1px;margin-top:4px">${code}</div>
           </td></tr>
         </table>
 
-        <img src="cid:entrypass" alt="NEET CON 2026 entry pass" width="504" style="width:100%;height:auto;border-radius:12px;border:1px solid #e4e8f3;display:block"/>
+        <img src="cid:entrypass" alt="CareerX entry pass" width="504" style="width:100%;height:auto;border-radius:12px;border:1px solid #e4e8f3;display:block"/>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;font-size:14px">
           <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Date</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.date)}</td></tr>
@@ -96,12 +96,12 @@ export const buildUserEmailHtml = (reg) => {
           <tr><td style="padding:7px 0;color:#7a85a0">Venue</td><td style="padding:7px 0;text-align:right;font-weight:bold">${esc(EVENT.venue)}</td></tr>
         </table>
 
-        <a href="${esc(EVENT.mapUrl)}" style="display:inline-block;margin-top:22px;background:#002ef4;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;font-size:14px">Get Directions</a>
+        <a href="${esc(EVENT.mapUrl)}" style="display:inline-block;margin-top:22px;background:#050b95;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;font-size:14px">Get Directions</a>
 
         <p style="color:#7a85a0;font-size:13px;margin:24px 0 0;line-height:1.6">A copy has also been sent to your WhatsApp. Please keep this pass handy for entry. See you there!</p>
       </td></tr>
       <tr><td style="background:#f3f6fc;padding:16px 28px;color:#9aa3b8;font-size:12px;text-align:center">
-        NEET CON 2026 · DOPA Coaching, Calicut · Automated confirmation — please do not reply.
+        CareerX · DOPA Coaching · Automated confirmation — please do not reply.
       </td></tr>
     </table>
   </td></tr></table>
@@ -109,7 +109,7 @@ export const buildUserEmailHtml = (reg) => {
 };
 
 const userText = (reg) =>
-  `You're confirmed for NEET CON 2026!\n\n` +
+  `You're confirmed for CareerX!\n\n` +
   `Registration Code: ${reg.registrationNumber}\n` +
   `Name: ${reg.fullName}\n` +
   `Date: ${EVENT.date}\n` +
@@ -117,7 +117,7 @@ const userText = (reg) =>
   `Venue: ${EVENT.venue}\n\n` +
   `Show the QR on your entry pass (attached) at the registration desk.\n` +
   `Directions: ${EVENT.mapUrl}\n\n` +
-  `DOPA Coaching, Calicut`;
+  `DOPA Coaching`;
 
 /**
  * Email the entry pass to the registrant. Only sends when an email was given.
@@ -136,7 +136,7 @@ export const sendUserConfirmationEmail = async (reg) => {
     const attachments = png
       ? [
           {
-            filename: `neetcon-2026-${String(reg.registrationNumber).replace(/\s+/g, '-')}.png`,
+            filename: `careerx-${String(reg.registrationNumber).replace(/\s+/g, '-')}.png`,
             content: png,
             cid: 'entrypass',
           },
@@ -145,7 +145,7 @@ export const sendUserConfirmationEmail = async (reg) => {
     await getTransporter().sendMail({
       from: FROM(),
       to,
-      subject: `Your NEET CON 2026 entry pass — ${reg.registrationNumber}`,
+      subject: `Your CareerX entry pass — ${reg.registrationNumber}`,
       text: userText(reg),
       html: buildUserEmailHtml(reg),
       attachments,
@@ -170,16 +170,18 @@ export const buildOrganizerEmailHtml = (reg) => {
 <html><body style="margin:0;background:#eef1f8;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0b1330">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e4e8f3">
-      <tr><td style="background:#001e5f;padding:20px 24px;color:#ffffff;font-size:17px;font-weight:bold">New registration · NEET CON 2026</td></tr>
+      <tr><td style="background:#050b95;padding:20px 24px;color:#ffffff;font-size:17px;font-weight:bold">New registration · CareerX</td></tr>
       <tr><td style="padding:8px 12px 20px">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">
           ${row('Registration Code', reg.registrationNumber)}
           ${row('Name', reg.fullName)}
           ${row('Mobile', reg.mobileNumber)}
           ${row('Email', reg.emailAddress)}
-          ${row('School / College', reg.schoolOrCollege)}
-          ${row('Preparing For', reg.preparingFor)}
-          ${row('Order ID', reg.orderId)}
+          ${row('DOPA / Non-DOPA', reg.dopaStatus)}
+          ${row('Campus / Institution', reg.schoolOrCollege)}
+          ${row('Batch', reg.batch)}
+          ${row('NEET 2026 Score', reg.neetScore)}
+          ${row('Reference ID', reg.orderId)}
           ${row('Confirmed At', reg.confirmedAt ? new Date(reg.confirmedAt).toLocaleString('en-IN') : '')}
         </table>
       </td></tr>
@@ -205,10 +207,11 @@ export const sendOrganizerNotification = async (reg) => {
       to,
       subject: `New registration: ${reg.fullName} (${reg.registrationNumber})`,
       text:
-        `New registration for NEET CON 2026\n\n` +
+        `New registration for CareerX\n\n` +
         `Code: ${reg.registrationNumber}\nName: ${reg.fullName}\nMobile: ${reg.mobileNumber}\n` +
-        `Email: ${reg.emailAddress || '—'}\nSchool: ${reg.schoolOrCollege}\nPreparing: ${reg.preparingFor}\n` +
-        `Order: ${reg.orderId}`,
+        `Email: ${reg.emailAddress || '—'}\n${reg.dopaStatus || ''}: ${reg.schoolOrCollege}\n` +
+        `Batch: ${reg.batch || '—'}\nNEET 2026 Score: ${reg.neetScore || '—'}\n` +
+        `Reference: ${reg.orderId}`,
       html: buildOrganizerEmailHtml(reg),
     });
     console.log(`[email] organizer notified (${reg.registrationNumber}) -> ${to}`);

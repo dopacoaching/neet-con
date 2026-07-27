@@ -1,21 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { getPaymentStatus, getPassUrl } from '../services/api.js';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { getRegistrationStatus, getPassUrl } from '../services/api.js';
 import Logo from '../components/ui/Logo.jsx';
 import { Spinner } from '../components/ui/PageLoader.jsx';
 import { VENUE_MAP_URL } from '../config/event.js';
 
-const MAX_RETRIES = 5;
-const RETRY_MS = 5000;
-
 const ThankYouPage = () => {
   const [params] = useSearchParams();
   const orderId = params.get('orderId');
-  const navigate = useNavigate();
 
-  const [status, setStatus] = useState('loading'); // loading | confirmed | pending | error
+  const [status, setStatus] = useState('loading'); // loading | confirmed | error
   const [data, setData] = useState(null);
-  const retries = useRef(0);
 
   // The branded entry pass (QR + details) is rendered server-side.
   const passUrl = orderId ? getPassUrl(orderId) : '';
@@ -25,62 +20,32 @@ const ThankYouPage = () => {
       setStatus('error');
       return;
     }
-    let timer;
     let active = true;
 
-    const poll = async () => {
+    (async () => {
       try {
-        const res = await getPaymentStatus(orderId);
+        const res = await getRegistrationStatus(orderId);
         if (!active) return;
         setData(res);
-
-        if (
-          res.paymentStatus === 'CONFIRMED' ||
-          res.paymentStatus === 'MANUAL' ||
-          res.paymentStatus === 'FREE'
-        ) {
-          setStatus('confirmed');
-          return;
-        }
-
-        // Still pending — HDFC may be slow. Retry up to MAX_RETRIES.
-        if (retries.current < MAX_RETRIES) {
-          retries.current += 1;
-          setStatus('pending');
-          timer = setTimeout(poll, RETRY_MS);
-        } else {
-          // Give up polling — but we genuinely don't know the outcome yet
-          // (HDFC may just be slow), so don't tell the user it failed.
-          navigate(
-            `/payment-failed?orderId=${encodeURIComponent(orderId)}&reason=timeout`,
-            { replace: true }
-          );
-        }
+        setStatus('confirmed');
       } catch {
         if (!active) return;
         setStatus('error');
       }
-    };
+    })();
 
-    poll();
     return () => {
       active = false;
-      clearTimeout(timer);
     };
-  }, [orderId, navigate]);
+  }, [orderId]);
 
   // --- Render states ---
-  if (status === 'loading' || status === 'pending') {
+  if (status === 'loading') {
     return (
       <Shell>
         <Spinner className="h-8 w-8" />
-        <h1 className="mt-4 font-heading text-2xl font-bold">Confirming your registration…</h1>
-        <p className="mt-2 text-white/70">
-          {status === 'pending'
-            ? `Just a moment (attempt ${retries.current}/${MAX_RETRIES})…`
-            : 'Please wait a moment.'}
-        </p>
-        <p className="mt-1 text-sm text-white/50">Do not close or refresh this page.</p>
+        <h1 className="mt-4 font-heading text-2xl font-bold">Loading your registration…</h1>
+        <p className="mt-2 text-white/70">Please wait a moment.</p>
       </Shell>
     );
   }
@@ -102,7 +67,7 @@ const ThankYouPage = () => {
 
   // Confirmed
   const waMessage = encodeURIComponent(
-    `I'm registered for NEET CON 2026! 🎉\nName: ${data.fullName}\nRegistration No: ${data.registrationNumber}\nDate: 12 July 2026, Yamaniya Hall, Kuttikattor.`
+    `I'm registered for CareerX! 🎉\nName: ${data.fullName}\nRegistration No: ${data.registrationNumber}`
   );
 
   return (
@@ -142,7 +107,7 @@ const ThankYouPage = () => {
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
         <a
           href={passUrl}
-          download={`neetcon-2026-${String(data.registrationNumber).replace(/\s+/g, '-')}.png`}
+          download={`careerx-${String(data.registrationNumber).replace(/\s+/g, '-')}.png`}
           className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-navy transition hover:bg-white/90"
         >
           ⬇ Download Pass

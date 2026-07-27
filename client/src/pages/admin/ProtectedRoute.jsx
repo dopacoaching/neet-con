@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) return <PageLoader label="Checking session…" />;
 
   if (!isAuthenticated) {
-    return <Navigate to="/neetcon-admin/login" replace state={{ from: location }} />;
+    return <Navigate to="/careerx-admin/login" replace state={{ from: location }} />;
   }
 
   return children;

@@ -1,21 +1,15 @@
 /**
- * Brand lockup: DOPA wordmark logo + the NEET CON 2026 event logo.
- *
- * Both are blue/cyan wordmarks on transparent backgrounds. DOPA's cyan reads on
- * light and dark; the NEET CON logo's darker blue is low-contrast on navy, so on
- * dark surfaces it sits on a small white chip.
+ * CareerX wordmark. Two exported PNGs (trimmed from the official logo) cover
+ * both surface types:
+ *   - light: navy/blue text — for white/light backgrounds (navbar, footer top).
+ *   - dark:  white/blue text — for the navy hero/footer/registration surfaces.
  */
 const Logo = ({ className = '', dark = false }) => (
-  <div className={`flex items-center gap-2 ${className}`}>
-    <img src="/dopa-logo.png" alt="DOPA" className="h-5 w-auto object-contain sm:h-6" />
-    <span className={`inline-flex items-center rounded-md ${dark ? 'bg-white px-1.5 py-1' : ''}`}>
-      <img
-        src="/neetcon-logo.png"
-        alt="NEET CON 2026"
-        className="h-6 w-auto object-contain sm:h-7"
-      />
-    </span>
-  </div>
+  <img
+    src={dark ? '/careerx-logo-dark.png' : '/careerx-logo-light.png'}
+    alt="CareerX — The Gateway to Medical Career"
+    className={`h-8 w-auto object-contain sm:h-9 ${className}`}
+  />
 );
 
 export default Logo;

@@ -16,8 +16,8 @@ import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
 import CheckedInList from '../../components/admin/CheckedInList.jsx';
 import { Spinner } from '../../components/ui/PageLoader.jsx';
 
-const STATUS_OPTIONS = ['All', 'CONFIRMED', 'FREE', 'PENDING', 'FAILED', 'MANUAL'];
-const PREP_OPTIONS = ['All', 'NEET 2027', 'NEET 2028'];
+const STATUS_OPTIONS = ['All', 'FREE', 'PENDING', 'FAILED', 'MANUAL'];
+const DOPA_OPTIONS = ['All', 'DOPA', 'Non-DOPA'];
 const GUEST_INFO_OPTIONS = [
   { value: 'All', label: 'All (guest info)' },
   { value: 'needsReview', label: '⚠️ Needs review (unparsed reply)' },
@@ -42,7 +42,7 @@ const AdminDashboardPage = () => {
   const [filters, setFilters] = useState({
     search: '',
     status: 'All',
-    preparingFor: 'All',
+    dopaStatus: 'All',
     guestInfo: 'All',
     whatsappStatus: 'All',
     page: 1,
@@ -73,7 +73,7 @@ const AdminDashboardPage = () => {
     try {
       const params = { page: filters.page, limit: 20 };
       if (filters.status !== 'All') params.status = filters.status;
-      if (filters.preparingFor !== 'All') params.preparingFor = filters.preparingFor;
+      if (filters.dopaStatus !== 'All') params.dopaStatus = filters.dopaStatus;
       if (filters.guestInfo !== 'All') params.guestInfo = filters.guestInfo;
       if (filters.whatsappStatus !== 'All') params.whatsappStatus = filters.whatsappStatus;
       if (filters.search.trim()) params.search = filters.search.trim();
@@ -134,7 +134,7 @@ const AdminDashboardPage = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `neetcon2026-registrations-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.download = `careerx-registrations-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -154,7 +154,7 @@ const AdminDashboardPage = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `neetcon2026-checkins-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.download = `careerx-checkins-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -237,7 +237,7 @@ const AdminDashboardPage = () => {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h1 className="font-heading text-2xl font-extrabold text-white">Registrations</h1>
-                  <p className="text-sm text-white/60">NEET CON 2026 registrations overview</p>
+                  <p className="text-sm text-white/60">CareerX registrations overview</p>
                 </div>
                 {isAdminRole && (
                   <button onClick={handleExport} className="btn-primary !py-2.5" disabled={exporting}>
@@ -274,12 +274,12 @@ const AdminDashboardPage = () => {
                 </select>
                 <select
                   className="input-dark"
-                  value={filters.preparingFor}
-                  onChange={(e) => setFilters((f) => ({ ...f, preparingFor: e.target.value, page: 1 }))}
+                  value={filters.dopaStatus}
+                  onChange={(e) => setFilters((f) => ({ ...f, dopaStatus: e.target.value, page: 1 }))}
                 >
-                  {PREP_OPTIONS.map((p) => (
+                  {DOPA_OPTIONS.map((p) => (
                     <option key={p} value={p} className="bg-[#081231] text-white">
-                      {p === 'All' ? 'All (NEET 2027/2028)' : p}
+                      {p === 'All' ? 'All (DOPA/Non-DOPA)' : p}
                     </option>
                   ))}
                 </select>

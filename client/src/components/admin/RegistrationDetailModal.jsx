@@ -109,11 +109,8 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
     }
   };
 
-  const isConfirmed = r.paymentStatus === 'CONFIRMED' || r.paymentStatus === 'MANUAL';
-  // Seat-holding statuses (mirrors Registration.SEAT_HOLDING_STATUSES server-side)
-  // — FREE is the status nearly every current registration has, so this must
-  // be checked separately from isConfirmed above (which only covers the old
-  // paid-flow statuses) for check-in/resend actions to actually show up.
+  const isConfirmed = r.paymentStatus === 'MANUAL';
+  // Seat-holding statuses (mirrors Registration.SEAT_HOLDING_STATUSES server-side).
   const isSeatHolding = isConfirmed || r.paymentStatus === 'FREE';
 
   return (
@@ -150,9 +147,11 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Mobile" value={r.mobileNumber} />
             <Field label="Email" value={r.emailAddress} />
-            <Field label="School / College" value={r.schoolOrCollege} />
+            <Field label="DOPA / Non-DOPA" value={r.dopaStatus} />
+            <Field label={r.dopaStatus === 'DOPA' ? 'Campus' : 'Institution'} value={r.schoolOrCollege} />
+            {r.dopaStatus === 'DOPA' && <Field label="Batch" value={r.batch} />}
+            <Field label="NEET 2026 Score" value={r.neetScore} />
             <Field label="Year of 12th" value={r.passedYear} />
-            <Field label="Preparing For" value={r.preparingFor} />
           </div>
 
           {/* Guests accompanying */}
@@ -192,29 +191,20 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             )}
           </div>
 
-          {/* Free (Google Form / DOPA student) details */}
-          {r.source === 'google_form' && (
-            <div className="rounded-xl bg-violet-500/10 p-4 ring-1 ring-violet-400/20">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">
-                DOPA student (Google Form)
+          {r.source === 'admin_walk_in' && (
+            <div className="rounded-xl bg-blue-500/10 p-4 ring-1 ring-blue-400/20">
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-300">
+                Registered as a walk-in at the gate
               </p>
-              <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                <Field label="District / Place" value={r.district} />
-                <Field label="Current Status" value={r.currentStatus} />
-                <Field label="Expected NEET Score" value={r.expectedScore} />
-                {r.remarks && <Field label="Remarks" value={r.remarks} />}
-              </div>
             </div>
           )}
 
           <div className="rounded-xl bg-white/5 p-4">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
-              Payment details
+              Registration details
             </p>
             <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-              <Field label="Order ID" value={r.orderId} />
-              <Field label="HDFC Txn ID" value={r.hdfc_txn_id} />
-              <Field label="Attempts" value={String(r.paymentAttempts ?? 0)} />
+              <Field label="Reference ID" value={r.orderId} />
               <Field
                 label="Confirmed At"
                 value={r.confirmedAt ? format(new Date(r.confirmedAt), 'dd MMM yyyy, h:mm a') : '—'}

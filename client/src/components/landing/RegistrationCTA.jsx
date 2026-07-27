@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const RegistrationCTA = () => {
   return (
     <section className="bg-navy py-20 text-white">
@@ -5,11 +7,17 @@ const RegistrationCTA = () => {
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-brand-700 px-8 py-14 text-center shadow-2xl">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
           <h2 className="font-heading text-3xl font-extrabold sm:text-4xl">
-            Thank you for being part of NEET CON 2026
+            Reserve your free seat at CareerX
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-white/90">
-            The event has concluded — stay tuned to DOPA Coaching for what's next.
+            Entry is free. Register now to get your instant confirmation and QR entry pass.
           </p>
+          <Link
+            to="/register"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-base font-semibold text-brand transition hover:bg-white/90"
+          >
+            Register Now — Free
+          </Link>
         </div>
       </div>
     </section>

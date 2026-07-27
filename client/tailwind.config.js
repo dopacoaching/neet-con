@@ -4,35 +4,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        // DOPA brand palette.
-        // Primary accent — Sky Blue (#002ef4).
+        // CareerX brand palette (sampled from the official logo).
+        // Primary — CareerX Navy (#050b95).
         brand: {
-          DEFAULT: '#002ef4',
-          50: '#eaefff',
-          100: '#d5deff',
-          200: '#abbcff',
-          300: '#8099ff',
-          400: '#4063fa',
-          500: '#002ef4',
-          600: '#0025c4',
-          700: '#001d99',
-          800: '#001466',
-          900: '#000a33',
+          DEFAULT: '#050b95',
+          50: '#eaecff',
+          100: '#d2d7ff',
+          200: '#a6afff',
+          300: '#7986ff',
+          400: '#3d47e0',
+          500: '#050b95',
+          600: '#040978',
+          700: '#03075c',
+          800: '#020440',
+          900: '#010226',
         },
-        // DOPA wordmark cyan (sampled from the logo) — used for the "Coaching"
-        // text so the logo + word read as one "DOPA Coaching" lockup.
-        dopa: '#00aff5',
-        // Secondary / dark surfaces — Navy Blue (#001e5f).
+        // Secondary / dark surfaces — deep navy, close to the card background
+        // used on the printed/QR entry pass.
         navy: {
-          DEFAULT: '#001e5f',
-          light: '#08296f',
-          lighter: '#123a8a',
+          DEFAULT: '#0a0f3d',
+          light: '#12185a',
+          lighter: '#1c2570',
         },
-        // Brighter sky-blue accent — used for text/icons ON the dark navy
-        // surfaces where #002ef4 would be too low-contrast.
+        // CareerX "Rx" cyan — used for text/icons ON dark navy surfaces where
+        // the navy brand color would be too low-contrast.
         accent: {
-          DEFAULT: '#5b93ff',
-          soft: '#8fb4ff',
+          DEFAULT: '#00c2ff',
+          soft: '#5bd6ff',
         },
       },
       fontFamily: {

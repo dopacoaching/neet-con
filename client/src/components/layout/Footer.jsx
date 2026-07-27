@@ -1,5 +1,5 @@
 import Logo from '../ui/Logo.jsx';
-import { VENUE_MAP_URL } from '../../config/event.js';
+import { EVENT_DATE, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
 
 const Footer = () => (
   <footer className="bg-navy text-white/80">
@@ -7,8 +7,8 @@ const Footer = () => (
       <div>
         <Logo dark />
         <p className="mt-4 max-w-xs text-sm text-white/60">
-          NEET CON 2026 — Kerala's premier NEET counselling & strategy conclave, hosted by
-          DOPA Coaching, Calicut.
+          CareerX — The Gateway to Medical Career. Your complete roadmap after NEET 2026, hosted
+          by DOPA Coaching.
         </p>
       </div>
 
@@ -17,7 +17,7 @@ const Footer = () => (
           Event
         </h4>
         <ul className="space-y-2 text-sm">
-          <li>📅 July 12, 2026</li>
+          <li>📅 {EVENT_DATE}</li>
           <li>
             📍{' '}
             <a
@@ -26,11 +26,10 @@ const Footer = () => (
               rel="noreferrer"
               className="underline-offset-2 hover:text-accent hover:underline"
             >
-              Yamaniya Hall, Kuttikattor
+              {VENUE_NAME}
             </a>
           </li>
           <li>🎟️ Free entry</li>
-          <li>🎓 For NEET 2027 &amp; 2028 aspirants</li>
         </ul>
       </div>
 
@@ -41,8 +40,8 @@ const Footer = () => (
         <ul className="space-y-2 text-sm">
           <li>
             📞{' '}
-            <a href="tel:+919207912200" className="hover:text-accent">
-              +91 92079 12200
+            <a href="tel:+919645202200" className="hover:text-accent">
+              +91 96452 02200
             </a>
           </li>
           <li>
@@ -69,7 +68,7 @@ const Footer = () => (
               YouTube
             </a>
             <a
-              href="https://wa.me/919207912200"
+              href="https://wa.me/919645202200"
               target="_blank"
               rel="noreferrer"
               className="hover:text-accent"
@@ -83,7 +82,7 @@ const Footer = () => (
 
     <div className="border-t border-white/10">
       <div className="section flex flex-col items-center justify-between gap-2 py-5 text-xs text-white/50 sm:flex-row">
-        <p>© {new Date().getFullYear()} DOPA Coaching, Calicut. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} DOPA Coaching. All rights reserved.</p>
         <p className="text-center sm:text-right">
           By registering you agree to the event terms &amp; conditions.
         </p>

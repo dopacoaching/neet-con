@@ -42,8 +42,10 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
   const [walkIn, setWalkIn] = useState({
     fullName: '',
     mobileNumber: '',
+    dopaStatus: '',
     schoolOrCollege: '',
-    preparingFor: '',
+    batch: '',
+    neetScore: '',
     guestCount: '',
   });
   const [walkInSaving, setWalkInSaving] = useState(false);
@@ -186,14 +188,24 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
       const res = await adminRegisterWalkIn({
         fullName: walkIn.fullName.trim(),
         mobileNumber: walkIn.mobileNumber.trim(),
+        dopaStatus: walkIn.dopaStatus || undefined,
         schoolOrCollege: walkIn.schoolOrCollege.trim(),
-        preparingFor: walkIn.preparingFor || undefined,
+        batch: walkIn.batch.trim(),
+        neetScore: walkIn.neetScore.trim(),
         guestCount: walkIn.guestCount,
       });
       setResult({ ...res, result: res.result || 'checked_in' });
       onCheckedIn?.();
       toast.success('Registered and checked in');
-      setWalkIn({ fullName: '', mobileNumber: '', schoolOrCollege: '', preparingFor: '', guestCount: '' });
+      setWalkIn({
+        fullName: '',
+        mobileNumber: '',
+        dopaStatus: '',
+        schoolOrCollege: '',
+        batch: '',
+        neetScore: '',
+        guestCount: '',
+      });
       setWalkInOpen(false);
     } catch (err) {
       toast.error(err.message || 'Registration failed');
@@ -274,9 +286,9 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
                 </span>
               </div>
               <p className="mt-2 text-lg font-bold text-white">{result.data?.fullName || '—'}</p>
-              {(result.data?.preparingFor || result.data?.schoolOrCollege) && (
+              {(result.data?.dopaStatus || result.data?.schoolOrCollege) && (
                 <p className="text-sm text-white/60">
-                  {[result.data?.preparingFor, result.data?.schoolOrCollege].filter(Boolean).join(' · ')}
+                  {[result.data?.dopaStatus, result.data?.schoolOrCollege].filter(Boolean).join(' · ')}
                 </p>
               )}
               <p className="mt-2 text-sm font-medium text-white/80">{result.message}</p>
@@ -336,27 +348,41 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
                   value={walkIn.mobileNumber}
                   onChange={(e) => setWalkIn((w) => ({ ...w, mobileNumber: e.target.value }))}
                 />
+                <select
+                  className="input-dark"
+                  value={walkIn.dopaStatus}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, dopaStatus: e.target.value }))}
+                >
+                  <option value="" className="bg-[#081231] text-white">
+                    DOPA / Non-DOPA (optional)
+                  </option>
+                  <option value="DOPA" className="bg-[#081231] text-white">
+                    DOPA
+                  </option>
+                  <option value="Non-DOPA" className="bg-[#081231] text-white">
+                    Non-DOPA
+                  </option>
+                </select>
                 <input
                   className="input-dark"
-                  placeholder="School / College"
+                  placeholder="Campus / Institution"
                   value={walkIn.schoolOrCollege}
                   onChange={(e) => setWalkIn((w) => ({ ...w, schoolOrCollege: e.target.value }))}
                 />
-                <select
+                {walkIn.dopaStatus === 'DOPA' && (
+                  <input
+                    className="input-dark"
+                    placeholder="Batch"
+                    value={walkIn.batch}
+                    onChange={(e) => setWalkIn((w) => ({ ...w, batch: e.target.value }))}
+                  />
+                )}
+                <input
                   className="input-dark"
-                  value={walkIn.preparingFor}
-                  onChange={(e) => setWalkIn((w) => ({ ...w, preparingFor: e.target.value }))}
-                >
-                  <option value="" className="bg-[#081231] text-white">
-                    Preparing For (optional)
-                  </option>
-                  <option value="NEET 2027" className="bg-[#081231] text-white">
-                    NEET 2027
-                  </option>
-                  <option value="NEET 2028" className="bg-[#081231] text-white">
-                    NEET 2028
-                  </option>
-                </select>
+                  placeholder="NEET 2026 Score"
+                  value={walkIn.neetScore}
+                  onChange={(e) => setWalkIn((w) => ({ ...w, neetScore: e.target.value }))}
+                />
                 <input
                   type="number"
                   min={0}

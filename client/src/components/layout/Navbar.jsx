@@ -4,9 +4,7 @@ import Logo from '../ui/Logo.jsx';
 
 const NAV_LINKS = [
   { href: '#about', label: 'About' },
-  { href: '#schedule', label: 'Schedule' },
-  { href: '#speakers', label: 'Speakers' },
-  { href: '#benefits', label: 'Benefits' },
+  { href: '#benefits', label: "What You'll Get" },
 ];
 
 /**
@@ -28,7 +26,7 @@ const Navbar = () => {
       }`}
     >
       <nav className="section flex items-center justify-between py-3">
-        <Link to="/" aria-label="NEET CON 2026 home">
+        <Link to="/" aria-label="CareerX home">
           <Logo dark={!scrolled} />
         </Link>
 
@@ -44,6 +42,16 @@ const Navbar = () => {
               {l.label}
             </a>
           ))}
+          <Link
+            to="/register"
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              scrolled
+                ? 'bg-brand text-white hover:bg-brand-600'
+                : 'bg-white text-brand hover:bg-white/90'
+            }`}
+          >
+            Register — Free
+          </Link>
         </div>
       </nav>
     </header>

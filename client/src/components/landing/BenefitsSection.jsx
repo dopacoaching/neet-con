@@ -1,10 +1,10 @@
 const BENEFITS = [
-  { icon: '🧭', title: 'Allotment Guidance', body: 'Step-by-step walkthrough of NEET counselling rounds, choice-filling and locking.' },
-  { icon: '🎓', title: 'Career Clarity', body: 'MBBS, BDS, BAMS, BHMS and allied options — understand what each path really means.' },
-  { icon: '🏆', title: 'Topper Strategies', body: 'Proven study and exam-day tactics directly from students who scored top ranks.' },
-  { icon: '💸', title: 'Fees & Finance', body: 'Government vs private fees, bonds, education loans and management quota explained.' },
-  { icon: '🗂️', title: 'Personalised Roadmap', body: 'Leave with a clear, realistic plan tailored to your target NEET year.' },
-  { icon: '🤝', title: 'Expert Q&A', body: 'Ask your toughest counselling questions and get answers from the panel live.' },
+  { icon: '🩺', title: 'MBBS Admission Possibilities', body: 'A realistic look at your MBBS admission chances based on where you stand today.' },
+  { icon: '🎓', title: 'College Selection & Counselling Strategy', body: 'How to shortlist colleges and approach counselling rounds with a clear strategy.' },
+  { icon: '🧭', title: 'Allotment Process Explained', body: 'A step-by-step walkthrough of how seat allotment actually works.' },
+  { icon: '🚀', title: 'Careers After NEET', body: 'MBBS, BDS, BAMS, BHMS and allied options — understand what each path really means.' },
+  { icon: '🔁', title: 'Repeating NEET — Right Choice?', body: 'An honest framework to decide whether repeating NEET makes sense for you.' },
+  { icon: '🤝', title: 'Expert Q&A', body: 'Ask your toughest questions and get direct answers from the panel live.' },
 ];
 
 const BenefitsSection = () => (

@@ -97,9 +97,9 @@ const CheckedInList = () => {
               <span className="min-w-0">
                 <span className="block truncate font-medium text-white">{p.fullName}</span>
                 <span className="text-xs text-accent">{p.registrationNumber}</span>
-                {(p.preparingFor || p.schoolOrCollege) && (
+                {(p.dopaStatus || p.schoolOrCollege) && (
                   <span className="block truncate text-xs text-white/40">
-                    {[p.preparingFor, p.schoolOrCollege].filter(Boolean).join(' · ')}
+                    {[p.dopaStatus, p.schoolOrCollege].filter(Boolean).join(' · ')}
                   </span>
                 )}
               </span>

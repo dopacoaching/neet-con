@@ -8,7 +8,6 @@ import PageLoader from './components/ui/PageLoader.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import RegistrationPage from './pages/RegistrationPage.jsx';
 import ThankYouPage from './pages/ThankYouPage.jsx';
-import PaymentFailedPage from './pages/PaymentFailedPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 // Admin pages (lazy — keeps the public bundle lean)
@@ -24,12 +23,11 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegistrationPage />} />
           <Route path="/thank-you" element={<ThankYouPage />} />
-          <Route path="/payment-failed" element={<PaymentFailedPage />} />
 
           {/* Admin */}
-          <Route path="/neetcon-admin/login" element={<AdminLoginPage />} />
+          <Route path="/careerx-admin/login" element={<AdminLoginPage />} />
           <Route
-            path="/neetcon-admin/dashboard"
+            path="/careerx-admin/dashboard"
             element={
               <ProtectedRoute>
                 <AdminDashboardPage />

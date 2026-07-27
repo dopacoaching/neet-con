@@ -30,11 +30,8 @@ api.interceptors.response.use(
 export const createRegistration = (payload) =>
   api.post('/registrations', payload).then((r) => r.data.data);
 
-export const initiatePayment = (orderId) =>
-  api.post('/payment/initiate', { orderId }).then((r) => r.data.data);
-
-export const getPaymentStatus = (orderId) =>
-  api.get(`/payment/status/${orderId}`).then((r) => r.data.data);
+export const getRegistrationStatus = (orderId) =>
+  api.get(`/registrations/status/${orderId}`).then((r) => r.data.data);
 
 // Direct URL to the branded entry-pass PNG (served by the API).
 export const getPassUrl = (orderId) =>

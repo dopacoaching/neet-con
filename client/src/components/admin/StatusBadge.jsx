@@ -1,5 +1,4 @@
 const TONES = {
-  CONFIRMED: 'bg-green-500/15 text-green-300 ring-1 ring-green-400/20',
   PENDING: 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/20',
   FAILED: 'bg-red-500/15 text-red-300 ring-1 ring-red-400/20',
   MANUAL: 'bg-blue-500/15 text-blue-300 ring-1 ring-blue-400/20',

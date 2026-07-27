@@ -25,13 +25,14 @@ if (!to) {
 
 const sampleRegistration = {
   fullName: 'Test Student',
-  registrationNumber: 'NEET CON 001',
-  preparingFor: 'NEET 2027',
-  amount: Number(process.env.REGISTRATION_FEE || 100),
+  registrationNumber: 'CAREERX 001',
+  dopaStatus: 'DOPA',
   emailAddress: to,
   mobileNumber: '7306540341',
   schoolOrCollege: 'DOPA Coaching, Calicut',
-  orderId: 'DOPA-TEST-0001',
+  batch: '2026',
+  neetScore: '580',
+  orderId: 'CX-TEST-0001',
   confirmedAt: new Date(),
 };
 

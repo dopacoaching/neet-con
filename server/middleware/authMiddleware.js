@@ -4,7 +4,7 @@ import Admin from '../models/Admin.js';
 import { ADMIN_ROLES } from '../models/Admin.js';
 import { asyncHandler } from './errorHandler.js';
 
-export const ADMIN_COOKIE = 'neetcon_admin_token';
+export const ADMIN_COOKIE = 'careerx_admin_token';
 
 /* ------------------------------------------------------------------ */
 /* Env-defined admins (ADMIN_CREDENTIALS="email:password,email:pass")  */

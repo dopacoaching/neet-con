@@ -1,5 +1,5 @@
 import Admin from '../models/Admin.js';
-import Registration, { PAYMENT_STATUS, PREPARING_FOR } from '../models/Registration.js';
+import Registration, { PAYMENT_STATUS, DOPA_STATUS, CURRENT_EVENT } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { buildRegistrationsWorkbook, buildCheckInsWorkbook } from '../utils/exportExcel.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
@@ -12,6 +12,10 @@ import {
   ADMIN_COOKIE,
   findEnvAdmin,
 } from '../middleware/authMiddleware.js';
+
+// Every query in this file is scoped to the current event (`event: CURRENT_EVENT`)
+// so the admin dashboard only ever shows CareerX registrations, even though the
+// same DB/collection still holds older NEET CON 2026 documents.
 
 /**
  * POST /api/admin/login
@@ -61,7 +65,7 @@ export const me = asyncHandler(async (req, res) => {
 /**
  * GET /api/admin/registrations
  * Paginated, searchable, filterable list.
- * Query: page, limit, status, preparingFor, search, guestInfo
+ * Query: page, limit, status, dopaStatus, search, guestInfo
  *   guestInfo=needsReview -> replied to the guest-count ask but couldn't be
  *     parsed (guestCountReplyRaw set) — needs a human to read + set manually.
  *   guestInfo=notAnswered -> guestCount was never asked/answered at all.
@@ -69,12 +73,11 @@ export const me = asyncHandler(async (req, res) => {
 export const listRegistrations = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
-  const { status, preparingFor, search, guestInfo, whatsappStatus } = req.query;
+  const { status, dopaStatus, search, guestInfo, whatsappStatus } = req.query;
 
-  const filter = {};
+  const filter = { event: CURRENT_EVENT };
   if (status && Object.values(PAYMENT_STATUS).includes(status)) filter.paymentStatus = status;
-  if (preparingFor && Object.values(PREPARING_FOR).includes(preparingFor))
-    filter.preparingFor = preparingFor;
+  if (dopaStatus && Object.values(DOPA_STATUS).includes(dopaStatus)) filter.dopaStatus = dopaStatus;
   if (guestInfo === 'needsReview') {
     filter.guestCountReplyRaw = { $ne: '' };
   } else if (guestInfo === 'notAnswered') {
@@ -126,7 +129,7 @@ export const listRegistrations = asyncHandler(async (req, res) => {
  * GET /api/admin/registrations/:id
  */
 export const getRegistration = asyncHandler(async (req, res) => {
-  const registration = await Registration.findById(req.params.id).lean();
+  const registration = await Registration.findOne({ _id: req.params.id, event: CURRENT_EVENT }).lean();
   if (!registration) {
     res.status(404);
     throw new Error('Registration not found');
@@ -136,12 +139,12 @@ export const getRegistration = asyncHandler(async (req, res) => {
 
 /**
  * PATCH /api/admin/registrations/:id/status
- * Manually update status (MANUAL / CONFIRMED / FAILED / PENDING) and/or notes.
+ * Manually update status (MANUAL / FREE / FAILED / PENDING) and/or notes.
  * Requires admin role.
  */
 export const updateRegistrationStatus = asyncHandler(async (req, res) => {
   const { status, notes, guestCount } = req.body || {};
-  const registration = await Registration.findById(req.params.id);
+  const registration = await Registration.findOne({ _id: req.params.id, event: CURRENT_EVENT });
   if (!registration) {
     res.status(404);
     throw new Error('Registration not found');
@@ -173,9 +176,10 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
       Registration.SEAT_HOLDING_STATUSES.includes(status) && !wasConfirmed;
 
     if (becomingConfirmed) {
-      // Duplicate-payment guard: don't seat a mobile that already holds a seat.
+      // Duplicate guard: don't seat a mobile that already holds a CareerX seat.
       const dupe = await Registration.findOne({
         _id: { $ne: registration._id },
+        event: CURRENT_EVENT,
         mobileNumber: registration.mobileNumber,
         paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
       });
@@ -209,8 +213,8 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
     try {
       await registration.save();
     } catch (err) {
-      // DB-level backstop (mobileNumber_manual_unique) catching the rare race
-      // where two admins pass the pre-check above for the same mobile at once.
+      // DB-level backstop catching the rare race where two admins pass the
+      // pre-check above for the same mobile at once.
       if (err?.code === 11000 && err?.keyPattern?.mobileNumber) {
         res.status(409);
         throw new Error('This mobile number was just confirmed by another admin — refresh and check.');
@@ -220,8 +224,7 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
     // On a manual confirmation, send the confirmation + QR via WhatsApp and (if
     // the registrant gave an email) by email. Fire-and-forget so the admin
-    // response isn't delayed. No organizer notice here — that's reserved for
-    // confirmations driven by an actual user payment.
+    // response isn't delayed.
     if (becomingConfirmed) {
       sendConfirmationWhatsApp(registration).catch((err) =>
         console.error(`[whatsapp] unexpected send error: ${err?.message || err}`)
@@ -244,7 +247,7 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
  * admin role. Awaited (not fire-and-forget) so the admin gets a real result.
  */
 export const resendWhatsApp = asyncHandler(async (req, res) => {
-  const registration = await Registration.findById(req.params.id);
+  const registration = await Registration.findOne({ _id: req.params.id, event: CURRENT_EVENT });
   if (!registration) {
     res.status(404);
     throw new Error('Registration not found');
@@ -269,18 +272,26 @@ export const resendWhatsApp = asyncHandler(async (req, res) => {
  */
 export const summary = asyncHandler(async (req, res) => {
   const [counts, checkedIn, guestAgg, checkedInGuestAgg] = await Promise.all([
-    Registration.aggregate([{ $group: { _id: '$paymentStatus', count: { $sum: 1 } } }]),
-    Registration.countDocuments({ checkedInAt: { $ne: null } }),
-    // Only count guests for seats that actually hold (paid/manual/free) —
-    // a PENDING/FAILED attempt's guest count isn't a real headcount yet.
     Registration.aggregate([
-      { $match: { paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES } } },
+      { $match: { event: CURRENT_EVENT } },
+      { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
+    ]),
+    Registration.countDocuments({ event: CURRENT_EVENT, checkedInAt: { $ne: null } }),
+    // Only count guests for seats that actually hold (manual/free) — a
+    // PENDING/FAILED attempt's guest count isn't a real headcount yet.
+    Registration.aggregate([
+      {
+        $match: {
+          event: CURRENT_EVENT,
+          paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+        },
+      },
       { $group: { _id: null, total: { $sum: { $ifNull: ['$guestCount', 0] } } } },
     ]),
     // Actual (not expected) guest headcount — only those who've walked
     // through the gate so far.
     Registration.aggregate([
-      { $match: { checkedInAt: { $ne: null } } },
+      { $match: { event: CURRENT_EVENT, checkedInAt: { $ne: null } } },
       { $group: { _id: null, total: { $sum: { $ifNull: ['$guestCount', 0] } } } },
     ]),
   ]);
@@ -293,16 +304,12 @@ export const summary = asyncHandler(async (req, res) => {
   const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
   const totalGuests = guestAgg[0]?.total || 0;
   const checkedInGuests = checkedInGuestAgg[0]?.total || 0;
-  const confirmedTotal =
-    (byStatus[PAYMENT_STATUS.CONFIRMED] || 0) +
-    (byStatus[PAYMENT_STATUS.MANUAL] || 0) +
-    (byStatus[PAYMENT_STATUS.FREE] || 0);
+  const confirmedTotal = (byStatus[PAYMENT_STATUS.MANUAL] || 0) + (byStatus[PAYMENT_STATUS.FREE] || 0);
 
   res.json({
     success: true,
     data: {
       total,
-      confirmed: byStatus[PAYMENT_STATUS.CONFIRMED] || 0,
       manual: byStatus[PAYMENT_STATUS.MANUAL] || 0,
       free: byStatus[PAYMENT_STATUS.FREE] || 0,
       pending: byStatus[PAYMENT_STATUS.PENDING] || 0,
@@ -318,10 +325,10 @@ export const summary = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/admin/export
- * Export all registrations to .xlsx. Admin role only.
+ * Export CareerX registrations to .xlsx. Admin role only.
  */
 export const exportRegistrations = asyncHandler(async (req, res) => {
-  const registrations = await Registration.find({}).sort({ createdAt: 1 }).lean();
+  const registrations = await Registration.find({ event: CURRENT_EVENT }).sort({ createdAt: 1 }).lean();
   const buffer = buildRegistrationsWorkbook(registrations);
 
   const stamp = new Date().toISOString().slice(0, 10);
@@ -329,10 +336,7 @@ export const exportRegistrations = asyncHandler(async (req, res) => {
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   );
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename="neetcon2026-registrations-${stamp}.xlsx"`
-  );
+  res.setHeader('Content-Disposition', `attachment; filename="careerx-registrations-${stamp}.xlsx"`);
   res.send(buffer);
 });
 
@@ -344,8 +348,10 @@ const checkinView = (r) => ({
   registrationNumber: r.registrationNumber,
   fullName: r.fullName,
   mobileNumber: r.mobileNumber,
+  dopaStatus: r.dopaStatus,
   schoolOrCollege: r.schoolOrCollege,
-  preparingFor: r.preparingFor,
+  batch: r.batch,
+  neetScore: r.neetScore,
   paymentStatus: r.paymentStatus,
   checkedInAt: r.checkedInAt,
   checkedInBy: r.checkedInBy,
@@ -358,10 +364,10 @@ const checkinView = (r) => ({
  * Available to any authenticated admin (gate staff may be viewers).
  */
 export const listCheckIns = asyncHandler(async (req, res) => {
-  const items = await Registration.find({ checkedInAt: { $ne: null } })
+  const items = await Registration.find({ event: CURRENT_EVENT, checkedInAt: { $ne: null } })
     .sort({ checkedInAt: -1 })
     .select(
-      'registrationNumber fullName mobileNumber preparingFor schoolOrCollege checkedInAt checkedInBy guestCount'
+      'registrationNumber fullName mobileNumber dopaStatus schoolOrCollege batch neetScore checkedInAt checkedInBy guestCount'
     )
     .lean();
   res.json({ success: true, data: { count: items.length, items } });
@@ -373,7 +379,7 @@ export const listCheckIns = asyncHandler(async (req, res) => {
  * (incl. viewer-role gate staff), matching listCheckIns' access level.
  */
 export const exportCheckIns = asyncHandler(async (req, res) => {
-  const items = await Registration.find({ checkedInAt: { $ne: null } })
+  const items = await Registration.find({ event: CURRENT_EVENT, checkedInAt: { $ne: null } })
     .sort({ checkedInAt: 1 })
     .lean();
   const buffer = buildCheckInsWorkbook(items);
@@ -383,18 +389,15 @@ export const exportCheckIns = asyncHandler(async (req, res) => {
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   );
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename="neetcon2026-checkins-${stamp}.xlsx"`
-  );
+  res.setHeader('Content-Disposition', `attachment; filename="careerx-checkins-${stamp}.xlsx"`);
   res.send(buffer);
 });
 
 /**
  * POST /api/admin/checkin
  * Body: { code }  — the registration code encoded in the student's QR, OR
- * (as a fallback for walk-ins without a printed QR, e.g. some Google-Form
- * students) an exact mobile number, OR a name search.
+ * (as a fallback for walk-ins without a printed QR) an exact mobile number,
+ * OR a name search.
  * Looks the student up, validates the seat, and marks attendance (once).
  * Available to any authenticated admin (gate staff may be viewers).
  */
@@ -405,19 +408,20 @@ export const checkIn = asyncHandler(async (req, res) => {
     throw new Error('No QR code / registration number provided');
   }
 
-  let registration = await Registration.findOne({ registrationNumber: code });
+  let registration = await Registration.findOne({ registrationNumber: code, event: CURRENT_EVENT });
 
   // Fallback 1: exact 10-digit mobile number. Scoped to seat-holding
   // statuses and routed through the same multiple-matches guard as the name
   // search below — a mobile can have more than one Registration doc (e.g. an
-  // old FAILED attempt alongside the real FREE/CONFIRMED seat, or two family
-  // members sharing a number), so picking the first match blind could wrongly
-  // deny a legitimately confirmed attendee or check in the wrong person.
+  // old FAILED attempt alongside the real seat, or two family members
+  // sharing a number), so picking the first match blind could wrongly deny a
+  // legitimately confirmed attendee or check in the wrong person.
   if (!registration) {
     const digits = code.replace(/\D/g, '');
     if (digits.length === 10) {
       const candidates = await Registration.find({
         mobileNumber: digits,
+        event: CURRENT_EVENT,
         paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
       }).limit(8);
 
@@ -441,6 +445,7 @@ export const checkIn = asyncHandler(async (req, res) => {
     const safe = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const candidates = await Registration.find({
       fullName: { $regex: safe, $options: 'i' },
+      event: CURRENT_EVENT,
       paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
     }).limit(8);
 
@@ -467,7 +472,7 @@ export const checkIn = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: false,
       result: 'not_confirmed',
-      message: 'This registration is not a confirmed/paid seat — do not admit.',
+      message: 'This registration is not a confirmed seat — do not admit.',
       data: checkinView(registration),
     });
   }
@@ -505,12 +510,19 @@ const WALKIN_MOBILE_RE = /^[6-9]\d{9}$/;
  * POST /api/admin/registrations/walk-in
  * Register a student on the spot at the gate (they never registered online)
  * and check them in immediately in the same action. Name, mobile, and guest
- * count are required; school/college and preparing-for are optional. Any
- * authenticated admin (incl. viewer-role gate staff) can do this.
+ * count are required; the rest are optional. Any authenticated admin (incl.
+ * viewer-role gate staff) can do this.
  */
 export const registerWalkIn = asyncHandler(async (req, res) => {
-  const { fullName, mobileNumber, schoolOrCollege = '', preparingFor = '', guestCount } =
-    req.body || {};
+  const {
+    fullName,
+    mobileNumber,
+    dopaStatus = '',
+    schoolOrCollege = '',
+    batch = '',
+    neetScore = '',
+    guestCount,
+  } = req.body || {};
 
   const errors = [];
   if (!fullName || !String(fullName).trim()) errors.push('Full name is required');
@@ -520,8 +532,8 @@ export const registerWalkIn = asyncHandler(async (req, res) => {
   if (guestCount === undefined || guestCount === null || guestCount === '' || !Number.isFinite(n))
     errors.push('Guest count is required');
   else if (n < 0 || n > 20) errors.push('Guest count must be between 0 and 20');
-  if (preparingFor && !Object.values(PREPARING_FOR).includes(preparingFor))
-    errors.push('Preparing For must be "NEET 2027" or "NEET 2028"');
+  if (dopaStatus && !Object.values(DOPA_STATUS).includes(dopaStatus))
+    errors.push('Invalid DOPA status value');
 
   if (errors.length) {
     res.status(400);
@@ -532,6 +544,7 @@ export const registerWalkIn = asyncHandler(async (req, res) => {
 
   const existing = await Registration.findOne({
     mobileNumber: mobile,
+    event: CURRENT_EVENT,
     paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
   });
   if (existing) {
@@ -546,17 +559,20 @@ export const registerWalkIn = asyncHandler(async (req, res) => {
   let registration;
   try {
     registration = await Registration.create({
+      event: CURRENT_EVENT,
       fullName: String(fullName).trim(),
       mobileNumber: mobile,
+      dopaStatus: dopaStatus || undefined,
       schoolOrCollege: String(schoolOrCollege).trim(),
-      preparingFor: preparingFor || undefined,
+      batch: String(batch).trim(),
+      neetScore: String(neetScore).trim(),
       guestCount: n,
       orderId,
-      amount: 0,
-      paymentStatus: PAYMENT_STATUS.FREE,
+      paymentStatus: PAYMENT_STATUS.MANUAL,
       registrationNumber: await nextRegistrationNumber(),
       confirmedAt: new Date(),
       source: 'admin_walk_in',
+      manuallyConfirmedBy: req.admin.username,
       checkedInAt: new Date(),
       checkedInBy: req.admin.username,
     });
@@ -595,7 +611,7 @@ export const setGuestCountAtGate = asyncHandler(async (req, res) => {
     throw new Error('Guest count must be a number between 0 and 20');
   }
 
-  const existing = await Registration.findById(req.params.id);
+  const existing = await Registration.findOne({ _id: req.params.id, event: CURRENT_EVENT });
   if (!existing) {
     res.status(404);
     throw new Error('Registration not found');

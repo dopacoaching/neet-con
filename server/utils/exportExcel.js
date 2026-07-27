@@ -12,20 +12,16 @@ export const buildRegistrationsWorkbook = (registrations) => {
     'Full Name': r.fullName || '',
     'Mobile Number': r.mobileNumber || '',
     'Email': r.emailAddress || '',
-    'School / College': r.schoolOrCollege || '',
+    'DOPA / Non-DOPA': r.dopaStatus || '',
+    'Campus / Institution': r.schoolOrCollege || '',
+    'Batch': r.batch || '',
+    'NEET 2026 Score': r.neetScore || '',
     'Passed Year (12th)': r.passedYear || '',
-    'Preparing For': r.preparingFor || '',
     'Guests Accompanying': r.guestCount ?? 0,
-    'Source': r.source === 'google_form' ? 'Google Form (DOPA)' : 'Online',
-    'District / Place': r.district || '',
-    'Current Status': r.currentStatus || '',
-    'Expected NEET Score': r.expectedScore || '',
+    'Source': r.source === 'admin_walk_in' ? 'Walk-in (Admin)' : 'Online',
     'Remarks': r.remarks || '',
-    'Payment Status': r.paymentStatus || '',
-    'Amount (INR)': r.amount ?? '',
-    'Order ID': r.orderId || '',
-    'HDFC Txn ID': r.hdfc_txn_id || '',
-    'Payment Attempts': r.paymentAttempts ?? 0,
+    'Registration Status': r.paymentStatus || '',
+    'Reference ID': r.orderId || '',
     'Registered At': r.createdAt ? new Date(r.createdAt).toLocaleString('en-IN') : '',
     'Confirmed At': r.confirmedAt ? new Date(r.confirmedAt).toLocaleString('en-IN') : '',
     'Manually Confirmed By': r.manuallyConfirmedBy || '',
@@ -39,9 +35,9 @@ export const buildRegistrationsWorkbook = (registrations) => {
   // Reasonable column widths.
   worksheet['!cols'] = [
     { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 }, { wch: 26 }, // # .. Email
-    { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, // School, Passed Year, Preparing For, Guests
-    { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 14 }, { wch: 30 }, // Source, District, Current Status, Expected Score, Remarks
-    { wch: 15 }, { wch: 12 }, { wch: 26 }, { wch: 20 }, { wch: 16 }, // Payment Status .. Attempts
+    { wch: 14 }, { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 12 }, // DOPA .. Guests
+    { wch: 16 }, { wch: 30 }, // Source, Remarks
+    { wch: 18 }, { wch: 26 }, // Registration Status, Reference ID
     { wch: 22 }, { wch: 22 }, { wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 30 }, // Registered .. Notes
   ];
 
@@ -62,8 +58,10 @@ export const buildCheckInsWorkbook = (registrations) => {
     'Registration Number': r.registrationNumber || '',
     'Full Name': r.fullName || '',
     'Mobile Number': r.mobileNumber || '',
-    'School / College': r.schoolOrCollege || '',
-    'Preparing For': r.preparingFor || '',
+    'DOPA / Non-DOPA': r.dopaStatus || '',
+    'Campus / Institution': r.schoolOrCollege || '',
+    'Batch': r.batch || '',
+    'NEET 2026 Score': r.neetScore || '',
     'Guests Accompanying': r.guestCount ?? 0,
     'Checked In At': r.checkedInAt ? new Date(r.checkedInAt).toLocaleString('en-IN') : '',
     'Checked In By': r.checkedInBy || '',
@@ -72,7 +70,7 @@ export const buildCheckInsWorkbook = (registrations) => {
   const worksheet = xlsx.utils.json_to_sheet(rows);
   worksheet['!cols'] = [
     { wch: 5 }, { wch: 20 }, { wch: 24 }, { wch: 14 },
-    { wch: 28 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 18 },
+    { wch: 14 }, { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 18 },
   ];
 
   const workbook = xlsx.utils.book_new();

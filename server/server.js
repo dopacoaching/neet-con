@@ -21,10 +21,8 @@ import mongoSanitize from './middleware/sanitize.js';
 import { getAllowedOrigins } from './config/origins.js';
 
 import registrationRoutes from './routes/registrationRoutes.js';
-import paymentRoutes from './routes/paymentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import whatsappRoutes from './routes/whatsappRoutes.js';
-import { reconcileStalePendingPayments } from './controllers/paymentController.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -98,16 +96,14 @@ if (process.env.NODE_ENV !== 'production') {
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    service: 'neetcon-2026-api',
+    service: 'careerx-api',
     time: new Date().toISOString(),
-    mockPayment: String(process.env.HDFC_MOCK).toLowerCase() === 'true',
   });
 });
 
 // --- API routes ---
 app.use('/api', apiLimiter);
 app.use('/api/registrations', registrationRoutes);
-app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 
@@ -136,26 +132,9 @@ app.use(errorHandler);
 const start = async () => {
   await connectDB();
   app.listen(PORT, () => {
-    console.log(`[server] NEET CON 2026 API running on http://localhost:${PORT}`);
+    console.log(`[server] CareerX API running on http://localhost:${PORT}`);
     console.log(`[server] Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(
-      `[server] Payment mode: ${
-        String(process.env.HDFC_MOCK).toLowerCase() === 'true' ? 'MOCK (HDFC not configured)' : 'LIVE HDFC'
-      }`
-    );
   });
-
-  // Catch orders HDFC already finalised (charged or declined) that neither
-  // the browser redirect nor the webhook ever reported back to us — without
-  // this sweep they'd sit as PENDING in our DB forever. Runs shortly after
-  // boot (clears any existing backlog) then every 10 min; harmless no-op in
-  // mock mode or when nothing is stale.
-  const runSweep = () =>
-    reconcileStalePendingPayments().catch((err) =>
-      console.error(`[payment] reconcile sweep error: ${err?.message || err}`)
-    );
-  setTimeout(runSweep, 30 * 1000);
-  setInterval(runSweep, 10 * 60 * 1000);
 };
 
 start();

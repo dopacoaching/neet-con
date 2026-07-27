@@ -27,9 +27,8 @@ if (!to) {
 const sampleRegistration = {
   fullName: 'Test Student',
   mobileNumber: to,
-  registrationNumber: 'NEET CON 001',
-  preparingFor: 'NEET 2027',
-  amount: Number(process.env.REGISTRATION_FEE || 100),
+  registrationNumber: 'CAREERX 001',
+  dopaStatus: 'DOPA',
 };
 
 console.log(`[test] sending sample WhatsApp confirmation to ${to} ...`);

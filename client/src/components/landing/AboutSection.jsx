@@ -1,18 +1,18 @@
 const POINTS = [
   {
     icon: '🎯',
-    title: 'What is NEET CON?',
-    body: 'A focused one-day conclave demystifying the NEET counselling & college-allotment process — built for students and parents navigating admissions.',
+    title: 'What is CareerX?',
+    body: 'A focused session giving you a complete roadmap after NEET 2026 — from MBBS admission possibilities to what comes next if things don’t go as planned.',
   },
   {
-    icon: '👨‍⚕️',
+    icon: '🧭',
     title: 'Who Should Attend?',
-    body: 'NEET 2027 & 2028 aspirants, repeaters, and parents who want a clear, data-driven roadmap from rank to a confirmed medical seat.',
+    body: 'Students who appeared for NEET 2026, Plus Two students planning ahead, repeaters weighing their options, and parents seeking a clear picture.',
   },
   {
     icon: '🏫',
     title: 'Hosted by DOPA',
-    body: 'Organised by DOPA Coaching, Calicut — with years of mentoring experience and a track record of guiding students into top medical colleges.',
+    body: 'Organised by DOPA Coaching — with years of mentoring experience and a track record of guiding students into medical colleges.',
   },
 ];
 
@@ -22,11 +22,11 @@ const AboutSection = () => (
       <div className="mx-auto max-w-2xl text-center">
         <p className="eyebrow">About the event</p>
         <h2 className="mt-2 font-heading text-3xl font-extrabold text-navy sm:text-4xl">
-          Clarity that turns a NEET rank into a medical seat
+          Every NEET score has a possibility
         </h2>
         <p className="mt-4 text-navy/70">
-          Most students lose their dream seat not to marks, but to confusion in counselling.
-          NEET CON 2026 fixes that.
+          MBBS admissions, counselling strategy, college selection, or repeating — CareerX helps
+          you decide your next step with clarity, not confusion.
         </p>
       </div>
 
