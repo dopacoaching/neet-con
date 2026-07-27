@@ -78,13 +78,13 @@ export const generateEventPass = async (reg) => {
   const CX2 = 1188; // right column right edge (inside card)
 
   const statusPill = status
-    ? `<rect x="${CX1}" y="322" width="${Math.max(126, status.length * 15 + 56)}" height="46" rx="23" fill="#ffffff" fill-opacity="0.12" stroke="#7fc8ff" stroke-opacity="0.55" stroke-width="1.3"/>
-  <text x="${CX1 + 26}" y="351" font-family="Poppins" font-weight="700" font-size="19" fill="#bfe6ff">${status}</text>`
+    ? `<rect x="${CX1}" y="278" width="${Math.max(126, status.length * 15 + 56)}" height="46" rx="23" fill="#ffffff" fill-opacity="0.12" stroke="#7fc8ff" stroke-opacity="0.55" stroke-width="1.3"/>
+  <text x="${CX1 + 26}" y="307" font-family="Poppins" font-weight="700" font-size="19" fill="#bfe6ff">${status}</text>`
     : '';
 
   const guestsPill = guestCount
-    ? `<rect x="${CX2 - 166}" y="322" width="166" height="46" rx="23" fill="#ffffff" fill-opacity="0.12" stroke="#7dffc4" stroke-opacity="0.55" stroke-width="1.3"/>
-  <text x="${CX2 - 83}" y="351" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="19" fill="#bdffdf">+${guestCount} guest${guestCount === 1 ? '' : 's'}</text>`
+    ? `<rect x="${CX2 - 166}" y="278" width="166" height="46" rx="23" fill="#ffffff" fill-opacity="0.12" stroke="#7dffc4" stroke-opacity="0.55" stroke-width="1.3"/>
+  <text x="${CX2 - 83}" y="307" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="19" fill="#bdffdf">+${guestCount} guest${guestCount === 1 ? '' : 's'}</text>`
     : '';
 
   const svg = `<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -146,35 +146,35 @@ export const generateEventPass = async (reg) => {
     <rect x="1000" y="70" width="188" height="46" rx="23" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.3"/>
     <text x="1094" y="99" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="18" letter-spacing="2.5" fill="#ffffff">ENTRY PASS</text>
 
-    <line x1="76" y1="196" x2="1188" y2="196" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.5"/>
+    <line x1="76" y1="152" x2="1188" y2="152" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.5"/>
 
     <!-- Left: QR with glow halo -->
-    <circle cx="216" cy="380" r="180" fill="#00e5ff" opacity="0.22" filter="url(#blurMd)"/>
-    <rect x="76" y="240" width="280" height="280" rx="28" fill="#ffffff"/>
-    <image x="92" y="256" width="248" height="248" xlink:href="${qrDataUri}"/>
-    <text x="216" y="556" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="19" fill="#d7e4ff">Show this at the entry desk</text>
+    <circle cx="216" cy="336" r="180" fill="#00e5ff" opacity="0.22" filter="url(#blurMd)"/>
+    <rect x="76" y="196" width="280" height="280" rx="28" fill="#ffffff"/>
+    <image x="92" y="212" width="248" height="248" xlink:href="${qrDataUri}"/>
+    <text x="216" y="512" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="19" fill="#d7e4ff">Show this at the entry desk</text>
 
     <!-- Right: delegate info -->
-    <text x="${CX1}" y="250" font-family="Poppins" font-weight="600" font-size="18" letter-spacing="2.5" fill="#8fb2ff">DELEGATE</text>
-    <text x="${CX1}" y="304" font-family="Poppins" font-weight="700" font-size="46" fill="#ffffff">${name}</text>
+    <text x="${CX1}" y="206" font-family="Poppins" font-weight="600" font-size="18" letter-spacing="2.5" fill="#8fb2ff">DELEGATE</text>
+    <text x="${CX1}" y="260" font-family="Poppins" font-weight="700" font-size="46" fill="#ffffff">${name}</text>
 
     ${statusPill}
     ${guestsPill}
 
-    <line x1="${CX1}" y1="398" x2="${CX2}" y2="398" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.5"/>
+    <line x1="${CX1}" y1="354" x2="${CX2}" y2="354" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.5"/>
 
-    <text x="${CX1}" y="446" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2.5" fill="#8fb2ff">TICKET ID</text>
-    <rect x="${CX1}" y="462" width="340" height="70" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="url(#ticketGlow)" stroke-opacity="0.65" stroke-width="1.5"/>
-    <text x="${CX1 + 24}" y="507" font-family="Poppins" font-weight="700" font-size="34" fill="url(#ticketGlow)">${esc(code)}</text>
+    <text x="${CX1}" y="402" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2.5" fill="#8fb2ff">TICKET ID</text>
+    <rect x="${CX1}" y="418" width="340" height="70" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="url(#ticketGlow)" stroke-opacity="0.65" stroke-width="1.5"/>
+    <text x="${CX1 + 24}" y="463" font-family="Poppins" font-weight="700" font-size="34" fill="url(#ticketGlow)">${esc(code)}</text>
 
-    <rect x="${CX1 + 358}" y="462" width="${CX2 - CX1 - 358}" height="70" rx="18" fill="#ffbf4a" fill-opacity="0.14" stroke="#ffbf4a" stroke-opacity="0.5" stroke-width="1.3"/>
-    <text x="${CX1 + 382}" y="490" font-family="Poppins" font-weight="700" font-size="15" letter-spacing="1.3" fill="#ffd88a">DATE &amp; TIME</text>
-    <text x="${CX1 + 382}" y="514" font-family="Poppins" font-weight="700" font-size="19" fill="#ffe9bc">Will be notified soon</text>
+    <rect x="${CX1 + 358}" y="418" width="${CX2 - CX1 - 358}" height="70" rx="18" fill="#ffbf4a" fill-opacity="0.14" stroke="#ffbf4a" stroke-opacity="0.5" stroke-width="1.3"/>
+    <text x="${CX1 + 382}" y="446" font-family="Poppins" font-weight="700" font-size="15" letter-spacing="1.3" fill="#ffd88a">DATE &amp; TIME</text>
+    <text x="${CX1 + 382}" y="470" font-family="Poppins" font-weight="700" font-size="19" fill="#ffe9bc">Will be notified soon</text>
 
-    <text x="${CX1}" y="576" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2.5" fill="#8fb2ff">VENUE</text>
-    <text x="${CX1}" y="606" font-family="Poppins" font-weight="600" font-size="23" fill="#eef3ff">${venue}</text>
+    <text x="${CX1}" y="532" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2.5" fill="#8fb2ff">VENUE</text>
+    <text x="${CX1}" y="562" font-family="Poppins" font-weight="600" font-size="23" fill="#eef3ff">${venue}</text>
 
-    <text x="${CX1}" y="654" font-family="Poppins" font-weight="500" font-size="15" letter-spacing="1.5" fill="#7d93c9">DOPA COACHING · FREE ENTRY</text>
+    <text x="${CX1}" y="626" font-family="Poppins" font-weight="500" font-size="15" letter-spacing="1.5" fill="#7d93c9">DOPA COACHING · FREE ENTRY</text>
   </g>
 </svg>`;
 
