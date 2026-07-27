@@ -34,10 +34,9 @@ app.set('trust proxy', 1);
 // --- Security & parsing middleware ---
 app.use(
   helmet({
-    // API serves JSON + the entry-pass PNG + (dev-only) the inline mock-pay
-    // page. Lock things down with a conservative CSP; 'unsafe-inline' style is
-    // only needed by the mock page. COEP stays off (it would block the pass
-    // image); the pass endpoint sets its own cross-origin CORP where needed.
+    // API serves JSON + the entry-pass PNG. Lock things down with a
+    // conservative CSP; COEP stays off (it would block the pass image) —
+    // the pass endpoint sets its own cross-origin CORP where needed.
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
