@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import RegistrationForm from '../components/registration/RegistrationForm.jsx';
 import Logo from '../components/ui/Logo.jsx';
-import { EVENT_TIME, VENUE_NAME, VENUE_MAP_URL } from '../config/event.js';
+import { VENUE_NAME, VENUE_MAP_URL } from '../config/event.js';
 
 const RegistrationPage = () => {
   return (
@@ -27,8 +27,7 @@ const RegistrationPage = () => {
 
           <div className="mt-8 space-y-3 text-sm">
             {[
-              ['📅 Date', 'Will be notified soon'],
-              ['🕤 Time', EVENT_TIME],
+              ['📅 Date & Time', 'Will be notified soon'],
               ['📍 Venue', VENUE_NAME],
               ['🎟️ Fee', 'Free entry'],
             ].map(([k, v]) => (

@@ -17,8 +17,6 @@ import { generateQrBuffer } from './qrcode.js';
  */
 
 const EVENT = {
-  date: process.env.EVENT_DATE || 'Saturday, 1 August 2026',
-  time: process.env.EVENT_TIME || '9:30 AM onwards',
   venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
   mapUrl: process.env.EVENT_MAP_URL || 'https://maps.app.goo.gl/5xkHbG9FUSHaFLRQ6',
 };
@@ -91,8 +89,7 @@ export const buildUserEmailHtml = (reg) => {
         <img src="cid:entrypass" alt="CareerX entry pass" width="504" style="width:100%;height:auto;border-radius:12px;border:1px solid #e4e8f3;display:block"/>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;font-size:14px">
-          <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Date</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">Will be notified soon</td></tr>
-          <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Time</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.time)}</td></tr>
+          <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Date &amp; Time</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">Will be notified soon</td></tr>
           <tr><td style="padding:7px 0;color:#7a85a0">Venue</td><td style="padding:7px 0;text-align:right;font-weight:bold">${esc(EVENT.venue)}</td></tr>
         </table>
 
@@ -112,8 +109,7 @@ const userText = (reg) =>
   `You're confirmed for CareerX!\n\n` +
   `Registration Code: ${reg.registrationNumber}\n` +
   `Name: ${reg.fullName}\n` +
-  `Date: Will be notified soon\n` +
-  `Time: ${EVENT.time}\n` +
+  `Date & Time: Will be notified soon\n` +
   `Venue: ${EVENT.venue}\n\n` +
   `Show the QR on your entry pass (attached) at the registration desk.\n` +
   `Directions: ${EVENT.mapUrl}\n\n` +

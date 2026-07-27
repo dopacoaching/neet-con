@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { EVENT_TIME, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
+import { VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
 
 const HeroSection = () => {
   return (
@@ -47,7 +47,7 @@ const HeroSection = () => {
             </span>
           </div>
 
-          <p className="mt-2 text-sm text-white/50">🕤 {EVENT_TIME}</p>
+          <p className="mt-2 text-sm text-white/50">🕤 Time will be notified soon</p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link to="/register" className="btn-white text-base">
@@ -83,7 +83,7 @@ const HeroSection = () => {
               </div>
               <div className="flex justify-between border-b border-white/10 pb-2">
                 <span>Time</span>
-                <strong>{EVENT_TIME}</strong>
+                <strong>Will be notified soon</strong>
               </div>
               <div className="flex justify-between">
                 <span>Venue</span>

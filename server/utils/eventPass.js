@@ -14,7 +14,6 @@ const FONT_FILES = [
 ];
 
 const EVENT = {
-  time: process.env.EVENT_TIME || '9:30 AM onwards',
   venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
 };
 
@@ -57,7 +56,6 @@ export const generateEventPass = async (reg) => {
 
   const name = esc(truncate(reg.fullName, 22));
   const status = esc(reg.dopaStatus || '');
-  const time = esc(EVENT.time);
   const venue = esc(truncate(EVENT.venue, 46));
   const guestCount = Math.max(0, Math.trunc(Number(reg.guestCount) || 0));
 
@@ -139,16 +137,13 @@ export const generateEventPass = async (reg) => {
 
   <line x1="${PX}" y1="410" x2="${PR}" y2="410" stroke="#0a0f3d" stroke-opacity="0.08" stroke-width="1.5"/>
 
-  <!-- Date pending notice — deliberately prominent since the date isn't final yet -->
+  <!-- Date/time pending notice — deliberately prominent since neither is final yet -->
   <rect x="${PX}" y="440" width="${PR - PX}" height="64" rx="16" fill="#fff4dd"/>
-  <text x="${PX + 22}" y="465" font-family="Poppins" font-weight="700" font-size="17" letter-spacing="1.5" fill="#9a6400">DATE</text>
+  <text x="${PX + 22}" y="465" font-family="Poppins" font-weight="700" font-size="17" letter-spacing="1.5" fill="#9a6400">DATE &amp; TIME</text>
   <text x="${PX + 22}" y="491" font-family="Poppins" font-weight="700" font-size="22" fill="#7a4e00">Will be notified soon</text>
 
-  <text x="${PX}" y="556" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2" fill="#8b93ab">TIME</text>
-  <text x="${PX}" y="586" font-family="Poppins" font-weight="700" font-size="25" fill="#0a0f3d">${time}</text>
-
-  <text x="${PX}" y="626" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2" fill="#8b93ab">VENUE</text>
-  <text x="${PX}" y="656" font-family="Poppins" font-weight="600" font-size="23" fill="#0a0f3d">${venue}</text>
+  <text x="${PX}" y="556" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2" fill="#8b93ab">VENUE</text>
+  <text x="${PX}" y="586" font-family="Poppins" font-weight="600" font-size="25" fill="#0a0f3d">${venue}</text>
 </svg>`;
 
   const resvg = new Resvg(svg, {
