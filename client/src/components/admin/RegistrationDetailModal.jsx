@@ -60,6 +60,12 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
       );
       if (!ok) return;
     }
+    if (statusOverride === 'FAILED') {
+      const ok = window.confirm(
+        `Cancel ${r.fullName}'s confirmed seat and mark it FAILED?\n\nThis un-seats them — only do this for a genuine duplicate/mistake. Their registration number is kept but they will no longer be admittable at check-in.`
+      );
+      if (!ok) return;
+    }
     setSaving(true);
     try {
       const payload = { notes, guestCount: guestCount === '' ? null : guestCount };
@@ -307,7 +313,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
             <button onClick={() => save()} className="btn-ghost-dark !py-2.5" disabled={saving}>
               {saving ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : 'Save notes'}
             </button>
-            {!isConfirmed && (
+            {!isSeatHolding && (
               <button
                 onClick={() => save('MANUAL')}
                 className="btn-primary !py-2.5"
@@ -316,13 +322,13 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
                 Manually Confirm
               </button>
             )}
-            {r.paymentStatus !== 'FAILED' && !isConfirmed && (
+            {r.paymentStatus !== 'FAILED' && (
               <button
                 onClick={() => save('FAILED')}
                 className="rounded-xl border border-red-400/40 px-5 py-2.5 font-semibold text-red-300 transition hover:bg-red-500/10"
                 disabled={saving}
               >
-                Mark Failed
+                {isSeatHolding ? 'Cancel Registration' : 'Mark Failed'}
               </button>
             )}
           </div>

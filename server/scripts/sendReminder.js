@@ -1,7 +1,7 @@
 /**
  * One-off: send the day-before event reminder to every seat-holding
  * registration, via the approved WHATSAPP_REMINDER_TEMPLATE_NAME template
- * (defaults to 'neetcon_2026_reminder' — see server/utils/whatsapp.js).
+ * (defaults to 'careerx_reminder' — see server/utils/whatsapp.js).
  *
  * Usage:
  *   cd server
