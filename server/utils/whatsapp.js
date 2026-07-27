@@ -35,19 +35,25 @@ const trackResult = async (reg, result) => {
  *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
  *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. careerx_confirmation)
- *    - Category: UTILITY
+ *    - Category: MARKETING (Meta's auto-classifier consistently rejects this
+ *      content as UTILITY regardless of wording — see project history)
  *    - Header:   IMAGE
  *    - Body with 6 NAMED variables (Meta's current editor requires named, not
- *      numbered, parameters — lowercase + underscores):
- *        {{full_name}} {{registration_code}}
+ *      numbered, parameters — lowercase + underscores). Named `ticket_id`
+ *      rather than `registration_code` deliberately — the word "code" next to
+ *      a short value pattern-matches Meta's OTP/authentication detector:
+ *        {{full_name}} {{ticket_id}}
  *        {{event_date}} {{event_time}} {{venue}} {{guest_count}}
- *      Example body text (event is FREE — no amount variable):
- *        "Hi {{full_name}}, your CareerX seat is CONFIRMED ✅ (Free Entry)
- *         Registration Code: {{registration_code}}
- *         Date: {{event_date}}, Time: {{event_time}}
+ *      Example body text:
+ *        "Hi {{full_name}}, you're confirmed for CareerX!
+ *         Your Complete Roadmap After NEET 2026 — MBBS admissions, counselling
+ *         strategy, and career options, all in one session.
+ *         Ticket ID: {{ticket_id}}
+ *         Date: {{event_date}}
+ *         Time: {{event_time}}
  *         Venue: {{venue}}
  *         Guests joining you: {{guest_count}}
- *         Show the QR above at the entry desk. See you there!"
+ *         Show the QR code above at the entry desk. See you there!"
  *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
  *      link for the venue. Static-URL buttons need NO code change (only dynamic
  *      {{n}} URL buttons would). The QR is always the image header (top).
@@ -64,10 +70,10 @@ const trackResult = async (reg, result) => {
  *    - Name:     matches WHATSAPP_GUESTCOUNT_TEMPLATE_NAME (e.g. careerx_guest_count_ask)
  *    - Category: UTILITY
  *    - Header:   none
- *    - Body with 2 NAMED variables: {{full_name}} {{registration_code}}
+ *    - Body with 2 NAMED variables: {{full_name}} {{ticket_id}}
  *      Example body text:
  *        "Hi {{full_name}}, quick update needed for your CareerX
- *         registration (Code: {{registration_code}}).
+ *         registration (Ticket ID: {{ticket_id}}).
  *         How many family members or friends will be joining you at the
  *         event? Please reply with just a number (e.g. 0, 1, 2, 3).
  *         This helps us plan seating. Thank you!"
@@ -214,7 +220,7 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
               { type: 'text', parameter_name: 'full_name', text: String(reg.fullName) },
               {
                 type: 'text',
-                parameter_name: 'registration_code',
+                parameter_name: 'ticket_id',
                 text: String(reg.registrationNumber),
               },
               { type: 'text', parameter_name: 'event_date', text: EVENT.date },
@@ -291,7 +297,7 @@ export const sendGuestCountAsk = async (reg) => {
               { type: 'text', parameter_name: 'full_name', text: String(reg.fullName) },
               {
                 type: 'text',
-                parameter_name: 'registration_code',
+                parameter_name: 'ticket_id',
                 text: String(reg.registrationNumber || reg.orderId),
               },
             ],
