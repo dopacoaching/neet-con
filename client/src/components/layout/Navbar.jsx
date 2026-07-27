@@ -22,7 +22,7 @@ const Navbar = () => {
   return (
     <header
       className={`sticky top-0 z-50 transition-all ${
-        scrolled ? 'bg-white/95 shadow-md backdrop-blur' : 'bg-transparent'
+        scrolled ? 'bg-white shadow-md' : 'bg-transparent'
       }`}
     >
       <nav className="section flex items-center justify-between py-3">
