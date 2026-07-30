@@ -5,9 +5,15 @@ import { google } from 'googleapis';
  *   1. appendRegistrationRow() — fires automatically the instant a new
  *      registration is created, adding just that one row.
  *   2. syncToGoogleSheet() — the admin dashboard's manual "Sync to Google
- *      Sheet" button, which fully overwrites both tabs (Registrations +
- *      Check-ins) from the database. Use it to pull in check-ins (which
- *      don't auto-sync) or to repair the sheet if it ever drifts.
+ *      Sheet" button, which brings both tabs (Registrations + Check-ins)
+ *      up to date with the database. Use it to pull in check-ins (which
+ *      don't auto-sync) or to backfill anything the real-time append missed.
+ *
+ * Both are upserts, not overwrites: each database row is matched to an
+ * existing sheet row by its Registration Number (column B) and updated in
+ * place, or appended if it isn't there yet. Rows/columns you add by hand in
+ * the sheet are never touched — nothing is ever cleared, so manual notes,
+ * extra columns, or extra rows survive every sync.
  *
  * Auth: a Google Cloud service account (not a user OAuth flow — this runs
  * unattended from the server). Share the target spreadsheet with the
@@ -40,6 +46,9 @@ const getSheetsClient = () => {
 
 /** Format a Date (or null) as a readable IST string, or '' if unset. */
 const fmt = (d) => (d ? new Date(d).toLocaleString('en-IN') : '');
+
+// Column B ("Registration Number") is the stable key both tabs are matched on.
+const KEY_COLUMN_INDEX = 1;
 
 const REGISTRATIONS_HEADER = [
   '#',
@@ -132,9 +141,8 @@ const ensureTab = async (sheets, spreadsheetId, tabName) => {
 
 /**
  * (Re)apply a bold navy header, a frozen header row, zebra-striped data rows,
- * and auto-sized columns to a tab — done via the spreadsheet API's cell
- * formatting, not by writing "styled" values, so it survives every
- * clear+rewrite or append.
+ * and auto-sized columns to a tab — pure formatting, never touches cell
+ * values, so it's safe to re-run on every sync.
  */
 const applyFormatting = async (sheets, spreadsheetId, sheetMeta, columnCount, rowCount) => {
   const sheetId = sheetMeta.properties.sheetId;
@@ -194,26 +202,61 @@ const applyFormatting = async (sheets, spreadsheetId, sheetMeta, columnCount, ro
 };
 
 /**
- * Overwrite a single tab with a header row + data rows. Creates the tab if
- * it doesn't already exist on the spreadsheet.
+ * Bring a tab's data up to date without ever clearing it: each incoming row
+ * is matched to an existing sheet row by its key column (Registration
+ * Number) and updated in place; rows with no match are appended after the
+ * last existing row. Any manually-added rows, extra columns, or formatting
+ * are left completely alone.
  */
-const writeTab = async (sheets, spreadsheetId, tabName, rows) => {
+const upsertTab = async (sheets, spreadsheetId, tabName, header, dataRows) => {
   const sheetMeta = await ensureTab(sheets, spreadsheetId, tabName);
 
-  // Clear the tab, then write fresh — never appends, so re-syncing can't duplicate.
-  await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!A:Z` });
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `${tabName}!A1`,
-    valueInputOption: 'USER_ENTERED',
-    requestBody: { values: rows },
+  const existing = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${tabName}!A:Z` });
+  const existingValues = existing.data.values || [];
+
+  // Brand new tab — nothing to preserve, write header + all rows in one shot.
+  if (existingValues.length === 0) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${tabName}!A1`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [header, ...dataRows] },
+    });
+    await applyFormatting(sheets, spreadsheetId, sheetMeta, header.length, dataRows.length + 1);
+    return;
+  }
+
+  // Keep the header row current (cheap, harmless if unchanged).
+  const valueData = [{ range: `${tabName}!A1`, values: [header] }];
+
+  // Map each existing row's key (Registration Number) to its sheet row number.
+  const keyToRowNumber = new Map();
+  existingValues.forEach((row, i) => {
+    if (i === 0) return; // header
+    const key = row[KEY_COLUMN_INDEX];
+    if (key) keyToRowNumber.set(String(key), i + 1); // 1-based sheet row number
   });
 
-  await applyFormatting(sheets, spreadsheetId, sheetMeta, rows[0]?.length || 1, rows.length);
+  let nextNewRowNumber = existingValues.length + 1;
+  dataRows.forEach((row) => {
+    const key = String(row[KEY_COLUMN_INDEX]);
+    const rowNumber = keyToRowNumber.get(key) || nextNewRowNumber++;
+    valueData.push({ range: `${tabName}!A${rowNumber}`, values: [row] });
+  });
+
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId,
+    requestBody: { valueInputOption: 'USER_ENTERED', data: valueData },
+  });
+
+  const totalRows = Math.max(existingValues.length, nextNewRowNumber - 1);
+  await applyFormatting(sheets, spreadsheetId, sheetMeta, header.length, totalRows);
 };
 
 /**
  * Sync CareerX registrations + check-ins into two tabs of one spreadsheet.
+ * Upserts by Registration Number — never clears the sheet, so any manual
+ * edits, notes, or extra rows/columns you've added stay put.
  * @param {Array<object>} registrations  all registrations (lean docs)
  * @param {Array<object>} checkIns       checked-in registrations (lean docs)
  * @returns {Promise<{ sheetUrl: string }>}
@@ -227,23 +270,18 @@ export const syncToGoogleSheet = async (registrations, checkIns) => {
   const sheets = getSheetsClient();
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-  await writeTab(sheets, spreadsheetId, 'Registrations', [
-    REGISTRATIONS_HEADER,
-    ...registrations.map(registrationRow),
-  ]);
-  await writeTab(sheets, spreadsheetId, 'Check-ins', [
-    CHECKINS_HEADER,
-    ...checkIns.map(checkinRow),
-  ]);
+  await upsertTab(sheets, spreadsheetId, 'Registrations', REGISTRATIONS_HEADER, registrations.map(registrationRow));
+  await upsertTab(sheets, spreadsheetId, 'Check-ins', CHECKINS_HEADER, checkIns.map(checkinRow));
 
   return { sheetUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit` };
 };
 
 /**
- * Append a single newly-created registration to the "Registrations" tab as
- * it happens — called fire-and-forget right after a registration is saved,
- * the same way the WhatsApp/email confirmations are, so a slow or failing
- * Sheets API call never delays or breaks the registration response.
+ * Add (or, if it somehow already exists, update) a single registration in
+ * the "Registrations" tab — called fire-and-forget right after a
+ * registration is saved, the same way the WhatsApp/email confirmations are,
+ * so a slow or failing Sheets API call never delays or breaks the
+ * registration response.
  *
  * Silently no-ops if Sheets isn't configured yet (rather than throwing),
  * since this runs unattended on the critical registration path.
@@ -254,31 +292,18 @@ export const appendRegistrationRow = async (registration) => {
 
   const sheets = getSheetsClient();
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-  const tabName = 'Registrations';
 
-  const sheetMeta = await ensureTab(sheets, spreadsheetId, tabName);
-
-  // How many rows are already there (header included), so the new row gets
-  // the right running "#" and the banding range can be extended to cover it.
-  const existing = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${tabName}!A:A` });
-  const existingRowCount = existing.data.values?.length || 0;
-  const isFirstWrite = existingRowCount === 0;
-  const idx = isFirstWrite ? 0 : existingRowCount - 1; // header doesn't count as a data row
-
-  await sheets.spreadsheets.values.append({
+  // "#" just needs to keep counting up from whatever's already in the sheet
+  // (including any manually-added rows) — it's a display sequence, not a key.
+  const existing = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${tabName}!A1`,
-    valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
-    requestBody: {
-      values: isFirstWrite
-        ? [REGISTRATIONS_HEADER, registrationRow(registration, idx)]
-        : [registrationRow(registration, idx)],
-    },
+    range: 'Registrations!A:A',
   });
+  const idx = Math.max((existing.data.values?.length || 1) - 1, 0);
 
-  const newRowCount = isFirstWrite ? 2 : existingRowCount + 1;
-  await applyFormatting(sheets, spreadsheetId, sheetMeta, REGISTRATIONS_HEADER.length, newRowCount);
+  await upsertTab(sheets, spreadsheetId, 'Registrations', REGISTRATIONS_HEADER, [
+    registrationRow(registration, idx),
+  ]);
 };
 
 export default syncToGoogleSheet;
