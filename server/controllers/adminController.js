@@ -271,10 +271,21 @@ export const resendWhatsApp = asyncHandler(async (req, res) => {
  * Dashboard cards data.
  */
 export const summary = asyncHandler(async (req, res) => {
-  const [counts, checkedIn, guestAgg, checkedInGuestAgg] = await Promise.all([
+  const [counts, dopaCounts, checkedIn, guestAgg, checkedInGuestAgg] = await Promise.all([
     Registration.aggregate([
       { $match: { event: CURRENT_EVENT } },
       { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
+    ]),
+    // DOPA vs Non-DOPA — only seats that actually hold (manual/free), same
+    // scoping as the guest-count aggregations below.
+    Registration.aggregate([
+      {
+        $match: {
+          event: CURRENT_EVENT,
+          paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+        },
+      },
+      { $group: { _id: '$dopaStatus', count: { $sum: 1 } } },
     ]),
     Registration.countDocuments({ event: CURRENT_EVENT, checkedInAt: { $ne: null } }),
     // Only count guests for seats that actually hold (manual/free) — a
@@ -300,6 +311,10 @@ export const summary = asyncHandler(async (req, res) => {
     acc[c._id] = c.count;
     return acc;
   }, {});
+  const byDopaStatus = dopaCounts.reduce((acc, c) => {
+    acc[c._id] = c.count;
+    return acc;
+  }, {});
 
   const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
   const totalGuests = guestAgg[0]?.total || 0;
@@ -312,8 +327,8 @@ export const summary = asyncHandler(async (req, res) => {
       total,
       manual: byStatus[PAYMENT_STATUS.MANUAL] || 0,
       free: byStatus[PAYMENT_STATUS.FREE] || 0,
-      pending: byStatus[PAYMENT_STATUS.PENDING] || 0,
-      failed: byStatus[PAYMENT_STATUS.FAILED] || 0,
+      dopa: byDopaStatus[DOPA_STATUS.DOPA] || 0,
+      nonDopa: byDopaStatus[DOPA_STATUS.NON_DOPA] || 0,
       checkedIn,
       checkedInGuests,
       actualHeadcount: checkedIn + checkedInGuests,

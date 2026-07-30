@@ -2,8 +2,8 @@ const CARD_DEFS = [
   { key: 'total', label: 'Total Registrations', tone: 'bg-brand/20 text-white ring-1 ring-brand/30' },
   { key: 'free', label: 'Registered Online', tone: 'bg-violet-500/10 text-violet-300 ring-1 ring-violet-400/20' },
   { key: 'manual', label: 'Walk-in / Admin-added', tone: 'bg-blue-500/10 text-blue-300 ring-1 ring-blue-400/20' },
-  { key: 'pending', label: 'Pending', tone: 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/20' },
-  { key: 'failed', label: 'Failed', tone: 'bg-red-500/10 text-red-300 ring-1 ring-red-400/20' },
+  { key: 'dopa', label: 'DOPA', tone: 'bg-sky-500/10 text-sky-300 ring-1 ring-sky-400/20' },
+  { key: 'nonDopa', label: 'Non-DOPA', tone: 'bg-orange-500/10 text-orange-300 ring-1 ring-orange-400/20' },
   { key: 'totalGuests', label: 'Guests Accompanying (Expected)', tone: 'bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-fuchsia-400/20' },
   { key: 'expectedHeadcount', label: 'Expected Headcount', tone: 'bg-teal-500/10 text-teal-300 ring-1 ring-teal-400/20' },
 ];
@@ -13,8 +13,8 @@ const SummaryCards = ({ summary, loading }) => {
     total: summary?.total ?? 0,
     free: summary?.free ?? 0,
     manual: summary?.manual ?? 0,
-    pending: summary?.pending ?? 0,
-    failed: summary?.failed ?? 0,
+    dopa: summary?.dopa ?? 0,
+    nonDopa: summary?.nonDopa ?? 0,
     totalGuests: summary?.totalGuests ?? 0,
     expectedHeadcount: summary?.expectedHeadcount ?? 0,
   };

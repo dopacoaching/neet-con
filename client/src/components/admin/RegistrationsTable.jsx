@@ -40,7 +40,13 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                 </p>
               )}
               <div className="flex items-center justify-between text-xs text-white/40">
-                <span>{r.guestCount > 0 ? `+${r.guestCount} guest${r.guestCount === 1 ? '' : 's'}` : 'No guests'}</span>
+                <span>
+                  {r.guestCount === undefined || r.guestCount === null
+                    ? 'Guest count not set'
+                    : r.guestCount > 0
+                    ? `+${r.guestCount} guest${r.guestCount === 1 ? '' : 's'}`
+                    : 'No guests'}
+                </span>
                 <span>{r.createdAt ? format(new Date(r.createdAt), 'dd MMM, h:mm a') : '—'}</span>
               </div>
             </button>
@@ -103,7 +109,13 @@ const RegistrationsTable = ({ items, loading, pagination, onPageChange, onRowCli
                   </td>
                   <td className="px-4 py-3 text-white/70">{r.schoolOrCollege || '—'}</td>
                   <td className="px-4 py-3 text-white/70">{r.dopaStatus || '—'}</td>
-                  <td className="px-4 py-3 text-white/70">{r.guestCount > 0 ? `+${r.guestCount}` : '—'}</td>
+                  <td className="px-4 py-3 text-white/70">
+                    {r.guestCount === undefined || r.guestCount === null
+                      ? 'Not set'
+                      : r.guestCount > 0
+                      ? `+${r.guestCount}`
+                      : '0'}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={r.paymentStatus} />
                   </td>

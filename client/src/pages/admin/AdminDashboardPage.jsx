@@ -16,7 +16,7 @@ import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
 import CheckedInList from '../../components/admin/CheckedInList.jsx';
 import { Spinner } from '../../components/ui/PageLoader.jsx';
 
-const STATUS_OPTIONS = ['All', 'FREE', 'PENDING', 'FAILED', 'MANUAL'];
+const STATUS_OPTIONS = ['All', 'FREE', 'MANUAL'];
 const DOPA_OPTIONS = ['All', 'DOPA', 'Non-DOPA'];
 const GUEST_INFO_OPTIONS = [
   { value: 'All', label: 'All (guest info)' },
@@ -354,7 +354,13 @@ const AdminDashboardPage = () => {
       )}
 
       {scannerOpen && (
-        <CheckInScanner onClose={() => setScannerOpen(false)} onCheckedIn={loadList} />
+        <CheckInScanner
+          onClose={() => setScannerOpen(false)}
+          onCheckedIn={() => {
+            loadList();
+            loadSummary();
+          }}
+        />
       )}
     </div>
   );

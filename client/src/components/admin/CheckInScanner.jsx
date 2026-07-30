@@ -170,6 +170,9 @@ const CheckInScanner = ({ onClose, onCheckedIn }) => {
       await adminSetGuestCount(guestPrompt.id, n);
       toast.success('Guest count saved');
       setGuestPrompt(null);
+      // Keep the registrations table/summary cards in sync — they don't
+      // otherwise know this scan's guest count just changed.
+      onCheckedIn?.();
     } catch (err) {
       toast.error(err.message || 'Could not save guest count');
     } finally {
