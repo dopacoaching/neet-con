@@ -113,20 +113,28 @@ const checkinRow = (r, idx) => [
   r.checkedInBy || '',
 ];
 
+/** CareerX navy, matching the site's brand color. */
+const HEADER_COLOR = { red: 0.02, green: 0.043, blue: 0.584 };
+
 /**
  * Overwrite a single tab with a header row + data rows. Creates the tab if
- * it doesn't already exist on the spreadsheet.
+ * it doesn't already exist on the spreadsheet, and (re)applies a bold navy
+ * header, a frozen header row, zebra-striped data rows, and auto-sized
+ * columns — done via the spreadsheet API's cell formatting, not by writing
+ * "styled" values, so it survives the clear+rewrite on every sync.
  */
 const writeTab = async (sheets, spreadsheetId, tabName, rows) => {
-  // Make sure the tab exists (no-op if it's already there).
   const meta = await sheets.spreadsheets.get({ spreadsheetId });
-  const exists = meta.data.sheets?.some((s) => s.properties?.title === tabName);
-  if (!exists) {
-    await sheets.spreadsheets.batchUpdate({
+  let sheetMeta = meta.data.sheets?.find((s) => s.properties?.title === tabName);
+
+  if (!sheetMeta) {
+    const created = await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: { requests: [{ addSheet: { properties: { title: tabName } } }] },
     });
+    sheetMeta = { properties: created.data.replies[0].addSheet.properties };
   }
+  const sheetId = sheetMeta.properties.sheetId;
 
   // Clear the tab, then write fresh — never appends, so re-syncing can't duplicate.
   await sheets.spreadsheets.values.clear({ spreadsheetId, range: `${tabName}!A:Z` });
@@ -136,6 +144,62 @@ const writeTab = async (sheets, spreadsheetId, tabName, rows) => {
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: rows },
   });
+
+  const columnCount = rows[0]?.length || 1;
+  const rowCount = rows.length;
+  const existingBandId = sheetMeta.bandedRanges?.[0]?.bandedRangeId;
+
+  const requests = [
+    // Freeze the header row so it stays visible while scrolling.
+    {
+      updateSheetProperties: {
+        properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+        fields: 'gridProperties.frozenRowCount',
+      },
+    },
+    // Bold, white-on-navy header text, vertically centered.
+    {
+      repeatCell: {
+        range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: HEADER_COLOR,
+            textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 } },
+            verticalAlignment: 'MIDDLE',
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat,verticalAlignment)',
+      },
+    },
+    // Auto-size every column to fit its content.
+    {
+      autoResizeDimensions: {
+        dimensions: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: columnCount },
+      },
+    },
+  ];
+
+  // Zebra-stripe the data rows. If a band already exists on this tab from a
+  // prior sync, resize it to match the current row count instead of adding a
+  // second one on top of it.
+  if (rowCount > 1) {
+    const bandedRange = {
+      ...(existingBandId ? { bandedRangeId: existingBandId } : {}),
+      range: { sheetId, startRowIndex: 0, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: columnCount },
+      rowProperties: {
+        headerColor: HEADER_COLOR,
+        firstBandColor: { red: 1, green: 1, blue: 1 },
+        secondBandColor: { red: 0.945, green: 0.949, blue: 0.973 },
+      },
+    };
+    requests.push(
+      existingBandId
+        ? { updateBanding: { bandedRange, fields: 'range,rowProperties' } }
+        : { addBanding: { bandedRange } }
+    );
+  }
+
+  await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } });
 };
 
 /**
