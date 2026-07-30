@@ -5,6 +5,7 @@ import { generateEventPass } from '../utils/eventPass.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import { sendUserConfirmationEmail, sendOrganizerNotification } from '../utils/email.js';
+import { appendRegistrationRow } from '../utils/googleSheets.js';
 
 const MOBILE_RE = /^[6-9]\d{9}$/;
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
@@ -110,6 +111,9 @@ export const createRegistration = asyncHandler(async (req, res) => {
   );
   sendOrganizerNotification(registration).catch((err) =>
     console.error(`[email] organizer send error: ${err?.message || err}`)
+  );
+  appendRegistrationRow(registration).catch((err) =>
+    console.error(`[sheets] append row error: ${err?.message || err}`)
   );
 
   res.status(201).json({

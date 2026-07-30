@@ -1,7 +1,7 @@
 import Admin from '../models/Admin.js';
 import Registration, { PAYMENT_STATUS, DOPA_STATUS, CURRENT_EVENT } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { syncToGoogleSheet } from '../utils/googleSheets.js';
+import { syncToGoogleSheet, appendRegistrationRow } from '../utils/googleSheets.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
@@ -584,6 +584,9 @@ export const registerWalkIn = asyncHandler(async (req, res) => {
   // is never delayed by Meta; never throws. No email on file for a walk-in.
   sendConfirmationWhatsApp(registration).catch((err) =>
     console.error(`[whatsapp] walk-in send error: ${err?.message || err}`)
+  );
+  appendRegistrationRow(registration).catch((err) =>
+    console.error(`[sheets] append row error: ${err?.message || err}`)
   );
 
   return res.status(201).json({
