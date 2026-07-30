@@ -62,9 +62,9 @@ export const adminUpdateStatus = (id, payload) =>
 export const adminResendWhatsApp = (id) =>
   api.post(`/admin/registrations/${id}/resend-whatsapp`).then((r) => r.data.data);
 
-// Returns a Blob for download.
-export const adminExport = () =>
-  api.get('/admin/export', { responseType: 'blob' }).then((r) => r.data);
+// Push the live roster into the connected Google Sheet. Returns { sheetUrl }.
+export const adminSyncSheet = () =>
+  api.post('/admin/sync-sheet').then((r) => r.data.data);
 
 // Gate check-in by scanned QR code / registration number.
 // Returns the full envelope { success, result, message, data } so the caller
@@ -75,10 +75,6 @@ export const adminCheckIn = (code) =>
 // The list of everyone checked in so far (most recent first) + count.
 export const adminListCheckIns = () =>
   api.get('/admin/checkins').then((r) => r.data.data);
-
-// Excel export of the check-in roster. Returns a Blob for download.
-export const adminExportCheckIns = () =>
-  api.get('/admin/checkins/export', { responseType: 'blob' }).then((r) => r.data);
 
 // Register a walk-in student (never registered online) and check them in
 // immediately. Returns the same envelope shape as adminCheckIn.

@@ -5,8 +5,7 @@ import {
   adminSummary,
   adminListRegistrations,
   adminGetRegistration,
-  adminExport,
-  adminExportCheckIns,
+  adminSyncSheet,
 } from '../../services/api.js';
 import Logo from '../../components/ui/Logo.jsx';
 import SummaryCards from '../../components/admin/SummaryCards.jsx';
@@ -48,8 +47,7 @@ const AdminDashboardPage = () => {
     page: 1,
   });
   const [selected, setSelected] = useState(null);
-  const [exporting, setExporting] = useState(false);
-  const [exportingCheckIns, setExportingCheckIns] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [tab, setTab] = useState('dashboard'); // 'dashboard' | 'registrations' | 'checkin'
   const [scannerOpen, setScannerOpen] = useState(false);
 
@@ -127,43 +125,33 @@ const AdminDashboardPage = () => {
     loadSummary();
   };
 
-  const handleExport = async () => {
-    setExporting(true);
+  // Pushes both registrations + check-ins into the connected Google Sheet in
+  // one call (two tabs, one spreadsheet) — replaces the old Excel downloads.
+  const handleSyncSheet = async () => {
+    setSyncing(true);
     try {
-      const blob = await adminExport();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `careerx-registrations-${new Date().toISOString().slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast.success('Export downloaded');
+      const { sheetUrl } = await adminSyncSheet();
+      toast.success(
+        (t) => (
+          <span>
+            Synced to Google Sheet —{' '}
+            <a
+              href={sheetUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold underline"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              open it
+            </a>
+          </span>
+        ),
+        { duration: 8000 }
+      );
     } catch (err) {
-      toast.error(err.message || 'Export failed');
+      toast.error(err.message || 'Sync failed');
     } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleExportCheckIns = async () => {
-    setExportingCheckIns(true);
-    try {
-      const blob = await adminExportCheckIns();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `careerx-checkins-${new Date().toISOString().slice(0, 10)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast.success('Export downloaded');
-    } catch (err) {
-      toast.error(err.message || 'Export failed');
-    } finally {
-      setExportingCheckIns(false);
+      setSyncing(false);
     }
   };
 
@@ -240,13 +228,13 @@ const AdminDashboardPage = () => {
                   <p className="text-sm text-white/60">CareerX registrations overview</p>
                 </div>
                 {isAdminRole && (
-                  <button onClick={handleExport} className="btn-primary !py-2.5" disabled={exporting}>
-                    {exporting ? (
+                  <button onClick={handleSyncSheet} className="btn-primary !py-2.5" disabled={syncing}>
+                    {syncing ? (
                       <>
-                        <Spinner /> Exporting…
+                        <Spinner /> Syncing…
                       </>
                     ) : (
-                      '⬇ Export to Excel'
+                      '⇅ Sync to Google Sheet'
                     )}
                   </button>
                 )}
@@ -324,19 +312,17 @@ const AdminDashboardPage = () => {
                     Students who have completed check-in — by scan, typed code, or manual entry.
                   </p>
                 </div>
-                <button
-                  onClick={handleExportCheckIns}
-                  className="btn-primary !py-2.5"
-                  disabled={exportingCheckIns}
-                >
-                  {exportingCheckIns ? (
-                    <>
-                      <Spinner /> Exporting…
-                    </>
-                  ) : (
-                    '⬇ Export to Excel'
-                  )}
-                </button>
+                {isAdminRole && (
+                  <button onClick={handleSyncSheet} className="btn-primary !py-2.5" disabled={syncing}>
+                    {syncing ? (
+                      <>
+                        <Spinner /> Syncing…
+                      </>
+                    ) : (
+                      '⇅ Sync to Google Sheet'
+                    )}
+                  </button>
+                )}
               </div>
               <CheckedInList />
             </>

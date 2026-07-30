@@ -18,7 +18,7 @@ Students register and pay ₹100 via the HDFC Payment Gateway; the DOPA team man
 | Database | MongoDB |
 | Auth     | JWT in an httpOnly cookie (admin only) |
 | Payment  | HDFC PG (mock mode until credentials arrive) |
-| Export   | `xlsx` |
+| Export   | Google Sheets (`googleapis`, service account) |
 | Security | helmet, CORS allow-list, express-rate-limit, bcrypt, signature verification |
 
 ---
@@ -190,7 +190,7 @@ dual callback + webhook confirmation paths) is unchanged.
 | `GET`  | `/api/admin/registrations` | any | List (paginated, `?page&limit&status&preparingFor&search`) |
 | `GET`  | `/api/admin/registrations/:id` | any | Single registration |
 | `PATCH`| `/api/admin/registrations/:id/status` | **admin** | Update status / notes |
-| `GET`  | `/api/admin/export` | **admin** | Download `.xlsx` |
+| `POST` | `/api/admin/sync-sheet` | **admin** | Sync roster into the connected Google Sheet |
 
 ---
 

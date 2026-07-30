@@ -1,7 +1,7 @@
 import Admin from '../models/Admin.js';
 import Registration, { PAYMENT_STATUS, DOPA_STATUS, CURRENT_EVENT } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { buildRegistrationsWorkbook, buildCheckInsWorkbook } from '../utils/exportExcel.js';
+import { syncToGoogleSheet } from '../utils/googleSheets.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
@@ -339,23 +339,6 @@ export const summary = asyncHandler(async (req, res) => {
 });
 
 /**
- * GET /api/admin/export
- * Export CareerX registrations to .xlsx. Admin role only.
- */
-export const exportRegistrations = asyncHandler(async (req, res) => {
-  const registrations = await Registration.find({ event: CURRENT_EVENT }).sort({ createdAt: 1 }).lean();
-  const buffer = buildRegistrationsWorkbook(registrations);
-
-  const stamp = new Date().toISOString().slice(0, 10);
-  res.setHeader(
-    'Content-Type',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  );
-  res.setHeader('Content-Disposition', `attachment; filename="careerx-registrations-${stamp}.xlsx"`);
-  res.send(buffer);
-});
-
-/**
  * The subset of a registration shown to the gate scanner after a scan.
  */
 const checkinView = (r) => ({
@@ -389,23 +372,21 @@ export const listCheckIns = asyncHandler(async (req, res) => {
 });
 
 /**
- * GET /api/admin/checkins/export
- * Excel roster of everyone checked in so far. Any authenticated admin
- * (incl. viewer-role gate staff), matching listCheckIns' access level.
+ * POST /api/admin/sync-sheet
+ * Push the current CareerX registrations + check-ins into a live Google
+ * Sheet (two tabs), fully overwriting each tab so re-running never
+ * duplicates rows. Admin role only.
  */
-export const exportCheckIns = asyncHandler(async (req, res) => {
-  const items = await Registration.find({ event: CURRENT_EVENT, checkedInAt: { $ne: null } })
-    .sort({ checkedInAt: 1 })
-    .lean();
-  const buffer = buildCheckInsWorkbook(items);
+export const syncGoogleSheet = asyncHandler(async (req, res) => {
+  const [registrations, checkIns] = await Promise.all([
+    Registration.find({ event: CURRENT_EVENT }).sort({ createdAt: 1 }).lean(),
+    Registration.find({ event: CURRENT_EVENT, checkedInAt: { $ne: null } })
+      .sort({ checkedInAt: 1 })
+      .lean(),
+  ]);
 
-  const stamp = new Date().toISOString().slice(0, 10);
-  res.setHeader(
-    'Content-Type',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  );
-  res.setHeader('Content-Disposition', `attachment; filename="careerx-checkins-${stamp}.xlsx"`);
-  res.send(buffer);
+  const { sheetUrl } = await syncToGoogleSheet(registrations, checkIns);
+  res.json({ success: true, data: { sheetUrl } });
 });
 
 /**

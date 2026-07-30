@@ -8,12 +8,11 @@ import {
   updateRegistrationStatus,
   resendWhatsApp,
   summary,
-  exportRegistrations,
   checkIn,
   listCheckIns,
-  exportCheckIns,
   setGuestCountAtGate,
   registerWalkIn,
+  syncGoogleSheet,
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
 import { loginLimiter, whatsappResendLimiter } from '../middleware/rateLimiter.js';
@@ -46,10 +45,6 @@ router.post('/checkin', protect, checkIn);
 // List of everyone checked in so far — any authenticated admin.
 router.get('/checkins', protect, listCheckIns);
 
-// Excel export of the check-in roster — any authenticated admin, same
-// access level as viewing the list itself.
-router.get('/checkins/export', protect, exportCheckIns);
-
 // Register a walk-in student (never registered online) and check them in
 // immediately — any authenticated admin (incl. viewer-role gate staff).
 router.post('/registrations/walk-in', protect, registerWalkIn);
@@ -70,7 +65,7 @@ router.post(
   resendWhatsApp
 );
 
-// Export requires "admin" role.
-router.get('/export', protect, requireAdminRole, exportRegistrations);
+// Push the live roster into a connected Google Sheet. Admin role only.
+router.post('/sync-sheet', protect, requireAdminRole, syncGoogleSheet);
 
 export default router;
