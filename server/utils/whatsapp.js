@@ -33,28 +33,29 @@ const trackResult = async (reg, result) => {
  *  We send one template message whose HEADER is the entry QR (image) and
  *  whose BODY carries the registration details.
  *
+ *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_2026
+ *  (created 2026-08-08 via the Graph API directly; the WABA's normal
+ *  create-template flow is documented below in case it ever needs recreating).
+ *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
- *    - Name:     matches WHATSAPP_TEMPLATE_NAME (e.g. careerx_event_confirmation)
  *    - Category: MARKETING (Meta's auto-classifier consistently rejects this
  *      content as UTILITY regardless of wording — see project history)
  *    - Header:   IMAGE
- *    - Body with 4 NAMED variables (Meta's current editor requires named, not
- *      numbered, parameters — lowercase + underscores). Named `ticket_id`
- *      rather than `registration_code` deliberately — the word "code" next to
- *      a short value pattern-matches Meta's OTP/authentication detector.
- *      Date AND time are intentionally omitted for now (neither is finalised
- *      yet — the body just says they'll be notified separately):
- *        {{full_name}} {{ticket_id}}
+ *    - parameter_format: NAMED, with a SINGLE-LINE body (no \n\n blank lines —
+ *      confirmed 2026-08-08 that blank lines now trigger an instant
+ *      INVALID_FORMAT rejection from Meta's automated review, even for
+ *      previously-working template text) and 6 NAMED variables (lowercase +
+ *      underscores). Named `ticket_id` rather than `registration_code`
+ *      deliberately — the word "code" next to a short value pattern-matches
+ *      Meta's OTP/authentication detector:
+ *        {{full_name}} {{ticket_id}} {{event_date}} {{event_time}}
  *        {{venue}} {{guest_count}}
  *      Example body text:
- *        "Hi {{full_name}}, you're confirmed for CareerX!
- *         Your Complete Roadmap After NEET 2026 — MBBS admissions, counselling
- *         strategy, and career options, all in one session.
- *         Ticket ID: {{ticket_id}}
- *         Venue: {{venue}}
- *         Guests joining you: {{guest_count}}
- *         Date & time will be notified soon. Show the QR code above at the
- *         entry desk. See you there!"
+ *        "Hi {{full_name}}, you are confirmed for CareerX - your complete
+ *         roadmap after NEET 2026. Ticket ID: {{ticket_id}}. Date:
+ *         {{event_date}}. Time: {{event_time}}. Venue: {{venue}}. Guests
+ *         joining you: {{guest_count}}. Show the QR code above at the entry
+ *         desk. See you there!"
  *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
  *      link for the venue. Static-URL buttons need NO code change (only dynamic
  *      {{n}} URL buttons would). The QR is always the image header (top).
@@ -112,8 +113,8 @@ const isGuestCountAskConfigured = () =>
 const isReminderConfigured = () => !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && REMINDER_TEMPLATE_NAME());
 
 const EVENT = {
-  date: process.env.EVENT_DATE || 'Saturday, 1 August 2026',
-  time: process.env.EVENT_TIME || '9:30 AM onwards',
+  date: process.env.EVENT_DATE || 'Saturday, 8 August 2026',
+  time: process.env.EVENT_TIME || '9:30 AM Reg · 10:00 AM Start',
   venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
 };
 
@@ -224,6 +225,8 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
                 parameter_name: 'ticket_id',
                 text: String(reg.registrationNumber),
               },
+              { type: 'text', parameter_name: 'event_date', text: EVENT.date },
+              { type: 'text', parameter_name: 'event_time', text: EVENT.time },
               { type: 'text', parameter_name: 'venue', text: EVENT.venue },
               {
                 type: 'text',

@@ -27,6 +27,8 @@ const LOGO_DATA_URI = (() => {
 })();
 
 const EVENT = {
+  date: process.env.EVENT_DATE || 'Saturday, 8 August 2026',
+  time: process.env.EVENT_TIME || '9:30 AM Reg · 10:00 AM Start',
   venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
 };
 
@@ -72,6 +74,8 @@ export const generateEventPass = async (reg) => {
   const name = esc(truncate(reg.fullName, 20));
   const status = esc(reg.dopaStatus || '');
   const venue = esc(truncate(EVENT.venue, 42));
+  const eventDate = esc(truncate(EVENT.date, 26));
+  const eventTime = esc(truncate(EVENT.time, 34));
   const guestCount = Math.max(0, Math.trunc(Number(reg.guestCount) || 0));
 
   const CX1 = 460; // right column left edge (inside card)
@@ -168,8 +172,9 @@ export const generateEventPass = async (reg) => {
     <text x="${CX1 + 24}" y="463" font-family="Poppins" font-weight="700" font-size="34" fill="url(#ticketGlow)">${esc(code)}</text>
 
     <rect x="${CX1 + 358}" y="418" width="${CX2 - CX1 - 358}" height="70" rx="18" fill="#ffbf4a" fill-opacity="0.14" stroke="#ffbf4a" stroke-opacity="0.5" stroke-width="1.3"/>
-    <text x="${CX1 + 382}" y="446" font-family="Poppins" font-weight="700" font-size="15" letter-spacing="1.3" fill="#ffd88a">DATE &amp; TIME</text>
-    <text x="${CX1 + 382}" y="470" font-family="Poppins" font-weight="700" font-size="19" fill="#ffe9bc">Will be notified soon</text>
+    <text x="${CX1 + 382}" y="437" font-family="Poppins" font-weight="700" font-size="13" letter-spacing="1.2" fill="#ffd88a">DATE &amp; TIME</text>
+    <text x="${CX1 + 382}" y="458" font-family="Poppins" font-weight="700" font-size="15" fill="#ffe9bc">${eventDate}</text>
+    <text x="${CX1 + 382}" y="477" font-family="Poppins" font-weight="600" font-size="13" fill="#ffe9bc" opacity="0.9">${eventTime}</text>
 
     <text x="${CX1}" y="532" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2.5" fill="#8fb2ff">VENUE</text>
     <text x="${CX1}" y="562" font-family="Poppins" font-weight="600" font-size="23" fill="#eef3ff">${venue}</text>

@@ -40,7 +40,7 @@ services:
       - key: WHATSAPP_APP_SECRET
         sync: false # Meta app secret — enables webhook HMAC verification (optional)
       - key: WHATSAPP_TEMPLATE_NAME
-        value: careerx_event_confirmation
+        value: careerx_confirmation_2026
       - key: WHATSAPP_GUESTCOUNT_TEMPLATE_NAME
         value: careerx_guest_count_ask
       - key: WHATSAPP_REMINDER_TEMPLATE_NAME
@@ -53,9 +53,9 @@ services:
         value: v21.0
       # --- Event details (shown in confirmation message / email) ---
       - key: EVENT_DATE
-        value: Saturday, 1 August 2026
+        value: Saturday, 8 August 2026
       - key: EVENT_TIME
-        value: 9:30 AM onwards
+        value: 9:30 AM Reg · 10:00 AM Start
       - key: EVENT_VENUE
         value: Bhatia Hall, Kuttikatoor, Kozhikode
       - key: EVENT_MAP_URL
