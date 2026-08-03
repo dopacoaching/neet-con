@@ -144,7 +144,7 @@ export const generateEventPass = async (reg) => {
          Career" tagline, so only the text fallback repeats it separately. -->
     ${LOGO_DATA_URI
       ? `<image x="76" y="70" width="230" height="60" xlink:href="${LOGO_DATA_URI}"/>`
-      : `<text x="76" y="128" font-family="Poppins" font-weight="800" font-size="52" fill="url(#wordmark)">CareerX</text>
+      : `<text x="76" y="128" font-family="Poppins" font-weight="800" font-size="52" fill="url(#wordmark)">CareeRx</text>
     <text x="76" y="162" font-family="Poppins" font-weight="500" font-size="21" fill="#a9c3ff" opacity="0.85">The Gateway to Medical Career</text>`}
 
     <rect x="1000" y="70" width="188" height="46" rx="23" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.3"/>

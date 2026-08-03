@@ -19,7 +19,7 @@ const RegistrationPage = () => {
       <main className="section grid items-start gap-8 pb-20 pt-4 lg:grid-cols-[1fr_1.1fr]">
         {/* Left — event summary */}
         <div className="text-white">
-          <h1 className="font-heading text-3xl font-extrabold sm:text-4xl">Register for CareerX</h1>
+          <h1 className="font-heading text-3xl font-extrabold sm:text-4xl">Register for CareeRx</h1>
           <p className="mt-3 max-w-md text-white/70">
             Fill in your details to confirm your seat — entry is free. You'll receive a
             registration number instantly.

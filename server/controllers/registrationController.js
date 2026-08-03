@@ -21,7 +21,7 @@ const isRegistrationsOpen = () => String(process.env.REGISTRATIONS_OPEN).toLower
 export const createRegistration = asyncHandler(async (req, res) => {
   if (!isRegistrationsOpen()) {
     res.status(403);
-    throw new Error('Registrations for CareerX are now closed. Thank you for your interest!');
+    throw new Error('Registrations for CareeRx are now closed. Thank you for your interest!');
   }
 
   const {

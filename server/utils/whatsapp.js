@@ -33,29 +33,42 @@ const trackResult = async (reg, result) => {
  *  We send one template message whose HEADER is the entry QR (image) and
  *  whose BODY carries the registration details.
  *
- *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_2026
+ *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v3
  *  (created 2026-08-08 via the Graph API directly; the WABA's normal
  *  create-template flow is documented below in case it ever needs recreating).
+ *
+ *  IMPORTANT — 2026-08-08 incident: the previously-configured template name
+ *  (careerx_event_confirmation) never actually existed on the WhatsApp
+ *  Business Account, so every confirmation send had been silently failing
+ *  (whatsappStatus='failed', "template name does not exist") since this
+ *  event's registrations opened. Same was true for the reminder and
+ *  guest-count-ask templates below. If a *_TEMPLATE_NAME env var is ever
+ *  changed, verify the template actually exists + is APPROVED on the WABA
+ *  (GET /{waba-id}/message_templates) — don't just trust that it does.
  *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
  *    - Category: MARKETING (Meta's auto-classifier consistently rejects this
  *      content as UTILITY regardless of wording — see project history)
  *    - Header:   IMAGE
- *    - parameter_format: NAMED, with a SINGLE-LINE body (no \n\n blank lines —
- *      confirmed 2026-08-08 that blank lines now trigger an instant
+ *    - parameter_format: NAMED, with a body using single `\n` line breaks only
+ *      (confirmed 2026-08-08 that a blank `\n\n` line now triggers an instant
  *      INVALID_FORMAT rejection from Meta's automated review, even for
- *      previously-working template text) and 6 NAMED variables (lowercase +
- *      underscores). Named `ticket_id` rather than `registration_code`
- *      deliberately — the word "code" next to a short value pattern-matches
- *      Meta's OTP/authentication detector:
+ *      previously-working template text — single `\n` breaks are fine) and
+ *      6 NAMED variables (lowercase + underscores). Named `ticket_id` rather
+ *      than `registration_code` deliberately — the word "code" next to a
+ *      short value pattern-matches Meta's OTP/authentication detector:
  *        {{full_name}} {{ticket_id}} {{event_date}} {{event_time}}
  *        {{venue}} {{guest_count}}
- *      Example body text:
- *        "Hi {{full_name}}, you are confirmed for CareerX - your complete
- *         roadmap after NEET 2026. Ticket ID: {{ticket_id}}. Date:
- *         {{event_date}}. Time: {{event_time}}. Venue: {{venue}}. Guests
- *         joining you: {{guest_count}}. Show the QR code above at the entry
- *         desk. See you there!"
+ *      Example body text (*bold* markers are WhatsApp's own formatting):
+ *        "Hi *{{full_name}}*, you are confirmed for CareeRx - your complete
+ *         roadmap after NEET 2026.
+ *         *Ticket ID:* {{ticket_id}}
+ *         *Date:* {{event_date}}
+ *         *Time:* {{event_time}}
+ *         *Venue:* {{venue}}
+ *         *Guests joining you:* {{guest_count}}
+ *         Show the QR code above at the entry desk. See you there!"
+ *    - Footer: "DOPA Coaching, Calicut"
  *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
  *      link for the venue. Static-URL buttons need NO code change (only dynamic
  *      {{n}} URL buttons would). The QR is always the image header (top).
@@ -67,14 +80,14 @@ const trackResult = async (reg, result) => {
  *
  *  A SEPARATE template is used for the one-off "how many guests?" follow-up
  *  sent to registrants who registered before the guest-count question
- *  existed (see server/scripts/sendGuestCountAsk.js). It needs its own
- *  approval:
- *    - Name:     matches WHATSAPP_GUESTCOUNT_TEMPLATE_NAME (e.g. careerx_guest_count_ask)
+ *  existed (see server/scripts/sendGuestCountAsk.js). Current template:
+ *  WHATSAPP_GUESTCOUNT_TEMPLATE_NAME=careerx_guest_count_update. It needs its
+ *  own approval:
  *    - Category: UTILITY
  *    - Header:   none
  *    - Body with 2 NAMED variables: {{full_name}} {{ticket_id}}
  *      Example body text:
- *        "Hi {{full_name}}, quick update needed for your CareerX
+ *        "Hi *{{full_name}}*, quick update needed for your CareeRx
  *         registration (Ticket ID: {{ticket_id}}).
  *         How many family members or friends will be joining you at the
  *         event? Please reply with just a number (e.g. 0, 1, 2, 3).
@@ -86,6 +99,7 @@ const trackResult = async (reg, result) => {
  *    WHATSAPP_TEMPLATE_NAME            approved confirmation template name
  *    WHATSAPP_TEMPLATE_LANG            template language code (default 'en')
  *    WHATSAPP_GUESTCOUNT_TEMPLATE_NAME approved guest-count-ask template name
+ *    WHATSAPP_REMINDER_TEMPLATE_NAME   approved day-before-reminder template name
  *    WHATSAPP_COUNTRY_CODE             default '91' (prepended to 10-digit numbers)
  *    WHATSAPP_API_VERSION              Graph API version (default 'v21.0')
  *    WHATSAPP_MOCK                     true = simulate locally (no real send)
@@ -100,9 +114,9 @@ const ACCESS_TOKEN = () => process.env.WHATSAPP_ACCESS_TOKEN || '';
 const TEMPLATE_NAME = () => process.env.WHATSAPP_TEMPLATE_NAME || '';
 const TEMPLATE_LANG = () => process.env.WHATSAPP_TEMPLATE_LANG || 'en';
 const GUESTCOUNT_TEMPLATE_NAME = () => process.env.WHATSAPP_GUESTCOUNT_TEMPLATE_NAME || '';
-// Approved via the Graph API directly (2026-07-11); POSITIONAL parameters
-// {{1}}..{{4}} = full_name, event_date, event_time, venue.
-const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'careerx_reminder';
+// Approved via the Graph API directly (2026-08-08); NAMED parameters
+// full_name, event_date, event_time, venue.
+const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'careerx_event_reminder';
 const COUNTRY_CODE = () => process.env.WHATSAPP_COUNTRY_CODE || '91';
 
 export const isWhatsAppMock = () => String(process.env.WHATSAPP_MOCK).toLowerCase() === 'true';
@@ -365,10 +379,10 @@ export const sendReminder = async (reg) => {
           {
             type: 'body',
             parameters: [
-              { type: 'text', text: String(reg.fullName) },
-              { type: 'text', text: EVENT.date },
-              { type: 'text', text: EVENT.time },
-              { type: 'text', text: EVENT.venue },
+              { type: 'text', parameter_name: 'full_name', text: String(reg.fullName) },
+              { type: 'text', parameter_name: 'event_date', text: EVENT.date },
+              { type: 'text', parameter_name: 'event_time', text: EVENT.time },
+              { type: 'text', parameter_name: 'venue', text: EVENT.venue },
             ],
           },
         ],

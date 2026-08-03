@@ -26,7 +26,7 @@ const Navbar = () => {
       }`}
     >
       <nav className="section flex items-center justify-between py-3">
-        <Link to="/" aria-label="CareerX home">
+        <Link to="/" aria-label="CareeRx home">
           <Logo dark={!scrolled} />
         </Link>
 

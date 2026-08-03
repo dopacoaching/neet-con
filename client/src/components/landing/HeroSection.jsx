@@ -68,7 +68,7 @@ const HeroSection = () => {
             <div className="mb-6 flex justify-center rounded-2xl bg-white p-5">
               <img
                 src="/careerx-logo-light.png"
-                alt="CareerX"
+                alt="CareeRx"
                 className="h-16 w-auto object-contain"
               />
             </div>

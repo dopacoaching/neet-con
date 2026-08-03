@@ -46,7 +46,7 @@ const AdminLoginPage = () => {
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 shadow-2xl backdrop-blur">
           <h1 className="font-heading text-2xl font-bold text-white">Admin Login</h1>
-          <p className="mt-1 text-sm text-white/60">CareerX — internal dashboard.</p>
+          <p className="mt-1 text-sm text-white/60">CareeRx — internal dashboard.</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4" noValidate>
             <div>

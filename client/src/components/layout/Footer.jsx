@@ -1,5 +1,5 @@
 import Logo from '../ui/Logo.jsx';
-import { VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
+import { EVENT_DATE, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
 
 const Footer = () => (
   <footer className="bg-navy text-white/80">
@@ -7,7 +7,7 @@ const Footer = () => (
       <div>
         <Logo dark />
         <p className="mt-4 max-w-xs text-sm text-white/60">
-          CareerX — The Gateway to Medical Career. Your complete roadmap after NEET 2026, hosted
+          CareeRx — The Gateway to Medical Career. Your complete roadmap after NEET 2026, hosted
           by DOPA Coaching.
         </p>
       </div>
@@ -17,7 +17,7 @@ const Footer = () => (
           Event
         </h4>
         <ul className="space-y-2 text-sm">
-          <li>📅 Date will be notified soon</li>
+          <li>📅 {EVENT_DATE}</li>
           <li>
             📍{' '}
             <a

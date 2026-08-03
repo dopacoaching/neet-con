@@ -67,7 +67,7 @@ const ThankYouPage = () => {
 
   // Confirmed
   const waMessage = encodeURIComponent(
-    `I'm registered for CareerX! 🎉\nName: ${data.fullName}\nRegistration No: ${data.registrationNumber}`
+    `I'm registered for CareeRx! 🎉\nName: ${data.fullName}\nRegistration No: ${data.registrationNumber}`
   );
 
   return (

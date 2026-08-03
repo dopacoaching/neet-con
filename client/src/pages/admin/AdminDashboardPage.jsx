@@ -225,7 +225,7 @@ const AdminDashboardPage = () => {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h1 className="font-heading text-2xl font-extrabold text-white">Registrations</h1>
-                  <p className="text-sm text-white/60">CareerX registrations overview</p>
+                  <p className="text-sm text-white/60">CareeRx registrations overview</p>
                 </div>
                 {isAdminRole && (
                   <button onClick={handleSyncSheet} className="btn-primary !py-2.5" disabled={syncing}>

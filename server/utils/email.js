@@ -12,7 +12,7 @@ import { generateQrBuffer } from './qrcode.js';
  * ENV (server/.env):
  *   SMTP_HOST, SMTP_PORT, SMTP_SECURE ("true"/"false")
  *   SMTP_USER, SMTP_PASS            (Gmail: use an App Password)
- *   MAIL_FROM                       e.g. "CareerX <no-reply@dopacoaching.com>"
+ *   MAIL_FROM                       e.g. "CareeRx <no-reply@dopacoaching.com>"
  *   ORGANIZER_EMAIL                 where organizer notifications are sent
  */
 
@@ -73,13 +73,13 @@ export const buildUserEmailHtml = (reg) => {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e8f3">
       <tr><td style="background:#050b95;padding:24px 28px">
-        <div style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:.3px">CareerX</div>
+        <div style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:.3px">CareeRx</div>
         <div style="color:#9fc3ff;font-size:13px;margin-top:3px">The Gateway to Medical Career · DOPA Coaching</div>
       </td></tr>
       <tr><td style="padding:28px">
         <span style="display:inline-block;background:#e7f8ee;color:#138a4e;font-size:12px;font-weight:bold;padding:6px 12px;border-radius:999px">✓ SEAT CONFIRMED</span>
         <h1 style="font-size:22px;margin:16px 0 6px;color:#0b1330">You're all set, ${name}!</h1>
-        <p style="color:#5b6478;margin:0 0 22px;font-size:14px;line-height:1.6">Your registration for CareerX is confirmed. Your entry pass is below — show the QR at the registration desk.</p>
+        <p style="color:#5b6478;margin:0 0 22px;font-size:14px;line-height:1.6">Your registration for CareeRx is confirmed. Your entry pass is below — show the QR at the registration desk.</p>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f6fc;border-radius:12px;margin-bottom:22px">
           <tr><td style="padding:16px 18px">
@@ -88,7 +88,7 @@ export const buildUserEmailHtml = (reg) => {
           </td></tr>
         </table>
 
-        <img src="cid:entrypass" alt="CareerX entry pass" width="504" style="width:100%;height:auto;border-radius:12px;border:1px solid #e4e8f3;display:block"/>
+        <img src="cid:entrypass" alt="CareeRx entry pass" width="504" style="width:100%;height:auto;border-radius:12px;border:1px solid #e4e8f3;display:block"/>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;font-size:14px">
           <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Date &amp; Time</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.date)} · ${esc(EVENT.time)}</td></tr>
@@ -100,7 +100,7 @@ export const buildUserEmailHtml = (reg) => {
         <p style="color:#7a85a0;font-size:13px;margin:24px 0 0;line-height:1.6">We're also trying to send a copy on WhatsApp. Please keep this email handy for entry either way. See you there!</p>
       </td></tr>
       <tr><td style="background:#f3f6fc;padding:16px 28px;color:#9aa3b8;font-size:12px;text-align:center">
-        CareerX · DOPA Coaching · Automated confirmation — please do not reply.
+        CareeRx · DOPA Coaching · Automated confirmation — please do not reply.
       </td></tr>
     </table>
   </td></tr></table>
@@ -108,7 +108,7 @@ export const buildUserEmailHtml = (reg) => {
 };
 
 const userText = (reg) =>
-  `You're confirmed for CareerX!\n\n` +
+  `You're confirmed for CareeRx!\n\n` +
   `Registration Code: ${reg.registrationNumber}\n` +
   `Name: ${reg.fullName}\n` +
   `Date & Time: ${EVENT.date} · ${EVENT.time}\n` +
@@ -143,7 +143,7 @@ export const sendUserConfirmationEmail = async (reg) => {
     await getTransporter().sendMail({
       from: FROM(),
       to,
-      subject: `Your CareerX entry pass — ${reg.registrationNumber}`,
+      subject: `Your CareeRx entry pass — ${reg.registrationNumber}`,
       text: userText(reg),
       html: buildUserEmailHtml(reg),
       attachments,
@@ -168,7 +168,7 @@ export const buildOrganizerEmailHtml = (reg) => {
 <html><body style="margin:0;background:#eef1f8;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0b1330">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e4e8f3">
-      <tr><td style="background:#050b95;padding:20px 24px;color:#ffffff;font-size:17px;font-weight:bold">New registration · CareerX</td></tr>
+      <tr><td style="background:#050b95;padding:20px 24px;color:#ffffff;font-size:17px;font-weight:bold">New registration · CareeRx</td></tr>
       <tr><td style="padding:8px 12px 20px">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">
           ${row('Registration Code', reg.registrationNumber)}
@@ -205,7 +205,7 @@ export const sendOrganizerNotification = async (reg) => {
       to,
       subject: `New registration: ${reg.fullName} (${reg.registrationNumber})`,
       text:
-        `New registration for CareerX\n\n` +
+        `New registration for CareeRx\n\n` +
         `Code: ${reg.registrationNumber}\nName: ${reg.fullName}\nMobile: ${reg.mobileNumber}\n` +
         `Email: ${reg.emailAddress || '—'}\n${reg.dopaStatus || ''}: ${reg.schoolOrCollege}\n` +
         `Batch: ${reg.batch || '—'}\nNEET 2026 Score: ${reg.neetScore || '—'}\n` +

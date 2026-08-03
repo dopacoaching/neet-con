@@ -1,7 +1,7 @@
 const POINTS = [
   {
     icon: '🎯',
-    title: 'What is CareerX?',
+    title: 'What is CareeRx?',
     body: 'A focused session giving you a complete roadmap after NEET 2026 — from MBBS admission possibilities to what comes next if things don’t go as planned.',
   },
   {
@@ -25,7 +25,7 @@ const AboutSection = () => (
           Every NEET score has a possibility
         </h2>
         <p className="mt-4 text-navy/70">
-          MBBS admissions, counselling strategy, college selection, or repeating — CareerX helps
+          MBBS admissions, counselling strategy, college selection, or repeating — CareeRx helps
           you decide your next step with clarity, not confusion.
         </p>
       </div>
