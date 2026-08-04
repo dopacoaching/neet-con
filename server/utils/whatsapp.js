@@ -33,7 +33,7 @@ const trackResult = async (reg, result) => {
  *  We send one template message whose HEADER is the entry QR (image) and
  *  whose BODY carries the registration details.
  *
- *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v3
+ *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v4
  *  (created 2026-08-08 via the Graph API directly; the WABA's normal
  *  create-template flow is documented below in case it ever needs recreating).
  *
@@ -60,13 +60,12 @@ const trackResult = async (reg, result) => {
  *        {{full_name}} {{ticket_id}} {{event_date}} {{event_time}}
  *        {{venue}} {{guest_count}}
  *      Example body text (*bold* markers are WhatsApp's own formatting):
- *        "Hi *{{full_name}}*, you are confirmed for CareeRx - your complete
- *         roadmap after NEET 2026.
+ *        "Hi *{{full_name}}*, your CareeRx seat is *CONFIRMED*
  *         *Ticket ID:* {{ticket_id}}
  *         *Date:* {{event_date}}
  *         *Time:* {{event_time}}
  *         *Venue:* {{venue}}
- *         *Guests joining you:* {{guest_count}}
+ *         *Guests Joining:* {{guest_count}}
  *         Show the QR code above at the entry desk. See you there!"
  *    - Footer: "DOPA Coaching, Calicut"
  *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
