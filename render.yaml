@@ -55,7 +55,7 @@ services:
       - key: EVENT_DATE
         value: Saturday, 8 August 2026
       - key: EVENT_TIME
-        value: 9:30 AM Reg · 10:00 AM Start
+        value: 9:30 AM
       - key: EVENT_VENUE
         value: Bhatia Hall, Kuttikatoor, Kozhikode
       - key: EVENT_MAP_URL

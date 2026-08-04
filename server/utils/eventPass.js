@@ -28,7 +28,7 @@ const LOGO_DATA_URI = (() => {
 
 const EVENT = {
   date: process.env.EVENT_DATE || 'Saturday, 8 August 2026',
-  time: process.env.EVENT_TIME || '9:30 AM Reg · 10:00 AM Start',
+  time: process.env.EVENT_TIME || '9:30 AM',
   venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
 };
 
