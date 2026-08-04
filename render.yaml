@@ -44,7 +44,7 @@ services:
       - key: WHATSAPP_GUESTCOUNT_TEMPLATE_NAME
         value: careerx_guest_count_update
       - key: WHATSAPP_REMINDER_TEMPLATE_NAME
-        value: careerx_event_reminder
+        value: careerx_event_reminder_v3
       - key: WHATSAPP_TEMPLATE_LANG
         value: en
       - key: WHATSAPP_COUNTRY_CODE

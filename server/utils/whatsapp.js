@@ -126,9 +126,11 @@ const ACCESS_TOKEN = () => process.env.WHATSAPP_ACCESS_TOKEN || '';
 const TEMPLATE_NAME = () => process.env.WHATSAPP_TEMPLATE_NAME || '';
 const TEMPLATE_LANG = () => process.env.WHATSAPP_TEMPLATE_LANG || 'en';
 const GUESTCOUNT_TEMPLATE_NAME = () => process.env.WHATSAPP_GUESTCOUNT_TEMPLATE_NAME || '';
-// Approved via the Graph API directly (2026-08-08); NAMED parameters
+// Approved via the Graph API directly (2026-08-08) as genuine UTILITY —
+// neutral/transactional wording (no "happening soon!" / "See you there!")
+// was needed to avoid Meta reclassifying it to MARKETING. NAMED parameters
 // full_name, event_date, event_time, venue.
-const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'careerx_event_reminder';
+const REMINDER_TEMPLATE_NAME = () => process.env.WHATSAPP_REMINDER_TEMPLATE_NAME || 'careerx_event_reminder_v3';
 const COUNTRY_CODE = () => process.env.WHATSAPP_COUNTRY_CODE || '91';
 
 export const isWhatsAppMock = () => String(process.env.WHATSAPP_MOCK).toLowerCase() === 'true';
