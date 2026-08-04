@@ -33,7 +33,7 @@ const trackResult = async (reg, result) => {
  *  We send one template message whose HEADER is the entry QR (image) and
  *  whose BODY carries the registration details.
  *
- *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v4
+ *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v5
  *  (created 2026-08-08 via the Graph API directly; the WABA's normal
  *  create-template flow is documented below in case it ever needs recreating).
  *
@@ -46,9 +46,23 @@ const trackResult = async (reg, result) => {
  *  changed, verify the template actually exists + is APPROVED on the WABA
  *  (GET /{waba-id}/message_templates) — don't just trust that it does.
  *
+ *  IMPORTANT — 2026-08-08 category finding: at send volumes of ~500 messages,
+ *  MARKETING-category templates have real downsides UTILITY doesn't —
+ *  recipients can silently opt out of marketing messages from this business
+ *  (utility isn't affected), Meta paces marketing sends per-recipient (two
+ *  marketing templates to the same person same-day: the second one silently
+ *  never arrived even though the API accepted it), and marketing is usually
+ *  billed higher. Earlier project history assumed Meta's classifier would
+ *  always reclassify this content to MARKETING regardless of category
+ *  submitted — that turned out to depend on the URL BUTTON component:
+ *  v4 (with a "Get Directions" button) got auto-reclassified to MARKETING;
+ *  v5 (identical body/footer, no button) was approved as genuine UTILITY.
+ *  If a future edit re-adds a button, expect MARKETING reclassification again.
+ *
  *  You must create + get approved (in Meta WhatsApp Manager) a template with:
- *    - Category: MARKETING (Meta's auto-classifier consistently rejects this
- *      content as UTILITY regardless of wording — see project history)
+ *    - Category: UTILITY as submitted (a URL button will cause Meta to
+ *      reclassify to MARKETING regardless — see finding above; omit buttons
+ *      to keep it UTILITY)
  *    - Header:   IMAGE
  *    - parameter_format: NAMED, with a body using single `\n` line breaks only
  *      (confirmed 2026-08-08 that a blank `\n\n` line now triggers an instant
@@ -68,9 +82,8 @@ const trackResult = async (reg, result) => {
  *         *Guests Joining:* {{guest_count}}
  *         Show the QR code above at the entry desk. See you there!"
  *    - Footer: "DOPA Coaching, Calicut"
- *    - Optional buttons: a STATIC URL button "Get Directions" -> Google Maps
- *      link for the venue. Static-URL buttons need NO code change (only dynamic
- *      {{n}} URL buttons would). The QR is always the image header (top).
+ *    - No buttons (see category finding above). The QR is always the image
+ *      header (top); the venue address is plain text, not a tappable link.
  *
  *  NOTE: Meta template text is fixed once approved — this code's body
  *  parameters below must match whatever template WHATSAPP_TEMPLATE_NAME

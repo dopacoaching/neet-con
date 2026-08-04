@@ -40,7 +40,7 @@ services:
       - key: WHATSAPP_APP_SECRET
         sync: false # Meta app secret — enables webhook HMAC verification (optional)
       - key: WHATSAPP_TEMPLATE_NAME
-        value: careerx_confirmation_v4
+        value: careerx_confirmation_v5
       - key: WHATSAPP_GUESTCOUNT_TEMPLATE_NAME
         value: careerx_guest_count_update
       - key: WHATSAPP_REMINDER_TEMPLATE_NAME
