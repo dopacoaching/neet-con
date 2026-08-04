@@ -179,7 +179,7 @@ export const generateEventPass = async (reg) => {
     <text x="${CX1}" y="532" font-family="Poppins" font-weight="600" font-size="17" letter-spacing="2.5" fill="#8fb2ff">VENUE</text>
     <text x="${CX1}" y="562" font-family="Poppins" font-weight="600" font-size="23" fill="#eef3ff">${venue}</text>
 
-    <text x="${CX1}" y="626" font-family="Poppins" font-weight="500" font-size="15" letter-spacing="1.5" fill="#7d93c9">DOPA COACHING · FREE ENTRY</text>
+    <text x="${CX1}" y="626" font-family="Poppins" font-weight="500" font-size="15" letter-spacing="1.5" fill="#7d93c9">FREE ENTRY</text>
   </g>
 </svg>`;
 
