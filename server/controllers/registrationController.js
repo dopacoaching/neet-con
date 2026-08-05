@@ -3,6 +3,7 @@ import generateOrderId from '../utils/generateOrderId.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { generateEventPass } from '../utils/eventPass.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
+import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import { sendUserConfirmationEmail, sendOrganizerNotification } from '../utils/email.js';
 import { appendRegistrationRow } from '../utils/googleSheets.js';
 
@@ -100,10 +101,11 @@ export const createRegistration = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  // WhatsApp confirmation is NOT auto-sent here — send manually from the admin
-  // dashboard (per-registration "Resend WhatsApp") once ready. Backup email
-  // still goes out immediately, fire-and-forget so the response is never
-  // delayed by SMTP; never throws.
+  // Send the confirmation + QR via WhatsApp, plus backup email. Fire-and-forget
+  // so the response is never delayed by Meta/SMTP; neither ever throws.
+  sendConfirmationWhatsApp(registration).catch((err) =>
+    console.error(`[whatsapp] registration send error: ${err?.message || err}`)
+  );
   sendUserConfirmationEmail(registration).catch((err) =>
     console.error(`[email] user send error: ${err?.message || err}`)
   );
