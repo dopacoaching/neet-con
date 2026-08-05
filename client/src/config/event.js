@@ -1,8 +1,8 @@
 // Central event details used across the public pages.
 export const EVENT_NAME = 'CareeRx';
 export const EVENT_TAGLINE = 'The Gateway to Medical Career';
-export const EVENT_DATE = 'Saturday, 8 August 2026';
-export const EVENT_TIME = '9:30 AM';
+export const EVENT_DATE = 'New date to be announced';
+export const EVENT_TIME = 'To be announced';
 export const VENUE_NAME = 'Bhatia Hall, Kuttikatoor, Kozhikode';
 
 // Google Maps link for the venue. Bhatia Hall is the same physical location as

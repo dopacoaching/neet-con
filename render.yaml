@@ -53,9 +53,9 @@ services:
         value: v21.0
       # --- Event details (shown in confirmation message / email) ---
       - key: EVENT_DATE
-        value: Saturday, 8 August 2026
+        value: New date to be announced
       - key: EVENT_TIME
-        value: 9:30 AM
+        value: To be announced
       - key: EVENT_VENUE
         value: Bhatia Hall, Kuttikatoor, Kozhikode
       - key: EVENT_MAP_URL
