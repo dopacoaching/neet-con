@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { EVENT_DATE, EVENT_TIME, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
+import { EVENT_DATE, EVENT_TIME, VENUE_NAME } from '../../config/event.js';
 
 const HeroSection = () => {
   return (
@@ -34,14 +34,9 @@ const HeroSection = () => {
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
               📅 {EVENT_DATE}
             </span>
-            <a
-              href={VENUE_MAP_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold transition hover:border-accent hover:text-accent"
-            >
-              📍 {VENUE_NAME}
-            </a>
+            <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
+              💻 {VENUE_NAME}
+            </span>
             <span className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 font-semibold">
               🎟️ Free Entry
             </span>
@@ -86,7 +81,7 @@ const HeroSection = () => {
                 <strong>{EVENT_TIME}</strong>
               </div>
               <div className="flex justify-between">
-                <span>Venue</span>
+                <span>Mode</span>
                 <strong>{VENUE_NAME}</strong>
               </div>
             </div>

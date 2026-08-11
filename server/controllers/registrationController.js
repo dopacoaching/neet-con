@@ -1,7 +1,6 @@
 import Registration, { PAYMENT_STATUS, DOPA_STATUS, CURRENT_EVENT } from '../models/Registration.js';
 import generateOrderId from '../utils/generateOrderId.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { generateEventPass } from '../utils/eventPass.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import { sendUserConfirmationEmail, sendOrganizerNotification } from '../utils/email.js';
@@ -16,7 +15,7 @@ const isRegistrationsOpen = () => String(process.env.REGISTRATIONS_OPEN).toLower
 /**
  * POST /api/registrations
  * CareerX is free to attend — the seat is confirmed immediately (no payment
- * step) and the registration number + entry pass are returned/sent right away.
+ * step) and the registration number is returned/sent right away.
  */
 export const createRegistration = asyncHandler(async (req, res) => {
   if (!isRegistrationsOpen()) {
@@ -101,7 +100,7 @@ export const createRegistration = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  // Send the confirmation + QR via WhatsApp, plus backup email. Fire-and-forget
+  // Send the confirmation via WhatsApp, plus backup email. Fire-and-forget
   // so the response is never delayed by Meta/SMTP; neither ever throws.
   sendConfirmationWhatsApp(registration).catch((err) =>
     console.error(`[whatsapp] registration send error: ${err?.message || err}`)
@@ -131,10 +130,9 @@ export const createRegistration = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/registrations/status/:orderId
- * Public — the Thank-You page's data source. Gated by the unguessable orderId
- * (same trust boundary as the pass endpoint). Registration is synchronous
- * (no payment step), so this just confirms the seat exists and returns the
- * bits the page needs to render.
+ * Public — the Thank-You page's data source. Gated by the unguessable
+ * orderId. Registration is synchronous (no payment step), so this just
+ * confirms the seat exists and returns the bits the page needs to render.
  */
 export const getRegistrationStatus = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
@@ -153,35 +151,4 @@ export const getRegistrationStatus = asyncHandler(async (req, res) => {
       paymentStatus: registration.paymentStatus,
     },
   });
-});
-
-/**
- * GET /api/registrations/pass/:orderId
- * Public — returns the branded entry-pass PNG for a confirmed registration.
- * Gated by the orderId (which the registrant already holds); only available
- * once the seat is confirmed and a registration code exists.
- */
-export const getPass = asyncHandler(async (req, res) => {
-  const { orderId } = req.params;
-  const registration = await Registration.findOne({ orderId, event: CURRENT_EVENT });
-  const confirmed =
-    registration &&
-    registration.registrationNumber &&
-    Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus);
-
-  if (!confirmed) {
-    res.status(404);
-    throw new Error('Pass not available');
-  }
-
-  const png = await generateEventPass(registration);
-  const filename = `careerx-${String(registration.registrationNumber).replace(/\s+/g, '-')}.png`;
-  res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-  // Contains PII (name + registration code): keep it out of shared/CDN caches
-  // (private only), and allow the cross-origin client (Vercel) to render it as
-  // an <img> despite the API's default same-origin resource policy.
-  res.setHeader('Cache-Control', 'private, max-age=3600');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.send(png);
 });

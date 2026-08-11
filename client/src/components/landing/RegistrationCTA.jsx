@@ -10,7 +10,7 @@ const RegistrationCTA = () => {
             Reserve your free seat at CareeRx
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-white/90">
-            Entry is free. Register now to get your instant confirmation and QR entry pass.
+            Entry is free. Register now for your instant confirmation and the WhatsApp group join link.
           </p>
           <Link
             to="/register"

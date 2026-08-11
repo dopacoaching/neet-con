@@ -1,5 +1,5 @@
 import Logo from '../ui/Logo.jsx';
-import { EVENT_DATE, VENUE_NAME, VENUE_MAP_URL } from '../../config/event.js';
+import { EVENT_DATE, VENUE_NAME } from '../../config/event.js';
 
 const Footer = () => (
   <footer className="bg-navy text-white/80">
@@ -18,17 +18,7 @@ const Footer = () => (
         </h4>
         <ul className="space-y-2 text-sm">
           <li>📅 {EVENT_DATE}</li>
-          <li>
-            📍{' '}
-            <a
-              href={VENUE_MAP_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-2 hover:text-accent hover:underline"
-            >
-              {VENUE_NAME}
-            </a>
-          </li>
+          <li>💻 {VENUE_NAME}</li>
           <li>🎟️ Free entry</li>
         </ul>
       </div>

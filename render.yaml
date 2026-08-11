@@ -40,7 +40,7 @@ services:
       - key: WHATSAPP_APP_SECRET
         sync: false # Meta app secret — enables webhook HMAC verification (optional)
       - key: WHATSAPP_TEMPLATE_NAME
-        value: careerx_confirmation_v5
+        value: careerx_confirmation_v7
       - key: WHATSAPP_GUESTCOUNT_TEMPLATE_NAME
         value: careerx_guest_count_update
       - key: WHATSAPP_REMINDER_TEMPLATE_NAME
@@ -52,14 +52,15 @@ services:
       - key: WHATSAPP_API_VERSION
         value: v21.0
       # --- Event details (shown in confirmation message / email) ---
+      # Online event — EVENT_MAP_URL is the join/meeting link; set once confirmed.
       - key: EVENT_DATE
         value: Thursday, 13 August 2026
       - key: EVENT_TIME
-        value: 9:30 AM
+        value: 10:00 AM
       - key: EVENT_VENUE
-        value: Bhatia Hall, Kuttikatoor, Kozhikode
+        value: Online
       - key: EVENT_MAP_URL
-        value: https://maps.app.goo.gl/5xkHbG9FUSHaFLRQ6
+        value: ""
       # --- Email (SMTP) — backup confirmation + organizer notification ---
       - key: SMTP_HOST
         value: smtp.gmail.com

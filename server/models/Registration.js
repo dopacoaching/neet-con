@@ -51,7 +51,7 @@ const registrationSchema = new mongoose.Schema(
       match: [/^[6-9]\d{9}$/, 'Mobile number must be a valid 10-digit Indian number'],
       index: true,
     },
-    // Optional — confirmation + QR are delivered via WhatsApp (to mobileNumber).
+    // Optional — the confirmation is delivered via WhatsApp (to mobileNumber).
     emailAddress: {
       type: String,
       required: false,
@@ -87,6 +87,16 @@ const registrationSchema = new mongoose.Schema(
     // Set when the day-before event reminder was sent, so the send script is
     // safe to re-run without double-sending.
     reminderSentAt: { type: Date, default: null },
+    // Set when the one-off CareerX invite (to old NEET CON 2026 registrants)
+    // was sent, so server/scripts/sendNeetconInvite.js is safe to re-run.
+    neetconInviteSentAt: { type: Date, default: null },
+    // Set when the "event moved to online mode" one-off update was sent to an
+    // already-confirmed CareerX registrant, so sendModeUpdate.js is safe to re-run.
+    modeUpdateSentAt: { type: Date, default: null },
+    // Set when the venue-correction follow-up (fixing the "Bhatia Hall" text in
+    // the original NEET CON invite) was sent, so sendNeetconCorrection.js is
+    // safe to re-run.
+    neetconCorrectionSentAt: { type: Date, default: null },
     // If a reply to that follow-up couldn't be parsed as a number (e.g. "hey
     // who's this" or a voice note), the raw text is stashed here so an admin
     // can read it and set guestCount manually instead of it silently vanishing.
@@ -118,9 +128,11 @@ const registrationSchema = new mongoose.Schema(
     manuallyConfirmedBy: { type: String, default: '' }, // admin username if MANUAL
     notes: { type: String, default: '' }, // admin internal notes
 
-    // --- Event check-in (QR scan at the gate) ---
-    checkedInAt: { type: Date, default: null },
-    checkedInBy: { type: String, default: '' }, // admin username who scanned
+    // --- Joined the online event's WhatsApp group ---
+    // Set manually by an admin (no automated way to detect a WhatsApp group
+    // join via the Cloud API) — replaces the old physical-gate check-in.
+    joinedAt: { type: Date, default: null },
+    joinedBy: { type: String, default: '' }, // admin username who marked it
 
     // --- WhatsApp confirmation delivery (set by sendConfirmationWhatsApp) ---
     // Lets admins see and resend to anyone whose confirmation never went out,

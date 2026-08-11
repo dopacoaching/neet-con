@@ -92,7 +92,7 @@ const RegistrationForm = () => {
           })}
         />
         <p className="mt-1 text-xs text-navy/50">
-          Your registration code &amp; entry QR will be sent here on WhatsApp.
+          Your registration code &amp; confirmation will be sent here on WhatsApp.
         </p>
         {errors.mobileNumber && (
           <p className="mt-1 text-sm text-red-600">{errors.mobileNumber.message}</p>

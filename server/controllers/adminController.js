@@ -1,9 +1,8 @@
 import Admin from '../models/Admin.js';
 import Registration, { PAYMENT_STATUS, DOPA_STATUS, CURRENT_EVENT } from '../models/Registration.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { syncToGoogleSheet, appendRegistrationRow } from '../utils/googleSheets.js';
+import { syncToGoogleSheet } from '../utils/googleSheets.js';
 import { nextRegistrationNumber } from '../utils/registrationNumber.js';
-import generateOrderId from '../utils/generateOrderId.js';
 import { sendConfirmationWhatsApp } from '../utils/whatsapp.js';
 import { sendUserConfirmationEmail } from '../utils/email.js';
 import {
@@ -222,7 +221,7 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
       throw err;
     }
 
-    // On a manual confirmation, send the confirmation + QR via WhatsApp and (if
+    // On a manual confirmation, send the confirmation via WhatsApp and (if
     // the registrant gave an email) by email. Fire-and-forget so the admin
     // response isn't delayed.
     if (becomingConfirmed) {
@@ -242,7 +241,7 @@ export const updateRegistrationStatus = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/admin/registrations/:id/resend-whatsapp
- * Re-send the confirmation + QR to a registrant who never got it (or whose
+ * Re-send the confirmation to a registrant who never got it (or whose
  * send failed). Only makes sense for a seat-holding registration. Requires
  * admin role. Awaited (not fire-and-forget) so the admin gets a real result.
  */
@@ -271,13 +270,13 @@ export const resendWhatsApp = asyncHandler(async (req, res) => {
  * Dashboard cards data.
  */
 export const summary = asyncHandler(async (req, res) => {
-  const [counts, dopaCounts, checkedIn, guestAgg, checkedInGuestAgg] = await Promise.all([
+  const [counts, dopaCounts, joined, guestAgg] = await Promise.all([
     Registration.aggregate([
       { $match: { event: CURRENT_EVENT } },
       { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
     ]),
     // DOPA vs Non-DOPA — only seats that actually hold (manual/free), same
-    // scoping as the guest-count aggregations below.
+    // scoping as the guest-count aggregation below.
     Registration.aggregate([
       {
         $match: {
@@ -287,7 +286,7 @@ export const summary = asyncHandler(async (req, res) => {
       },
       { $group: { _id: '$dopaStatus', count: { $sum: 1 } } },
     ]),
-    Registration.countDocuments({ event: CURRENT_EVENT, checkedInAt: { $ne: null } }),
+    Registration.countDocuments({ event: CURRENT_EVENT, joinedAt: { $ne: null } }),
     // Only count guests for seats that actually hold (manual/free) — a
     // PENDING/FAILED attempt's guest count isn't a real headcount yet.
     Registration.aggregate([
@@ -297,12 +296,6 @@ export const summary = asyncHandler(async (req, res) => {
           paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
         },
       },
-      { $group: { _id: null, total: { $sum: { $ifNull: ['$guestCount', 0] } } } },
-    ]),
-    // Actual (not expected) guest headcount — only those who've walked
-    // through the gate so far.
-    Registration.aggregate([
-      { $match: { event: CURRENT_EVENT, checkedInAt: { $ne: null } } },
       { $group: { _id: null, total: { $sum: { $ifNull: ['$guestCount', 0] } } } },
     ]),
   ]);
@@ -318,7 +311,6 @@ export const summary = asyncHandler(async (req, res) => {
 
   const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
   const totalGuests = guestAgg[0]?.total || 0;
-  const checkedInGuests = checkedInGuestAgg[0]?.total || 0;
   const confirmedTotal = (byStatus[PAYMENT_STATUS.MANUAL] || 0) + (byStatus[PAYMENT_STATUS.FREE] || 0);
 
   res.json({
@@ -329,9 +321,7 @@ export const summary = asyncHandler(async (req, res) => {
       free: byStatus[PAYMENT_STATUS.FREE] || 0,
       dopa: byDopaStatus[DOPA_STATUS.DOPA] || 0,
       nonDopa: byDopaStatus[DOPA_STATUS.NON_DOPA] || 0,
-      checkedIn,
-      checkedInGuests,
-      actualHeadcount: checkedIn + checkedInGuests,
+      joined,
       totalGuests,
       expectedHeadcount: confirmedTotal + totalGuests,
     },
@@ -339,9 +329,9 @@ export const summary = asyncHandler(async (req, res) => {
 });
 
 /**
- * The subset of a registration shown to the gate scanner after a scan.
+ * The subset of a registration shown in the joined-list / joined-toggle response.
  */
-const checkinView = (r) => ({
+const joinedView = (r) => ({
   id: r._id,
   registrationNumber: r.registrationNumber,
   fullName: r.fullName,
@@ -351,21 +341,21 @@ const checkinView = (r) => ({
   batch: r.batch,
   neetScore: r.neetScore,
   paymentStatus: r.paymentStatus,
-  checkedInAt: r.checkedInAt,
-  checkedInBy: r.checkedInBy,
+  joinedAt: r.joinedAt,
+  joinedBy: r.joinedBy,
   guestCount: r.guestCount,
 });
 
 /**
- * GET /api/admin/checkins
- * The list of everyone already checked in (most recent first) + a count.
- * Available to any authenticated admin (gate staff may be viewers).
+ * GET /api/admin/joined
+ * The list of everyone marked as having joined the WhatsApp group (most
+ * recent first) + a count. Available to any authenticated admin.
  */
-export const listCheckIns = asyncHandler(async (req, res) => {
-  const items = await Registration.find({ event: CURRENT_EVENT, checkedInAt: { $ne: null } })
-    .sort({ checkedInAt: -1 })
+export const listJoined = asyncHandler(async (req, res) => {
+  const items = await Registration.find({ event: CURRENT_EVENT, joinedAt: { $ne: null } })
+    .sort({ joinedAt: -1 })
     .select(
-      'registrationNumber fullName mobileNumber dopaStatus schoolOrCollege batch neetScore checkedInAt checkedInBy guestCount'
+      'registrationNumber fullName mobileNumber dopaStatus schoolOrCollege batch neetScore joinedAt joinedBy guestCount'
     )
     .lean();
   res.json({ success: true, data: { count: items.length, items } });
@@ -373,237 +363,51 @@ export const listCheckIns = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/admin/sync-sheet
- * Push the current CareerX registrations + check-ins into a live Google
- * Sheet (two tabs), fully overwriting each tab so re-running never
+ * Push the current CareerX registrations + WhatsApp-group joins into a live
+ * Google Sheet (two tabs), fully overwriting each tab so re-running never
  * duplicates rows. Admin role only.
  */
 export const syncGoogleSheet = asyncHandler(async (req, res) => {
-  const [registrations, checkIns] = await Promise.all([
+  const [registrations, joined] = await Promise.all([
     Registration.find({ event: CURRENT_EVENT }).sort({ createdAt: 1 }).lean(),
-    Registration.find({ event: CURRENT_EVENT, checkedInAt: { $ne: null } })
-      .sort({ checkedInAt: 1 })
+    Registration.find({ event: CURRENT_EVENT, joinedAt: { $ne: null } })
+      .sort({ joinedAt: 1 })
       .lean(),
   ]);
 
-  const { sheetUrl } = await syncToGoogleSheet(registrations, checkIns);
+  const { sheetUrl } = await syncToGoogleSheet(registrations, joined);
   res.json({ success: true, data: { sheetUrl } });
 });
 
 /**
- * POST /api/admin/checkin
- * Body: { code }  — the registration code encoded in the student's QR, OR
- * (as a fallback for walk-ins without a printed QR) an exact mobile number,
- * OR a name search.
- * Looks the student up, validates the seat, and marks attendance (once).
- * Available to any authenticated admin (gate staff may be viewers).
+ * PATCH /api/admin/registrations/:id/joined
+ * Body: { joined: boolean } — manually mark (or unmark) a registrant as
+ * having joined the event's WhatsApp group. There's no automated way to
+ * detect this via the WhatsApp Cloud API, so it's a plain admin toggle
+ * (replaces the old physical-gate QR check-in). Any authenticated admin.
  */
-export const checkIn = asyncHandler(async (req, res) => {
-  const code = String(req.body?.code || '').trim();
-  if (!code) {
-    res.status(400);
-    throw new Error('No QR code / registration number provided');
-  }
-
-  let registration = await Registration.findOne({ registrationNumber: code, event: CURRENT_EVENT });
-
-  // Fallback 1: exact 10-digit mobile number. Scoped to seat-holding
-  // statuses and routed through the same multiple-matches guard as the name
-  // search below — a mobile can have more than one Registration doc (e.g. an
-  // old FAILED attempt alongside the real seat, or two family members
-  // sharing a number), so picking the first match blind could wrongly deny a
-  // legitimately confirmed attendee or check in the wrong person.
-  if (!registration) {
-    const digits = code.replace(/\D/g, '');
-    if (digits.length === 10) {
-      const candidates = await Registration.find({
-        mobileNumber: digits,
-        event: CURRENT_EVENT,
-        paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
-      }).limit(8);
-
-      if (candidates.length === 1) {
-        registration = candidates[0];
-      } else if (candidates.length > 1) {
-        return res.status(200).json({
-          success: false,
-          result: 'multiple_matches',
-          message: `${candidates.length} matches for "${code}" — pick the right one.`,
-          data: { candidates: candidates.map(checkinView) },
-        });
-      }
-    }
-  }
-
-  // Fallback 2: name search. Only auto-proceeds if exactly one seat-holding
-  // registration matches — otherwise surface the candidates so gate staff
-  // pick the right person instead of risking checking in the wrong one.
-  if (!registration) {
-    const safe = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const candidates = await Registration.find({
-      fullName: { $regex: safe, $options: 'i' },
-      event: CURRENT_EVENT,
-      paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
-    }).limit(8);
-
-    if (candidates.length === 1) {
-      registration = candidates[0];
-    } else if (candidates.length > 1) {
-      return res.status(200).json({
-        success: false,
-        result: 'multiple_matches',
-        message: `${candidates.length} matches for "${code}" — pick the right one.`,
-        data: { candidates: candidates.map(checkinView) },
-      });
-    }
-  }
-
+export const setJoined = asyncHandler(async (req, res) => {
+  const joined = !!req.body?.joined;
+  const registration = await Registration.findOne({ _id: req.params.id, event: CURRENT_EVENT });
   if (!registration) {
     res.status(404);
-    throw new Error(`No registration found for "${code}"`);
+    throw new Error('Registration not found');
   }
 
-  const isConfirmed = Registration.SEAT_HOLDING_STATUSES.includes(registration.paymentStatus);
+  registration.joinedAt = joined ? new Date() : null;
+  registration.joinedBy = joined ? req.admin.username : '';
+  await registration.save();
 
-  if (!isConfirmed) {
-    return res.status(200).json({
-      success: false,
-      result: 'not_confirmed',
-      message: 'This registration is not a confirmed seat — do not admit.',
-      data: checkinView(registration),
-    });
-  }
-
-  // Claim the check-in atomically so two gate scanners hitting the same QR at
-  // the same moment can't both admit — exactly one wins, the other sees
-  // "already checked in".
-  const updated = await Registration.findOneAndUpdate(
-    { _id: registration._id, checkedInAt: null },
-    { $set: { checkedInAt: new Date(), checkedInBy: req.admin.username } },
-    { new: true }
-  );
-
-  if (!updated) {
-    const current = await Registration.findById(registration._id);
-    return res.status(200).json({
-      success: false,
-      result: 'already_checked_in',
-      message: 'Already checked in — possible duplicate scan.',
-      data: checkinView(current || registration),
-    });
-  }
-
-  return res.json({
-    success: true,
-    result: 'checked_in',
-    message: 'Checked in successfully. Admit the student.',
-    data: checkinView(updated),
-  });
-});
-
-const WALKIN_MOBILE_RE = /^[6-9]\d{9}$/;
-
-/**
- * POST /api/admin/registrations/walk-in
- * Register a student on the spot at the gate (they never registered online)
- * and check them in immediately in the same action. Name, mobile, and guest
- * count are required; the rest are optional. Any authenticated admin (incl.
- * viewer-role gate staff) can do this.
- */
-export const registerWalkIn = asyncHandler(async (req, res) => {
-  const {
-    fullName,
-    mobileNumber,
-    dopaStatus = '',
-    schoolOrCollege = '',
-    batch = '',
-    neetScore = '',
-    guestCount,
-  } = req.body || {};
-
-  const errors = [];
-  if (!fullName || !String(fullName).trim()) errors.push('Full name is required');
-  if (!mobileNumber || !WALKIN_MOBILE_RE.test(String(mobileNumber).trim()))
-    errors.push('A valid 10-digit Indian mobile number is required');
-  const n = Math.trunc(Number(guestCount));
-  if (guestCount === undefined || guestCount === null || guestCount === '' || !Number.isFinite(n))
-    errors.push('Guest count is required');
-  else if (n < 0 || n > 20) errors.push('Guest count must be between 0 and 20');
-  if (dopaStatus && !Object.values(DOPA_STATUS).includes(dopaStatus))
-    errors.push('Invalid DOPA status value');
-
-  if (errors.length) {
-    res.status(400);
-    throw new Error(errors.join('; '));
-  }
-
-  const mobile = String(mobileNumber).trim();
-
-  const existing = await Registration.findOne({
-    mobileNumber: mobile,
-    event: CURRENT_EVENT,
-    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
-  });
-  if (existing) {
-    res.status(409);
-    throw new Error(
-      `This mobile number is already registered under ${existing.registrationNumber || existing.orderId} — check them in from Registrations instead.`
-    );
-  }
-
-  const orderId = generateOrderId();
-
-  let registration;
-  try {
-    registration = await Registration.create({
-      event: CURRENT_EVENT,
-      fullName: String(fullName).trim(),
-      mobileNumber: mobile,
-      dopaStatus: dopaStatus || undefined,
-      schoolOrCollege: String(schoolOrCollege).trim(),
-      batch: String(batch).trim(),
-      neetScore: String(neetScore).trim(),
-      guestCount: n,
-      orderId,
-      paymentStatus: PAYMENT_STATUS.MANUAL,
-      registrationNumber: await nextRegistrationNumber(),
-      confirmedAt: new Date(),
-      source: 'admin_walk_in',
-      manuallyConfirmedBy: req.admin.username,
-      checkedInAt: new Date(),
-      checkedInBy: req.admin.username,
-    });
-  } catch (err) {
-    if (err?.code === 11000 && err?.keyPattern?.mobileNumber) {
-      res.status(409);
-      throw new Error('This mobile number is already registered.');
-    }
-    throw err;
-  }
-
-  // Send the confirmation + QR via WhatsApp. Fire-and-forget so the response
-  // is never delayed by Meta; never throws. No email on file for a walk-in.
-  sendConfirmationWhatsApp(registration).catch((err) =>
-    console.error(`[whatsapp] walk-in send error: ${err?.message || err}`)
-  );
-  appendRegistrationRow(registration).catch((err) =>
-    console.error(`[sheets] append row error: ${err?.message || err}`)
-  );
-
-  return res.status(201).json({
-    success: true,
-    result: 'checked_in',
-    message: 'Registered and checked in successfully. Admit the student.',
-    data: checkinView(registration),
-  });
+  res.json({ success: true, data: joinedView(registration) });
 });
 
 /**
  * PATCH /api/admin/registrations/:id/guest-count
- * Set the guest count from the gate (spoken/typed at check-in) rather than
- * relying on the WhatsApp follow-up reply. Any authenticated admin (incl.
- * viewer-role gate staff) can set this — it doesn't touch seat/payment status.
+ * Set the guest count manually (an admin override for when the WhatsApp
+ * follow-up reply never came, or couldn't be parsed as a number). Any
+ * authenticated admin — it doesn't touch seat/payment status.
  */
-export const setGuestCountAtGate = asyncHandler(async (req, res) => {
+export const setGuestCount = asyncHandler(async (req, res) => {
   const n = Math.trunc(Number(req.body?.guestCount));
   if (!Number.isFinite(n) || n < 0 || n > 20) {
     res.status(400);
@@ -624,5 +428,5 @@ export const setGuestCountAtGate = asyncHandler(async (req, res) => {
   existing.guestCountReplyRaw = '';
   await existing.save();
 
-  res.json({ success: true, data: checkinView(existing) });
+  res.json({ success: true, data: joinedView(existing) });
 });

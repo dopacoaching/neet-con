@@ -5,9 +5,10 @@ import { google } from 'googleapis';
  *   1. appendRegistrationRow() — fires automatically the instant a new
  *      registration is created, adding just that one row.
  *   2. syncToGoogleSheet() — the admin dashboard's manual "Sync to Google
- *      Sheet" button, which brings both tabs (Registrations + Check-ins)
- *      up to date with the database. Use it to pull in check-ins (which
- *      don't auto-sync) or to backfill anything the real-time append missed.
+ *      Sheet" button, which brings both tabs (Registrations + Joined
+ *      WhatsApp Group) up to date with the database. Use it to pull in
+ *      joins (which don't auto-sync) or to backfill anything the real-time
+ *      append missed.
  *
  * Both are upserts, not overwrites: each database row is matched to an
  * existing sheet row by its Registration Number (column B) and updated in
@@ -67,8 +68,8 @@ const REGISTRATIONS_HEADER = [
   'Reference ID',
   'Registered At',
   'Confirmed At',
-  'Checked In At',
-  'Checked In By',
+  'Joined WhatsApp Group At',
+  'Joined WhatsApp Group (marked by)',
   'Notes',
 ];
 
@@ -89,12 +90,12 @@ const registrationRow = (r, idx) => [
   r.orderId || '',
   fmt(r.createdAt),
   fmt(r.confirmedAt),
-  fmt(r.checkedInAt),
-  r.checkedInBy || '',
+  fmt(r.joinedAt),
+  r.joinedBy || '',
   r.notes || '',
 ];
 
-const CHECKINS_HEADER = [
+const JOINED_HEADER = [
   '#',
   'Registration Number',
   'Full Name',
@@ -104,11 +105,11 @@ const CHECKINS_HEADER = [
   'Batch',
   'NEET 2026 Score',
   'Guests Accompanying',
-  'Checked In At',
-  'Checked In By',
+  'Joined WhatsApp Group At',
+  'Joined WhatsApp Group (marked by)',
 ];
 
-const checkinRow = (r, idx) => [
+const joinedRow = (r, idx) => [
   idx + 1,
   r.registrationNumber || '',
   r.fullName || '',
@@ -118,8 +119,8 @@ const checkinRow = (r, idx) => [
   r.batch || '',
   r.neetScore || '',
   r.guestCount === undefined || r.guestCount === null ? '' : r.guestCount,
-  fmt(r.checkedInAt),
-  r.checkedInBy || '',
+  fmt(r.joinedAt),
+  r.joinedBy || '',
 ];
 
 /** CareerX navy, matching the site's brand color. */
@@ -254,14 +255,14 @@ const upsertTab = async (sheets, spreadsheetId, tabName, header, dataRows) => {
 };
 
 /**
- * Sync CareerX registrations + check-ins into two tabs of one spreadsheet.
- * Upserts by Registration Number — never clears the sheet, so any manual
- * edits, notes, or extra rows/columns you've added stay put.
+ * Sync CareerX registrations + WhatsApp-group joins into two tabs of one
+ * spreadsheet. Upserts by Registration Number — never clears the sheet, so
+ * any manual edits, notes, or extra rows/columns you've added stay put.
  * @param {Array<object>} registrations  all registrations (lean docs)
- * @param {Array<object>} checkIns       checked-in registrations (lean docs)
+ * @param {Array<object>} joined         registrations marked as joined (lean docs)
  * @returns {Promise<{ sheetUrl: string }>}
  */
-export const syncToGoogleSheet = async (registrations, checkIns) => {
+export const syncToGoogleSheet = async (registrations, joined) => {
   if (!isConfigured()) {
     throw new Error(
       'Google Sheets sync is not configured — set GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_SERVICE_ACCOUNT_KEY, and GOOGLE_SHEET_ID.'
@@ -271,7 +272,7 @@ export const syncToGoogleSheet = async (registrations, checkIns) => {
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
   await upsertTab(sheets, spreadsheetId, 'Registrations', REGISTRATIONS_HEADER, registrations.map(registrationRow));
-  await upsertTab(sheets, spreadsheetId, 'Check-ins', CHECKINS_HEADER, checkIns.map(checkinRow));
+  await upsertTab(sheets, spreadsheetId, 'Joined WhatsApp Group', JOINED_HEADER, joined.map(joinedRow));
 
   return { sheetUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit` };
 };

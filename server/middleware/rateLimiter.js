@@ -71,10 +71,10 @@ export const apiLimiter = rateLimit({
 });
 
 /**
- * Tighter limiter for the PUBLIC endpoints that return registrant data keyed
- * only by order id (entry pass + payment status). Backstops the unguessable
- * order id against enumeration while staying comfortably above legitimate use
- * (the Thank-You page polls a handful of times, plus one pass load).
+ * Tighter limiter for the PUBLIC status endpoint, which returns registrant
+ * data keyed only by order id. Backstops the unguessable order id against
+ * enumeration while staying comfortably above legitimate use (the Thank-You
+ * page polls it a handful of times).
  */
 export const publicReadLimiter = rateLimit({
   windowMs: 60 * 1000,

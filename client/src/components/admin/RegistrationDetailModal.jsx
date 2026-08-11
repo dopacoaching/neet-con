@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import StatusBadge from './StatusBadge.jsx';
-import { adminUpdateStatus, adminResendWhatsApp, adminCheckIn } from '../../services/api.js';
+import { adminUpdateStatus, adminResendWhatsApp, adminSetJoined } from '../../services/api.js';
 import { Spinner } from '../ui/PageLoader.jsx';
 
 const WHATSAPP_STATUS_STYLE = {
@@ -31,7 +31,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
   );
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState(false);
-  const [checkingIn, setCheckingIn] = useState(false);
+  const [markingJoined, setMarkingJoined] = useState(false);
 
   useEffect(() => {
     setNotes(registration?.notes || '');
@@ -62,7 +62,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
     }
     if (statusOverride === 'FAILED') {
       const ok = window.confirm(
-        `Cancel ${r.fullName}'s confirmed seat and mark it FAILED?\n\nThis un-seats them — only do this for a genuine duplicate/mistake. Their registration number is kept but they will no longer be admittable at check-in.`
+        `Cancel ${r.fullName}'s confirmed seat and mark it FAILED?\n\nThis un-seats them — only do this for a genuine duplicate/mistake. Their registration number is kept but the seat no longer counts as confirmed.`
       );
       if (!ok) return;
     }
@@ -93,25 +93,16 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
     }
   };
 
-  const checkInNow = async () => {
-    setCheckingIn(true);
+  const toggleJoined = async (joined) => {
+    setMarkingJoined(true);
     try {
-      const res = await adminCheckIn(r.registrationNumber);
-      if (!res.success && res.result !== 'already_checked_in') {
-        toast.error(res.message || 'Check-in failed');
-        return;
-      }
-      toast.success(res.message || 'Checked in');
-      onUpdated({
-        ...r,
-        checkedInAt: res.data.checkedInAt,
-        checkedInBy: res.data.checkedInBy,
-        guestCount: res.data.guestCount,
-      });
+      const updated = await adminSetJoined(r._id, joined);
+      toast.success(joined ? 'Marked as joined' : 'Joined status cleared');
+      onUpdated({ ...r, joinedAt: updated.joinedAt, joinedBy: updated.joinedBy });
     } catch (err) {
-      toast.error(err.message || 'Check-in failed');
+      toast.error(err.message || 'Update failed');
     } finally {
-      setCheckingIn(false);
+      setMarkingJoined(false);
     }
   };
 
@@ -200,7 +191,7 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
           {r.source === 'admin_walk_in' && (
             <div className="rounded-xl bg-blue-500/10 p-4 ring-1 ring-blue-400/20">
               <p className="text-xs font-semibold uppercase tracking-wide text-blue-300">
-                Registered as a walk-in at the gate
+                Registered as a walk-in by an admin
               </p>
             </div>
           )}
@@ -223,26 +214,28 @@ const RegistrationDetailModal = ({ registration, isAdminRole, onClose, onUpdated
                 value={r.createdAt ? format(new Date(r.createdAt), 'dd MMM yyyy, h:mm a') : '—'}
               />
               <Field
-                label="Checked In"
+                label="Joined WhatsApp Group"
                 value={
-                  r.checkedInAt
-                    ? `${format(new Date(r.checkedInAt), 'dd MMM yyyy, h:mm a')}${
-                        r.checkedInBy ? ` · ${r.checkedInBy}` : ''
+                  r.joinedAt
+                    ? `${format(new Date(r.joinedAt), 'dd MMM yyyy, h:mm a')}${
+                        r.joinedBy ? ` · ${r.joinedBy}` : ''
                       }`
                     : 'Not yet'
                 }
               />
             </div>
-            {isSeatHolding && !r.checkedInAt && (
+            {isSeatHolding && (
               <button
-                onClick={checkInNow}
-                className="btn-primary mt-3 !py-2 !px-4 text-sm"
-                disabled={checkingIn}
+                onClick={() => toggleJoined(!r.joinedAt)}
+                className={`mt-3 !py-2 !px-4 text-sm ${r.joinedAt ? 'btn-ghost-dark' : 'btn-primary'}`}
+                disabled={markingJoined}
               >
-                {checkingIn ? (
+                {markingJoined ? (
                   <Spinner className="h-4 w-4 border-white/40 border-t-white" />
+                ) : r.joinedAt ? (
+                  'Unmark Joined'
                 ) : (
-                  '✓ Check In Now'
+                  '✓ Mark Joined'
                 )}
               </button>
             )}

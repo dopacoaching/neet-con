@@ -11,8 +11,7 @@ import Logo from '../../components/ui/Logo.jsx';
 import SummaryCards from '../../components/admin/SummaryCards.jsx';
 import RegistrationsTable from '../../components/admin/RegistrationsTable.jsx';
 import RegistrationDetailModal from '../../components/admin/RegistrationDetailModal.jsx';
-import CheckInScanner from '../../components/admin/CheckInScanner.jsx';
-import CheckedInList from '../../components/admin/CheckedInList.jsx';
+import JoinedList from '../../components/admin/JoinedList.jsx';
 import { Spinner } from '../../components/ui/PageLoader.jsx';
 
 const STATUS_OPTIONS = ['All', 'FREE', 'MANUAL'];
@@ -48,8 +47,7 @@ const AdminDashboardPage = () => {
   });
   const [selected, setSelected] = useState(null);
   const [syncing, setSyncing] = useState(false);
-  const [tab, setTab] = useState('dashboard'); // 'dashboard' | 'registrations' | 'checkin'
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [tab, setTab] = useState('registrations'); // 'registrations' | 'joined'
 
   const searchTimer = useRef(null);
   const listRequestId = useRef(0);
@@ -125,8 +123,8 @@ const AdminDashboardPage = () => {
     loadSummary();
   };
 
-  // Pushes both registrations + check-ins into the connected Google Sheet in
-  // one call (two tabs, one spreadsheet) — replaces the old Excel downloads.
+  // Pushes both registrations + joined-WhatsApp-group marks into the connected
+  // Google Sheet in one call (two tabs, one spreadsheet).
   const handleSyncSheet = async () => {
     setSyncing(true);
     try {
@@ -166,7 +164,7 @@ const AdminDashboardPage = () => {
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#081231]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <button
-            onClick={() => setTab('dashboard')}
+            onClick={() => setTab('registrations')}
             className="rounded-lg transition hover:opacity-80"
             aria-label="Go to dashboard"
           >
@@ -200,27 +198,20 @@ const AdminDashboardPage = () => {
             📋 Registrations
           </button>
           <button
-            onClick={() => setTab('checkin')}
+            onClick={() => setTab('joined')}
             className={`shrink-0 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition sm:w-full ${
-              tab === 'checkin'
+              tab === 'joined'
                 ? 'bg-accent/20 text-accent'
                 : 'text-white/60 hover:bg-white/5 hover:text-white'
             }`}
           >
-            📷 Check-in
+            ✅ Joined Group
           </button>
         </nav>
 
         {/* Content */}
         <main className="min-w-0 flex-1 space-y-6">
-          {tab === 'dashboard' ? (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-              <h1 className="font-heading text-2xl font-extrabold text-white">Dashboard</h1>
-              <button onClick={() => setScannerOpen(true)} className="btn-primary !py-3 !px-6 text-base">
-                📷 Open Scanner
-              </button>
-            </div>
-          ) : tab === 'registrations' ? (
+          {tab === 'registrations' ? (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -307,9 +298,9 @@ const AdminDashboardPage = () => {
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h1 className="font-heading text-2xl font-extrabold text-white">Check-in</h1>
+                  <h1 className="font-heading text-2xl font-extrabold text-white">Joined Group</h1>
                   <p className="text-sm text-white/60">
-                    Students who have completed check-in — by scan, typed code, or manual entry.
+                    Students manually marked as having joined the event's WhatsApp group.
                   </p>
                 </div>
                 {isAdminRole && (
@@ -324,7 +315,7 @@ const AdminDashboardPage = () => {
                   </button>
                 )}
               </div>
-              <CheckedInList />
+              <JoinedList />
             </>
           )}
         </main>
@@ -339,15 +330,6 @@ const AdminDashboardPage = () => {
         />
       )}
 
-      {scannerOpen && (
-        <CheckInScanner
-          onClose={() => setScannerOpen(false)}
-          onCheckedIn={() => {
-            loadList();
-            loadSummary();
-          }}
-        />
-      )}
     </div>
   );
 };

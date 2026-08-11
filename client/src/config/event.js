@@ -2,11 +2,9 @@
 export const EVENT_NAME = 'CareeRx';
 export const EVENT_TAGLINE = 'The Gateway to Medical Career';
 export const EVENT_DATE = 'Thursday, 13 August 2026';
-export const EVENT_TIME = '9:30 AM';
-export const VENUE_NAME = 'Bhatia Hall, Kuttikatoor, Kozhikode';
+export const EVENT_TIME = '10:00 AM';
+export const VENUE_NAME = 'Online Conclave';
 
-// Google Maps link for the venue. Bhatia Hall is the same physical location as
-// the old "Yamaniya Hall, Kuttikattor" (renamed, not moved) — reusing the
-// verified pin. Also paste this into the WhatsApp template's "Get Directions"
-// URL button in Meta WhatsApp Manager.
-export const VENUE_MAP_URL = 'https://maps.app.goo.gl/5xkHbG9FUSHaFLRQ6';
+// Meeting/join link for the online event — set once confirmed. Components
+// should fall back to "Link will be shared before the event" while empty.
+export const ONLINE_EVENT_LINK = 'https://chat.whatsapp.com/GfMbkxj71ym8gNDpuEe7Es';

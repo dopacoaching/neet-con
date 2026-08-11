@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getRegistrationStatus, getPassUrl } from '../services/api.js';
+import { getRegistrationStatus } from '../services/api.js';
 import Logo from '../components/ui/Logo.jsx';
 import { Spinner } from '../components/ui/PageLoader.jsx';
-import { VENUE_MAP_URL } from '../config/event.js';
+import { ONLINE_EVENT_LINK, EVENT_DATE, EVENT_TIME } from '../config/event.js';
 
 const ThankYouPage = () => {
   const [params] = useSearchParams();
@@ -11,9 +11,6 @@ const ThankYouPage = () => {
 
   const [status, setStatus] = useState('loading'); // loading | confirmed | error
   const [data, setData] = useState(null);
-
-  // The branded entry pass (QR + details) is rendered server-side.
-  const passUrl = orderId ? getPassUrl(orderId) : '';
 
   useEffect(() => {
     if (!orderId) {
@@ -76,47 +73,44 @@ const ThankYouPage = () => {
         ✓
       </div>
       <h1 className="mt-5 font-heading text-3xl font-extrabold">Your seat is confirmed!</h1>
-      <p className="mt-2 text-white/70">Thank you, {data.fullName}. We can't wait to see you.</p>
+      <p className="mt-2 text-white/70">Thank you, {data.fullName}. We can't wait to see you online.</p>
 
-      {/* Branded entry pass (QR + details), rendered server-side */}
-      <div className="mt-8 w-full max-w-2xl">
-        <div className="overflow-hidden rounded-2xl bg-white/5 p-2 ring-1 ring-white/10">
-          <img
-            src={passUrl}
-            alt={`Entry pass for ${data.registrationNumber}`}
-            className="w-full rounded-xl"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
+      <div className="mt-8 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Registration Code</p>
+        <p className="mt-1 font-heading text-2xl font-extrabold text-accent">{data.registrationNumber}</p>
+        <div className="mt-4 space-y-1.5 text-sm text-white/70">
+          <p>
+            <strong className="text-white/90">{EVENT_DATE}</strong> · {EVENT_TIME}
+          </p>
+          <p>Online Conclave — no physical venue</p>
         </div>
+      </div>
 
-        <p className="mt-4 text-sm text-white/60">
-          <strong className="text-white/90">Free Entry</strong> ·{' '}
+      <div className="mt-7 w-full max-w-md rounded-2xl border border-accent/30 bg-accent/10 p-6">
+        <p className="font-heading text-lg font-bold text-white">Join the official WhatsApp group</p>
+        <p className="mt-1 text-sm text-white/70">
+          The event link and every update are shared there — this is for registered students only.
+        </p>
+        {ONLINE_EVENT_LINK ? (
           <a
-            href={VENUE_MAP_URL}
+            href={ONLINE_EVENT_LINK}
             target="_blank"
             rel="noreferrer"
-            className="underline-offset-2 hover:text-accent hover:underline"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600"
           >
-            Get directions to the venue
+            Join WhatsApp Group
           </a>
-        </p>
+        ) : (
+          <p className="mt-4 text-sm text-white/50">The group link will be shared with you shortly.</p>
+        )}
       </div>
 
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
         <a
-          href={passUrl}
-          download={`careerx-${String(data.registrationNumber).replace(/\s+/g, '-')}.png`}
-          className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-navy transition hover:bg-white/90"
-        >
-          ⬇ Download Pass
-        </a>
-        <a
           href={`https://wa.me/?text=${waMessage}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600"
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-navy transition hover:bg-white/90"
         >
           Share on WhatsApp
         </a>
@@ -125,9 +119,8 @@ const ThankYouPage = () => {
         </Link>
       </div>
       <p className="mt-6 max-w-sm text-sm text-white/50">
-        We're also trying to send a copy to WhatsApp/email on{' '}
-        <span className="text-white/80">{data.mobileNumber || 'your registered mobile'}</span>, but
-        please download or screenshot the pass above now so you have it either way.
+        We're also sending a confirmation to WhatsApp/email on{' '}
+        <span className="text-white/80">{data.mobileNumber || 'your registered mobile'}</span>.
       </p>
     </Shell>
   );

@@ -34,3 +34,7 @@ Thumbs.db
 *.local
 coverage/
 .cache/
+
+# One-off campaign send-tracking state (contains real phone numbers — not source code)
+server/scripts/neetconExtraSent.json
+server/scripts/neetconCorrectionSent.json

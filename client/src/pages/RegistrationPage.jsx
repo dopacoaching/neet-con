@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import RegistrationForm from '../components/registration/RegistrationForm.jsx';
 import Logo from '../components/ui/Logo.jsx';
-import { EVENT_DATE, EVENT_TIME, VENUE_NAME, VENUE_MAP_URL } from '../config/event.js';
+import { EVENT_DATE, EVENT_TIME, VENUE_NAME } from '../config/event.js';
 
 const RegistrationPage = () => {
   return (
@@ -29,7 +29,7 @@ const RegistrationPage = () => {
             {[
               ['📅 Date', EVENT_DATE],
               ['🕤 Time', EVENT_TIME],
-              ['📍 Venue', VENUE_NAME],
+              ['💻 Mode', VENUE_NAME],
               ['🎟️ Fee', 'Free entry'],
             ].map(([k, v]) => (
               <div
@@ -37,20 +37,7 @@ const RegistrationPage = () => {
                 className="flex justify-between border-b border-white/10 pb-2 text-white/80"
               >
                 <span>{k}</span>
-                <strong className="text-white">
-                  {k.includes('Venue') ? (
-                    <a
-                      href={VENUE_MAP_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline-offset-2 hover:text-accent hover:underline"
-                    >
-                      {v}
-                    </a>
-                  ) : (
-                    v
-                  )}
-                </strong>
+                <strong className="text-white">{v}</strong>
               </div>
             ))}
           </div>

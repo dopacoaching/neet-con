@@ -33,10 +33,6 @@ export const createRegistration = (payload) =>
 export const getRegistrationStatus = (orderId) =>
   api.get(`/registrations/status/${orderId}`).then((r) => r.data.data);
 
-// Direct URL to the branded entry-pass PNG (served by the API).
-export const getPassUrl = (orderId) =>
-  `${api.defaults.baseURL}/registrations/pass/${encodeURIComponent(orderId)}`;
-
 /* ------------------------------------------------------------------ */
 /* Admin                                                               */
 /* ------------------------------------------------------------------ */
@@ -66,22 +62,14 @@ export const adminResendWhatsApp = (id) =>
 export const adminSyncSheet = () =>
   api.post('/admin/sync-sheet').then((r) => r.data.data);
 
-// Gate check-in by scanned QR code / registration number.
-// Returns the full envelope { success, result, message, data } so the caller
-// can distinguish checked_in / already_checked_in / not_confirmed.
-export const adminCheckIn = (code) =>
-  api.post('/admin/checkin', { code }).then((r) => r.data);
+// Mark/unmark a registrant as having joined the event's WhatsApp group.
+export const adminSetJoined = (id, joined) =>
+  api.patch(`/admin/registrations/${id}/joined`, { joined }).then((r) => r.data.data);
 
-// The list of everyone checked in so far (most recent first) + count.
-export const adminListCheckIns = () =>
-  api.get('/admin/checkins').then((r) => r.data.data);
+// The list of everyone marked as joined so far (most recent first) + count.
+export const adminListJoined = () => api.get('/admin/joined').then((r) => r.data.data);
 
-// Register a walk-in student (never registered online) and check them in
-// immediately. Returns the same envelope shape as adminCheckIn.
-export const adminRegisterWalkIn = (payload) =>
-  api.post('/admin/registrations/walk-in', payload).then((r) => r.data);
-
-// Set guest count at the gate (spoken/typed during check-in).
+// Manual guest-count override.
 export const adminSetGuestCount = (id, guestCount) =>
   api.patch(`/admin/registrations/${id}/guest-count`, { guestCount }).then((r) => r.data.data);
 

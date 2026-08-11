@@ -1,6 +1,4 @@
 import nodemailer from 'nodemailer';
-import { generateEventPass } from './eventPass.js';
-import { generateQrBuffer } from './qrcode.js';
 
 /**
  * Email delivery (nodemailer / SMTP).
@@ -18,10 +16,13 @@ import { generateQrBuffer } from './qrcode.js';
 
 const EVENT = {
   date: process.env.EVENT_DATE || 'Thursday, 13 August 2026',
-  time: process.env.EVENT_TIME || '9:30 AM',
-  venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
-  mapUrl: process.env.EVENT_MAP_URL || 'https://maps.app.goo.gl/5xkHbG9FUSHaFLRQ6',
+  time: process.env.EVENT_TIME || '10:00 AM',
+  venue: process.env.EVENT_VENUE || 'Online',
 };
+
+// The official WhatsApp group is where the event's join link and updates are
+// shared — same link sent in the WhatsApp confirmation template.
+const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/GfMbkxj71ym8gNDpuEe7Es';
 
 const FROM = () => process.env.MAIL_FROM || process.env.SMTP_USER || '';
 const ORGANIZER = () => process.env.ORGANIZER_EMAIL || process.env.SMTP_USER || '';
@@ -48,19 +49,6 @@ const esc = (s) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-/** Render the entry pass (fallback to a plain QR) as a PNG buffer for attaching. */
-const passAttachment = async (reg) => {
-  try {
-    return await generateEventPass(reg);
-  } catch {
-    try {
-      return await generateQrBuffer(reg.registrationNumber);
-    } catch {
-      return null;
-    }
-  }
-};
-
 /* ------------------------------------------------------------------ */
 /* User confirmation                                                  */
 /* ------------------------------------------------------------------ */
@@ -79,7 +67,7 @@ export const buildUserEmailHtml = (reg) => {
       <tr><td style="padding:28px">
         <span style="display:inline-block;background:#e7f8ee;color:#138a4e;font-size:12px;font-weight:bold;padding:6px 12px;border-radius:999px">✓ SEAT CONFIRMED</span>
         <h1 style="font-size:22px;margin:16px 0 6px;color:#0b1330">You're all set, ${name}!</h1>
-        <p style="color:#5b6478;margin:0 0 22px;font-size:14px;line-height:1.6">Your registration for CareeRx is confirmed. Your entry pass is below — show the QR at the registration desk.</p>
+        <p style="color:#5b6478;margin:0 0 22px;font-size:14px;line-height:1.6">Your registration for CareeRx is confirmed. This is a fully online conclave — keep this email as your confirmation.</p>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f6fc;border-radius:12px;margin-bottom:22px">
           <tr><td style="padding:16px 18px">
@@ -88,16 +76,14 @@ export const buildUserEmailHtml = (reg) => {
           </td></tr>
         </table>
 
-        <img src="cid:entrypass" alt="CareeRx entry pass" width="504" style="width:100%;height:auto;border-radius:12px;border:1px solid #e4e8f3;display:block"/>
-
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;font-size:14px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">
           <tr><td style="padding:7px 0;color:#7a85a0;border-bottom:1px solid #eef1f8">Date &amp; Time</td><td style="padding:7px 0;text-align:right;font-weight:bold;border-bottom:1px solid #eef1f8">${esc(EVENT.date)} · ${esc(EVENT.time)}</td></tr>
-          <tr><td style="padding:7px 0;color:#7a85a0">Venue</td><td style="padding:7px 0;text-align:right;font-weight:bold">${esc(EVENT.venue)}</td></tr>
+          <tr><td style="padding:7px 0;color:#7a85a0">Mode</td><td style="padding:7px 0;text-align:right;font-weight:bold">${esc(EVENT.venue)}</td></tr>
         </table>
 
-        <a href="${esc(EVENT.mapUrl)}" style="display:inline-block;margin-top:22px;background:#050b95;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;font-size:14px">Get Directions</a>
+        <a href="${esc(WHATSAPP_GROUP_LINK)}" style="display:inline-block;margin-top:22px;background:#050b95;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;font-size:14px">Join WhatsApp Group</a>
 
-        <p style="color:#7a85a0;font-size:13px;margin:24px 0 0;line-height:1.6">We're also trying to send a copy on WhatsApp. Please keep this email handy for entry either way. See you there!</p>
+        <p style="color:#7a85a0;font-size:13px;margin:24px 0 0;line-height:1.6">The event link and updates are shared in that group. We're also trying to send a copy of this confirmation on WhatsApp — please keep this email handy for your records. See you online!</p>
       </td></tr>
       <tr><td style="background:#f3f6fc;padding:16px 28px;color:#9aa3b8;font-size:12px;text-align:center">
         CareeRx · DOPA Coaching · Automated confirmation — please do not reply.
@@ -112,13 +98,12 @@ const userText = (reg) =>
   `Registration Code: ${reg.registrationNumber}\n` +
   `Name: ${reg.fullName}\n` +
   `Date & Time: ${EVENT.date} · ${EVENT.time}\n` +
-  `Venue: ${EVENT.venue}\n\n` +
-  `Show the QR on your entry pass (attached) at the registration desk.\n` +
-  `Directions: ${EVENT.mapUrl}\n\n` +
+  `Mode: ${EVENT.venue}\n\n` +
+  `Join our official WhatsApp group for the event link and updates:\n${WHATSAPP_GROUP_LINK}\n\n` +
   `DOPA Coaching`;
 
 /**
- * Email the entry pass to the registrant. Only sends when an email was given.
+ * Email the registration confirmation. Only sends when an email was given.
  * Never throws.
  * @returns {Promise<{ sent:boolean, reason?:string }>}
  */
@@ -130,23 +115,12 @@ export const sendUserConfirmationEmail = async (reg) => {
     return { sent: false, reason: 'not configured' };
   }
   try {
-    const png = await passAttachment(reg);
-    const attachments = png
-      ? [
-          {
-            filename: `careerx-${String(reg.registrationNumber).replace(/\s+/g, '-')}.png`,
-            content: png,
-            cid: 'entrypass',
-          },
-        ]
-      : [];
     await getTransporter().sendMail({
       from: FROM(),
       to,
-      subject: `Your CareeRx entry pass — ${reg.registrationNumber}`,
+      subject: `Your CareeRx registration confirmation — ${reg.registrationNumber}`,
       text: userText(reg),
       html: buildUserEmailHtml(reg),
-      attachments,
     });
     console.log(`[email] confirmation sent to ${to} (${reg.registrationNumber})`);
     return { sent: true };

@@ -1,5 +1,5 @@
 /**
- * One-off: resend the WhatsApp confirmation + QR to every seat-holding
+ * One-off: resend the WhatsApp confirmation to every seat-holding
  * registration whose delivery was never confirmed as sent. Before this
  * script's companion tracking fields (whatsappStatus etc. on Registration)
  * existed, sends were fire-and-forget with no persisted outcome, so every

@@ -8,10 +8,9 @@ import {
   updateRegistrationStatus,
   resendWhatsApp,
   summary,
-  checkIn,
-  listCheckIns,
-  setGuestCountAtGate,
-  registerWalkIn,
+  listJoined,
+  setJoined,
+  setGuestCount,
   syncGoogleSheet,
 } from '../controllers/adminController.js';
 import { protect, requireAdminRole } from '../middleware/authMiddleware.js';
@@ -39,19 +38,16 @@ router.get('/summary', protect, summary);
 router.get('/registrations', protect, listRegistrations);
 router.get('/registrations/:id', protect, getRegistration);
 
-// Gate check-in by scanned QR code — any authenticated admin (incl. viewers).
-router.post('/checkin', protect, checkIn);
+// Mark/unmark a registrant as having joined the event's WhatsApp group — any
+// authenticated admin (no automated way to detect this via the Cloud API).
+router.patch('/registrations/:id/joined', protect, setJoined);
 
-// List of everyone checked in so far — any authenticated admin.
-router.get('/checkins', protect, listCheckIns);
+// List of everyone marked as joined so far — any authenticated admin.
+router.get('/joined', protect, listJoined);
 
-// Register a walk-in student (never registered online) and check them in
-// immediately — any authenticated admin (incl. viewer-role gate staff).
-router.post('/registrations/walk-in', protect, registerWalkIn);
-
-// Set guest count at the gate (spoken/typed during check-in) — any authenticated
-// admin, since gate staff may be viewer-role and this doesn't touch seat status.
-router.patch('/registrations/:id/guest-count', protect, setGuestCountAtGate);
+// Manual guest-count override (e.g. an unparsed WhatsApp reply) — any
+// authenticated admin; doesn't touch seat status.
+router.patch('/registrations/:id/guest-count', protect, setGuestCount);
 
 // Manual status changes require the "admin" role (not "viewer").
 router.patch('/registrations/:id/status', protect, requireAdminRole, updateRegistrationStatus);

@@ -1,5 +1,3 @@
-import { generateQrBuffer } from './qrcode.js';
-import { generateEventPass } from './eventPass.js';
 import Registration from '../models/Registration.js';
 
 /** Persist the outcome of a confirmation send so admins can see/resend failures
@@ -30,12 +28,18 @@ const trackResult = async (reg, result) => {
  *
  * ------------------------------------------------------------------------
  *  Business-initiated WhatsApp messages must use a PRE-APPROVED template.
- *  We send one template message whose HEADER is the entry QR (image) and
- *  whose BODY carries the registration details.
+ *  We send one plain-text template message (no header/image) whose BODY
+ *  carries the registration details.
  *
- *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v5
- *  (created 2026-08-08 via the Graph API directly; the WABA's normal
- *  create-template flow is documented below in case it ever needs recreating).
+ *  Current template: WHATSAPP_TEMPLATE_NAME=careerx_confirmation_v7
+ *
+ *  IMPORTANT — 2026-08-11: the event is a fully online conclave. There is no
+ *  physical entry gate, so v7 dropped both the QR/entry-pass image header
+ *  (v5/v6 had one) and the guest_count body variable (v6 already dropped
+ *  that), and swapped the old "Show the QR code at the entry desk" line for
+ *  a WhatsApp-group join line. See server/scripts/createConfirmationV6Template.js
+ *  (superseded, kept for history) — v6 was approved but still had an IMAGE
+ *  header, which the event no longer needed.
  *
  *  IMPORTANT — 2026-08-08 incident: the previously-configured template name
  *  (careerx_event_confirmation) never actually existed on the WhatsApp
@@ -63,27 +67,26 @@ const trackResult = async (reg, result) => {
  *    - Category: UTILITY as submitted (a URL button will cause Meta to
  *      reclassify to MARKETING regardless — see finding above; omit buttons
  *      to keep it UTILITY)
- *    - Header:   IMAGE
+ *    - Header:   none
  *    - parameter_format: NAMED, with a body using single `\n` line breaks only
  *      (confirmed 2026-08-08 that a blank `\n\n` line now triggers an instant
  *      INVALID_FORMAT rejection from Meta's automated review, even for
  *      previously-working template text — single `\n` breaks are fine) and
- *      6 NAMED variables (lowercase + underscores). Named `ticket_id` rather
+ *      5 NAMED variables (lowercase + underscores). Named `ticket_id` rather
  *      than `registration_code` deliberately — the word "code" next to a
  *      short value pattern-matches Meta's OTP/authentication detector:
- *        {{full_name}} {{ticket_id}} {{event_date}} {{event_time}}
- *        {{venue}} {{guest_count}}
+ *        {{full_name}} {{ticket_id}} {{event_date}} {{event_time}} {{venue}}
  *      Example body text (*bold* markers are WhatsApp's own formatting):
  *        "Hi *{{full_name}}*, your CareeRx seat is *CONFIRMED*
  *         *Ticket ID:* {{ticket_id}}
  *         *Date:* {{event_date}}
  *         *Time:* {{event_time}}
- *         *Venue:* {{venue}}
- *         *Guests Joining:* {{guest_count}}
- *         Show the QR code above at the entry desk. See you there!"
+ *         *Mode:* {{venue}}
+ *         Join our official WhatsApp group for the event link and updates:
+ *         https://chat.whatsapp.com/GfMbkxj71ym8gNDpuEe7Es"
  *    - Footer: "DOPA Coaching, Calicut"
- *    - No buttons (see category finding above). The QR is always the image
- *      header (top); the venue address is plain text, not a tappable link.
+ *    - No buttons (see category finding above) — the link is plain
+ *      tappable text, not a URL button.
  *
  *  NOTE: Meta template text is fixed once approved — this code's body
  *  parameters below must match whatever template WHATSAPP_TEMPLATE_NAME
@@ -142,8 +145,8 @@ const isReminderConfigured = () => !!(PHONE_NUMBER_ID() && ACCESS_TOKEN() && REM
 
 const EVENT = {
   date: process.env.EVENT_DATE || 'Thursday, 13 August 2026',
-  time: process.env.EVENT_TIME || '9:30 AM',
-  venue: process.env.EVENT_VENUE || 'Bhatia Hall, Kuttikatoor, Kozhikode',
+  time: process.env.EVENT_TIME || '10:00 AM',
+  venue: process.env.EVENT_VENUE || 'Online',
 };
 
 /**
@@ -159,31 +162,7 @@ export const toWhatsAppNumber = (mobile) => {
 };
 
 /**
- * Upload the QR PNG to Meta and return a reusable media id.
- * @param {Buffer} buffer
- * @param {string} filename
- * @returns {Promise<string>}
- */
-const uploadQrMedia = async (buffer, filename) => {
-  const form = new FormData();
-  form.append('messaging_product', 'whatsapp');
-  form.append('type', 'image/png');
-  form.append('file', new Blob([buffer], { type: 'image/png' }), filename);
-
-  const res = await fetch(`${GRAPH}/${API_VERSION()}/${PHONE_NUMBER_ID()}/media`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${ACCESS_TOKEN()}` },
-    body: form,
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json.id) {
-    throw new Error(`media upload failed (${res.status}): ${JSON.stringify(json.error || json).slice(0, 200)}`);
-  }
-  return json.id;
-};
-
-/**
- * Send the confirmation + QR to the registrant's WhatsApp, and persist the
+ * Send the confirmation to the registrant's WhatsApp, and persist the
  * outcome onto the registration (whatsappStatus/whatsappError/etc.) so a
  * failure is visible/resendable from the admin dashboard instead of only
  * ever being logged to the server console. Never throws.
@@ -220,21 +199,6 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
   }
 
   try {
-    // The header image is the branded entry pass (QR + details). If pass
-    // rendering ever fails, fall back to the bare QR so confirmations are never
-    // blocked by a rendering issue.
-    let imageBuffer;
-    try {
-      imageBuffer = await generateEventPass(reg);
-    } catch (err) {
-      console.warn(`[whatsapp] pass render failed, falling back to plain QR: ${err.message}`);
-      imageBuffer = await generateQrBuffer(reg.registrationNumber);
-    }
-    const mediaId = await uploadQrMedia(
-      imageBuffer,
-      `${String(reg.registrationNumber).replace(/\s+/g, '-')}-pass.png`
-    );
-
     const payload = {
       messaging_product: 'whatsapp',
       to,
@@ -243,7 +207,6 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
         name: TEMPLATE_NAME(),
         language: { code: TEMPLATE_LANG() },
         components: [
-          { type: 'header', parameters: [{ type: 'image', image: { id: mediaId } }] },
           {
             type: 'body',
             parameters: [
@@ -256,11 +219,6 @@ const sendConfirmationWhatsAppRaw = async (reg) => {
               { type: 'text', parameter_name: 'event_date', text: EVENT.date },
               { type: 'text', parameter_name: 'event_time', text: EVENT.time },
               { type: 'text', parameter_name: 'venue', text: EVENT.venue },
-              {
-                type: 'text',
-                parameter_name: 'guest_count',
-                text: String(Math.max(0, Math.trunc(Number(reg.guestCount) || 0))),
-              },
             ],
           },
         ],
