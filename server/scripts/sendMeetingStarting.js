@@ -45,6 +45,41 @@ const toWhatsAppNumber = (mobile) => {
   return digits.length === 10 ? `${COUNTRY_CODE}${digits}` : digits;
 };
 
+async function sendBroadcastReport({ total, sent, failed }) {
+  const adminNumber = process.env.BROADCAST_REPORT_NUMBER;
+  if (!adminNumber) return;
+  const templateName = process.env.WHATSAPP_BROADCAST_REPORT_TEMPLATE_NAME || 'careerx_broadcast_report_v1';
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: toWhatsAppNumber(adminNumber),
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: TEMPLATE_LANG },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', parameter_name: 'broadcast_name', text: 'meeting-starting' },
+            { type: 'text', parameter_name: 'total', text: String(total) },
+            { type: 'text', parameter_name: 'sent', text: String(sent) },
+            { type: 'text', parameter_name: 'failed', text: String(failed) },
+          ],
+        },
+      ],
+    },
+  };
+  const res = await fetch(`${GRAPH}/${API_VERSION}/${PHONE_NUMBER_ID}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!data?.messages?.[0]?.id) {
+    console.warn(`[meeting-starting] report send failed: ${data?.error?.message || 'unknown error'}`);
+  }
+}
+
 async function sendMeetingStartingTo(reg) {
   const payload = {
     messaging_product: 'whatsapp',
@@ -127,6 +162,7 @@ const run = async () => {
   }
 
   console.log(`\n[meeting-starting] Done. Sent: ${sent}, failed: ${failed}.`);
+  await sendBroadcastReport({ total: targets.length, sent, failed });
   await mongoose.connection.close();
   process.exit(0);
 };

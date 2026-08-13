@@ -71,6 +71,12 @@ services:
       # match the CRON_TRIGGER_SECRET GitHub Actions repo secret.
       - key: CRON_TRIGGER_SECRET
         sync: false
+      # Admin's own WhatsApp number — receives the automatic "broadcast
+      # finished" status report (careerx_broadcast_report_v1 template).
+      - key: BROADCAST_REPORT_NUMBER
+        value: "7306540341"
+      - key: WHATSAPP_BROADCAST_REPORT_TEMPLATE_NAME
+        value: careerx_broadcast_report_v1
       - key: EVENT_MAP_URL
         value: ""
       # --- Email (SMTP) — backup confirmation + organizer notification ---

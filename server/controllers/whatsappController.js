@@ -194,6 +194,59 @@ const sendMeetingStartingTo = async (reg) => {
 };
 
 /**
+ * Send the automatic "broadcast finished" status report to the admin's own
+ * WhatsApp number, via the approved careerx_broadcast_report_v1 template.
+ * Never throws — a report failure shouldn't mask the broadcast's own result
+ * in the HTTP response.
+ */
+const sendBroadcastReport = async (broadcastName, { total, sent, failed }) => {
+  const adminNumber = process.env.BROADCAST_REPORT_NUMBER;
+  if (!adminNumber) return;
+  const templateName = process.env.WHATSAPP_BROADCAST_REPORT_TEMPLATE_NAME || 'careerx_broadcast_report_v1';
+  const templateLang = process.env.WHATSAPP_TEMPLATE_LANG || 'en';
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: toWhatsAppNumber(adminNumber),
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: templateLang },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', parameter_name: 'broadcast_name', text: broadcastName },
+            { type: 'text', parameter_name: 'total', text: String(total) },
+            { type: 'text', parameter_name: 'sent', text: String(sent) },
+            { type: 'text', parameter_name: 'failed', text: String(failed) },
+          ],
+        },
+      ],
+    },
+  };
+  try {
+    const res = await fetch(
+      `${WHATSAPP_GRAPH}/${WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    const data = await res.json();
+    if (!data?.messages?.[0]?.id) {
+      console.error(`[broadcast-report] failed to send: ${data?.error?.message || 'unknown error'}`);
+    }
+  } catch (err) {
+    console.error(`[broadcast-report] failed to send: ${err.message}`);
+  }
+};
+
+/**
  * POST /api/whatsapp/trigger-meeting-starting?token=... — one-off, gated by
  * CRON_TRIGGER_SECRET (not admin login) so an external scheduler — GitHub
  * Actions cron, since this Render service has no built-in scheduler and the
@@ -237,6 +290,7 @@ export const triggerMeetingStarting = async (req, res) => {
   }
 
   console.log(`[meeting-starting] triggered via HTTP: sent=${sent} failed=${failures.length}`);
+  await sendBroadcastReport('meeting-starting', { total: targets.length, sent, failed: failures.length });
   return res.json({ success: true, total: targets.length, sent, failed: failures.length, failures });
 };
 
