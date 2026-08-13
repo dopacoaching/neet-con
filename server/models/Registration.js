@@ -97,6 +97,9 @@ const registrationSchema = new mongoose.Schema(
     // the original NEET CON invite) was sent, so sendNeetconCorrection.js is
     // safe to re-run.
     neetconCorrectionSentAt: { type: Date, default: null },
+    // Set when the "rescheduled to evening" one-off update (2026-08-13) was
+    // sent, so sendReschedule.js is safe to re-run.
+    rescheduleSentAt: { type: Date, default: null },
     // If a reply to that follow-up couldn't be parsed as a number (e.g. "hey
     // who's this" or a voice note), the raw text is stashed here so an admin
     // can read it and set guestCount manually instead of it silently vanishing.
