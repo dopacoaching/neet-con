@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import Registration from '../models/Registration.js';
+import Registration, { CURRENT_EVENT } from '../models/Registration.js';
 
 /** Reduce a WhatsApp "from" number (E.164, no +) to its 10-digit Indian core. */
 const normalizeMobileFromWhatsApp = (from) => {
@@ -135,6 +135,103 @@ export const debugRecent = (req, res) => {
   // Events contain recipient phone numbers — never cache.
   res.set('Cache-Control', 'no-store');
   return res.json({ success: true, count: RECENT.length, events: RECENT });
+};
+
+const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v21.0';
+const WHATSAPP_GRAPH = 'https://graph.facebook.com';
+
+const toWhatsAppNumber = (mobile) => {
+  const countryCode = process.env.WHATSAPP_COUNTRY_CODE || '91';
+  const digits = String(mobile || '').replace(/\D/g, '');
+  return digits.length === 10 ? `${countryCode}${digits}` : digits;
+};
+
+/**
+ * Send one "meeting starts in 15 minutes" reschedule-day reminder to a single
+ * registrant, via the approved WHATSAPP_MEETING_STARTING_TEMPLATE_NAME
+ * template. Shared by the one-off script (server/scripts/sendMeetingStarting.js)
+ * and the /trigger-meeting-starting endpoint below, so both stay in sync.
+ */
+const sendMeetingStartingTo = async (reg) => {
+  const templateName = process.env.WHATSAPP_MEETING_STARTING_TEMPLATE_NAME || 'careerx_meeting_starting_v1';
+  const templateLang = process.env.WHATSAPP_TEMPLATE_LANG || 'en';
+  const zoomLink =
+    process.env.MEETING_STARTING_ZOOM_LINK ||
+    'https://us06web.zoom.us/j/84104668901?pwd=MTNBItV4sbuiOUzQ1u7WWueG1DwNfG.1';
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: toWhatsAppNumber(reg.mobileNumber),
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: templateLang },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', parameter_name: 'full_name', text: String(reg.fullName) },
+            { type: 'text', parameter_name: 'ticket_id', text: String(reg.registrationNumber) },
+            { type: 'text', parameter_name: 'zoom_link', text: zoomLink },
+          ],
+        },
+      ],
+    },
+  };
+  const res = await fetch(
+    `${WHATSAPP_GRAPH}/${WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data = await res.json();
+  return { sent: !!data?.messages?.[0]?.id, reason: data?.error?.message || '' };
+};
+
+/**
+ * POST /api/whatsapp/trigger-meeting-starting?token=... — one-off, gated by
+ * CRON_TRIGGER_SECRET (not admin login) so an external scheduler — GitHub
+ * Actions cron, since this Render service has no built-in scheduler and the
+ * free plan can be asleep — can fire it at 7:15 PM IST 2026-08-13 without a
+ * browser session. Broadcasts the "meeting starts in 15 minutes" WhatsApp
+ * reminder to every confirmed CareerX registrant not yet sent one
+ * (meetingStartingSentAt null), querying fresh at call time so it also
+ * covers anyone who registers between now and the trigger.
+ */
+export const triggerMeetingStarting = async (req, res) => {
+  const secret = process.env.CRON_TRIGGER_SECRET;
+  const provided = req.query.token || req.get('x-cron-secret');
+  if (!secret || !safeEqual(provided, secret)) {
+    return res.sendStatus(403);
+  }
+
+  const targets = await Registration.find({
+    event: CURRENT_EVENT,
+    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+    registrationNumber: { $ne: null },
+    meetingStartingSentAt: null,
+  }).sort({ createdAt: 1 });
+
+  let sent = 0;
+  const failures = [];
+  for (const reg of targets) {
+    const result = await sendMeetingStartingTo(reg);
+    if (result.sent) {
+      await Registration.updateOne({ _id: reg._id }, { $set: { meetingStartingSentAt: new Date() } });
+      sent += 1;
+    } else {
+      failures.push({ registrationNumber: reg.registrationNumber, reason: result.reason });
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
+  console.log(`[meeting-starting] triggered via HTTP: sent=${sent} failed=${failures.length}`);
+  return res.json({ success: true, total: targets.length, sent, failed: failures.length, failures });
 };
 
 /** POST /api/whatsapp/webhook — status + inbound message events. */

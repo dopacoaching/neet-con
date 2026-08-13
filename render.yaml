@@ -61,6 +61,16 @@ services:
         value: Online
       - key: WHATSAPP_RESCHEDULE_TEMPLATE_NAME
         value: careerx_reschedule_evening_v1
+      - key: WHATSAPP_MEETING_STARTING_TEMPLATE_NAME
+        value: careerx_meeting_starting_v1
+      - key: MEETING_STARTING_ZOOM_LINK
+        value: "https://us06web.zoom.us/j/84104668901?pwd=MTNBItV4sbuiOUzQ1u7WWueG1DwNfG.1"
+      # Shared secret for POST /api/whatsapp/trigger-meeting-starting — lets
+      # the GitHub Actions cron job (.github/workflows/trigger-meeting-starting.yml)
+      # fire the 7:15 PM IST broadcast without an admin login session. Must
+      # match the CRON_TRIGGER_SECRET GitHub Actions repo secret.
+      - key: CRON_TRIGGER_SECRET
+        sync: false
       - key: EVENT_MAP_URL
         value: ""
       # --- Email (SMTP) — backup confirmation + organizer notification ---

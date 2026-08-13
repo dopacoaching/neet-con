@@ -1,0 +1,21 @@
+name: Trigger meeting-starting WhatsApp broadcast
+
+# One-off (2026-08-13): fires the "meeting starts in 15 minutes" reminder for
+# tonight's rescheduled CareerX Zoom event at 7:15 PM IST (13:45 UTC),
+# independent of any local machine/session. Safe to leave in place after —
+# the target endpoint is idempotent (only unsent registrants get a message).
+on:
+  schedule:
+    - cron: '45 13 13 8 *'
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call trigger-meeting-starting endpoint
+        run: |
+          curl -sS -X POST \
+            "https://neetcon-2026-api.onrender.com/api/whatsapp/trigger-meeting-starting" \
+            -H "x-cron-secret: ${{ secrets.CRON_TRIGGER_SECRET }}" \
+            --fail-with-body
