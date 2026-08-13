@@ -217,6 +217,12 @@ export const triggerMeetingStarting = async (req, res) => {
     meetingStartingSentAt: null,
   }).sort({ createdAt: 1 });
 
+  // Verifies the secret + eligible-recipient count without sending anything —
+  // use this to confirm CRON_TRIGGER_SECRET is wired up on Render before 7:15 PM.
+  if (req.query.dryRun === 'true') {
+    return res.json({ success: true, dryRun: true, eligible: targets.length });
+  }
+
   let sent = 0;
   const failures = [];
   for (const reg of targets) {
