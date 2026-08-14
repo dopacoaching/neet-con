@@ -25,9 +25,9 @@ services:
         sync: false # "email:password" bootstrap admin login(s)
       - key: CLIENT_URL
         sync: false # e.g. https://careerx.dopacoaching.com  (no trailing slash)
-      # CareerX registrations are open (free — no payment step).
+      # Closed 2026-08-13 — event has taken place.
       - key: REGISTRATIONS_OPEN
-        value: "true"
+        value: "false"
       # --- WhatsApp (Meta Cloud API) — primary confirmation channel ---
       - key: WHATSAPP_MOCK
         value: "false" # LIVE — real confirmation messages are sent
