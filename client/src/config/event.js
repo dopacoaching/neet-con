@@ -1,7 +1,7 @@
 // Central event details used across the public pages.
 export const EVENT_NAME = 'CareeRx';
 export const EVENT_TAGLINE = 'The Gateway to Medical Career';
-export const EVENT_DATE = 'Thursday, 13 August 2026';
+export const EVENT_DATE = 'Saturday, 15 August 2026';
 export const EVENT_TIME = '7:30 PM';
 export const VENUE_NAME = 'Online Conclave';
 

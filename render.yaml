@@ -25,9 +25,9 @@ services:
         sync: false # "email:password" bootstrap admin login(s)
       - key: CLIENT_URL
         sync: false # e.g. https://careerx.dopacoaching.com  (no trailing slash)
-      # Closed 2026-08-13 — event has taken place.
+      # Reopened 2026-08-13 — event rescheduled to 2026-08-15.
       - key: REGISTRATIONS_OPEN
-        value: "false"
+        value: "true"
       # --- WhatsApp (Meta Cloud API) — primary confirmation channel ---
       - key: WHATSAPP_MOCK
         value: "false" # LIVE — real confirmation messages are sent
@@ -54,7 +54,7 @@ services:
       # --- Event details (shown in confirmation message / email) ---
       # Online event — EVENT_MAP_URL is the join/meeting link; set once confirmed.
       - key: EVENT_DATE
-        value: Thursday, 13 August 2026
+        value: Saturday, 15 August 2026
       - key: EVENT_TIME
         value: 7:30 PM
       - key: EVENT_VENUE
