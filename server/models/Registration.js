@@ -107,6 +107,9 @@ const registrationSchema = new mongoose.Schema(
     // Set when the "CareeRx continues on Aug 15-16" one-off update was sent,
     // so sendContinuationUpdate.js is safe to re-run.
     continuationUpdateSentAt: { type: Date, default: null },
+    // Set when the "today's event starts at 7:30 PM" reminder (with poster
+    // image + Zoom link) was sent, so sendEventToday.js is safe to re-run.
+    eventTodaySentAt: { type: Date, default: null },
     // If a reply to that follow-up couldn't be parsed as a number (e.g. "hey
     // who's this" or a voice note), the raw text is stashed here so an admin
     // can read it and set guestCount manually instead of it silently vanishing.
