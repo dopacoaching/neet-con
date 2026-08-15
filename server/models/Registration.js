@@ -110,6 +110,11 @@ const registrationSchema = new mongoose.Schema(
     // Set when the "today's event starts at 7:30 PM" reminder (with poster
     // image + Zoom link) was sent, so sendEventToday.js is safe to re-run.
     eventTodaySentAt: { type: Date, default: null },
+    // Set when the "meeting starts in 15 minutes" reminder for the Aug 15
+    // occurrence was sent, so sendMeetingStartingV3.js is safe to re-run.
+    // Separate from meetingStartingSentAt (Aug 13) so repeat registrants
+    // still get this occurrence's reminder.
+    meetingStartingV3SentAt: { type: Date, default: null },
     // If a reply to that follow-up couldn't be parsed as a number (e.g. "hey
     // who's this" or a voice note), the raw text is stashed here so an admin
     // can read it and set guestCount manually instead of it silently vanishing.

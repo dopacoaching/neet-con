@@ -4,6 +4,7 @@ import {
   receiveWebhook,
   debugRecent,
   triggerMeetingStarting,
+  triggerMeetingStartingV3,
 } from '../controllers/whatsappController.js';
 
 const router = express.Router();
@@ -19,5 +20,9 @@ router.get('/debug', debugRecent);
 // CRON_TRIGGER_SECRET so an external scheduler (GitHub Actions cron) can
 // fire it at 7:15 PM IST without an admin login session.
 router.post('/trigger-meeting-starting', triggerMeetingStarting);
+
+// One-off (2026-08-15 occurrence): same pattern, new template/link/tracking
+// field so repeat registrants still get this occurrence's reminder.
+router.post('/trigger-meeting-starting-v3', triggerMeetingStartingV3);
 
 export default router;

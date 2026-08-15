@@ -77,6 +77,12 @@ services:
         value: "7306540341"
       - key: WHATSAPP_BROADCAST_REPORT_TEMPLATE_NAME
         value: careerx_broadcast_report_v1
+      # 2026-08-15 occurrence of the "meeting starts in 15 minutes" reminder
+      # (triggered via /api/whatsapp/trigger-meeting-starting-v3).
+      - key: WHATSAPP_MEETING_STARTING_V3_TEMPLATE_NAME
+        value: careerx_meeting_starting_v3
+      - key: MEETING_STARTING_V3_ZOOM_LINK
+        value: "https://us06web.zoom.us/j/82204853317?pwd=9S01oY7e9sZsgsI9tnCgT5OXWteVrg.1"
       - key: EVENT_MAP_URL
         value: ""
       # --- Email (SMTP) — backup confirmation + organizer notification ---
