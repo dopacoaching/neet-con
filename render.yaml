@@ -83,6 +83,20 @@ services:
         value: careerx_meeting_starting_v3
       - key: MEETING_STARTING_V3_ZOOM_LINK
         value: "https://us06web.zoom.us/j/82204853317?pwd=9S01oY7e9sZsgsI9tnCgT5OXWteVrg.1"
+      # 2026-08-17 occurrence: announcement (sent immediately to all confirmed
+      # registrants via server/scripts/sendEventTodayV2.js) and the "meeting
+      # starts in 15 minutes" reminder (triggered via
+      # /api/whatsapp/trigger-meeting-starting-v4). Both names/links also have
+      # matching in-code fallback defaults, so these entries are documentation
+      # — the endpoints work even if Render's dashboard hasn't synced them.
+      - key: WHATSAPP_EVENT_TODAY_V2_TEMPLATE_NAME
+        value: careerx_event_today_v2
+      - key: EVENT_TODAY_V2_ZOOM_LINK
+        value: "https://us06web.zoom.us/j/89112710120?pwd=FGv6atcI0h3YhtXCtn0s1lLUU3v2SV.1"
+      - key: WHATSAPP_MEETING_STARTING_V4_TEMPLATE_NAME
+        value: careerx_meeting_starting_v4
+      - key: MEETING_STARTING_V4_ZOOM_LINK
+        value: "https://us06web.zoom.us/j/89112710120?pwd=FGv6atcI0h3YhtXCtn0s1lLUU3v2SV.1"
       - key: EVENT_MAP_URL
         value: ""
       # --- Email (SMTP) — backup confirmation + organizer notification ---
