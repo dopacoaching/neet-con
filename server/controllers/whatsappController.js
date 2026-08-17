@@ -242,6 +242,53 @@ const sendMeetingStartingV3To = async (reg) => {
 };
 
 /**
+ * Send one "meeting starts in 15 minutes" reminder for the Aug 17 occurrence,
+ * via the approved WHATSAPP_MEETING_STARTING_V4_TEMPLATE_NAME template
+ * (meeting ID/passcode are static text baked into that template's body, same
+ * pattern as v1/v3).
+ */
+const sendMeetingStartingV4To = async (reg) => {
+  const templateName = process.env.WHATSAPP_MEETING_STARTING_V4_TEMPLATE_NAME || 'careerx_meeting_starting_v4';
+  const templateLang = process.env.WHATSAPP_TEMPLATE_LANG || 'en';
+  const zoomLink =
+    process.env.MEETING_STARTING_V4_ZOOM_LINK ||
+    'https://us06web.zoom.us/j/89112710120?pwd=FGv6atcI0h3YhtXCtn0s1lLUU3v2SV.1';
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: toWhatsAppNumber(reg.mobileNumber),
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: templateLang },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', parameter_name: 'full_name', text: String(reg.fullName) },
+            { type: 'text', parameter_name: 'ticket_id', text: String(reg.registrationNumber) },
+            { type: 'text', parameter_name: 'zoom_link', text: zoomLink },
+          ],
+        },
+      ],
+    },
+  };
+  const res = await fetch(
+    `${WHATSAPP_GRAPH}/${WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data = await res.json();
+  return { sent: !!data?.messages?.[0]?.id, reason: data?.error?.message || '' };
+};
+
+/**
  * Send the automatic "broadcast finished" status report to the admin's own
  * WhatsApp number, via the approved careerx_broadcast_report_v1 template.
  * Never throws — a report failure shouldn't mask the broadcast's own result
@@ -381,6 +428,48 @@ export const triggerMeetingStartingV3 = async (req, res) => {
 
   console.log(`[meeting-starting-v3] triggered via HTTP: sent=${sent} failed=${failures.length}`);
   await sendBroadcastReport('meeting-starting-v3', { total: targets.length, sent, failed: failures.length });
+  return res.json({ success: true, total: targets.length, sent, failed: failures.length, failures });
+};
+
+/**
+ * POST /api/whatsapp/trigger-meeting-starting-v4?token=... — same pattern as
+ * triggerMeetingStarting/triggerMeetingStartingV3 above, for the Aug 17
+ * occurrence (7:15 PM IST 2026-08-17). Uses meetingStartingV4SentAt so
+ * repeat registrants from earlier occurrences still get this one.
+ */
+export const triggerMeetingStartingV4 = async (req, res) => {
+  const secret = process.env.CRON_TRIGGER_SECRET;
+  const provided = req.query.token || req.get('x-cron-secret');
+  if (!secret || !safeEqual(provided, secret)) {
+    return res.sendStatus(403);
+  }
+
+  const targets = await Registration.find({
+    event: CURRENT_EVENT,
+    paymentStatus: { $in: Registration.SEAT_HOLDING_STATUSES },
+    registrationNumber: { $ne: null },
+    meetingStartingV4SentAt: null,
+  }).sort({ createdAt: 1 });
+
+  if (req.query.dryRun === 'true') {
+    return res.json({ success: true, dryRun: true, eligible: targets.length });
+  }
+
+  let sent = 0;
+  const failures = [];
+  for (const reg of targets) {
+    const result = await sendMeetingStartingV4To(reg);
+    if (result.sent) {
+      await Registration.updateOne({ _id: reg._id }, { $set: { meetingStartingV4SentAt: new Date() } });
+      sent += 1;
+    } else {
+      failures.push({ registrationNumber: reg.registrationNumber, reason: result.reason });
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
+  console.log(`[meeting-starting-v4] triggered via HTTP: sent=${sent} failed=${failures.length}`);
+  await sendBroadcastReport('meeting-starting-v4', { total: targets.length, sent, failed: failures.length });
   return res.json({ success: true, total: targets.length, sent, failed: failures.length, failures });
 };
 

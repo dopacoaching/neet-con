@@ -5,6 +5,7 @@ import {
   debugRecent,
   triggerMeetingStarting,
   triggerMeetingStartingV3,
+  triggerMeetingStartingV4,
 } from '../controllers/whatsappController.js';
 
 const router = express.Router();
@@ -24,5 +25,9 @@ router.post('/trigger-meeting-starting', triggerMeetingStarting);
 // One-off (2026-08-15 occurrence): same pattern, new template/link/tracking
 // field so repeat registrants still get this occurrence's reminder.
 router.post('/trigger-meeting-starting-v3', triggerMeetingStartingV3);
+
+// One-off (2026-08-17 occurrence): same pattern, new template/link/tracking
+// field so repeat registrants still get this occurrence's reminder.
+router.post('/trigger-meeting-starting-v4', triggerMeetingStartingV4);
 
 export default router;
